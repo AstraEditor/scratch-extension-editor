@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Scratch Extension Editor - 示例</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+      background-color: #1e1e1e;
+      color: #ffffff;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    #header {
+      background-color: #2d2d2d;
+      padding: 16px 24px;
+      border-bottom: 1px solid #3e3e3e;
+    }
+    #header h1 {
+      font-size: 24px;
+      font-weight: 600;
+    }
+    #header p {
+      margin-top: 8px;
+      color: #888;
+      font-size: 14px;
+    }
+    #editor {
+      flex: 1;
+      height: calc(100vh - 80px);
+    }
+    #error {
+      display: none;
+      padding: 20px;
+      color: #ff6b6b;
+      background-color: #2d2d2d;
+    }
+  </style>
+</head>
+<body>
+  <div id="header">
+    <h1>Scratch Extension Editor</h1>
+    <p>一站式扩展开发编辑器 - 示例页面</p>
+  </div>
+  <div id="error"></div>
+  <div id="editor"></div>
+
+  <script src="/dist/index.js"></script>
+  <script>
+    window.addEventListener('DOMContentLoaded', function() {
+      try {
+        console.log('window.ScratchExtensionEditor:', window.ScratchExtensionEditor);
+        
+        const ExtensionEditor = window.ScratchExtensionEditor.default;
+        const ReactDOM = window.ScratchExtensionEditor.ReactDOM;
+        const React = window.ScratchExtensionEditor.React;
+        
+        console.log('ReactDOM:', ReactDOM);
+        console.log('React:', React);
+        
+        // 创建包装组件
+        const App = () => {
+          return React.createElement(ExtensionEditor, {
+            vm: null,
+            onCodeChange: (code) => console.log('代码已更新:', code),
+            onRun: (code) => alert('扩展代码已准备好运行！')
+          });
+        };
+        
+        console.log('开始渲染...');
+        ReactDOM.render(React.createElement(App), document.getElementById('editor'));
+        console.log('渲染完成');
+      } catch (error) {
+        console.error('加载失败:', error);
+        const errorDiv = document.getElementById('error');
+        errorDiv.style.display = 'block';
+        errorDiv.innerHTML = `
+          <h3>加载失败</h3>
+          <p><strong>错误信息:</strong> ${error.message}</p>
+          <pre style="background: #3e3e3e; padding: 10px; overflow: auto; max-height: 300px;">${error.stack}</pre>
+        `;
+      }
+    });
+  </script>
+</body>
+</html>
