@@ -1,6 +1,6 @@
 .extension-editor-settings-content {
-  background: #292929;
-  color: #ffffff;
+  background: var(--ui-modal-background);
+  color: var(--ui-modal-foreground);
   height: 100%;
 }
 
@@ -15,7 +15,7 @@
   margin: 0.5rem 0 0.75rem 0;
   font-size: 1rem;
   font-weight: bold;
-  color: #ffffff;
+  color: var(--ui-modal-foreground);
 }
 
 .extension-editor-settings-setting {
@@ -28,19 +28,19 @@
 
 .extension-editor-settings-setting:hover,
 .extension-editor-settings-setting:focus-within {
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--ui-tertiary);
 }
 
 .extension-editor-settings-label {
   display: block;
   margin-bottom: 0.5rem;
   font-size: 0.875rem;
-  color: #ffffff;
+  color: var(--ui-modal-foreground);
 }
 
 .extension-editor-settings-value {
   float: right;
-  color: #ff6680;
+  color: var(--looks-secondary);
   font-weight: bold;
 }
 
@@ -50,7 +50,7 @@
   cursor: pointer;
   height: 6px;
   border-radius: 3px;
-  background: #4a4a4a;
+  background: var(--ui-secondary);
   outline: none;
   -webkit-appearance: none;
 }
@@ -61,7 +61,7 @@
   width: 18px;
   height: 18px;
   border-radius: 50%;
-  background: #ff6680;
+  background: var(--looks-secondary);
   cursor: pointer;
 }
 
@@ -69,7 +69,7 @@
   width: 18px;
   height: 18px;
   border-radius: 50%;
-  background: #ff6680;
+  background: var(--looks-secondary);
   cursor: pointer;
   border: none;
 }
@@ -78,28 +78,28 @@
   width: 100%;
   height: 6px;
   border-radius: 3px;
-  background: #4a4a4a;
+  background: var(--ui-secondary);
 }
 
 .extension-editor-settings-range::-moz-range-track {
   width: 100%;
   height: 6px;
   border-radius: 3px;
-  background: #4a4a4a;
+  background: var(--ui-secondary);
 }
 
 .extension-editor-settings-footer {
   padding: 1rem 2.25rem;
-  border-top: 1px solid #4a4a4a;
+  border-top: 1px solid var(--ui-secondary);
   display: flex;
   justify-content: flex-end;
-  background: #292929;
+  background: var(--ui-modal-background);
 }
 
 .extension-editor-settings-button {
   font-family: inherit;
   font-size: 14px;
-  background-color: #ff6680;
+  background-color: var(--looks-secondary);
   color: white;
   border: none;
   padding: 0.5rem 1rem;

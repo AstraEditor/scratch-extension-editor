@@ -58,11 +58,25 @@ class ExtensionEditor extends React.Component {
   componentDidUpdate(prevProps) {
     // 当initialCode变化时（例如切换标签卡），更新编辑器内容
     if (prevProps.initialCode !== this.props.initialCode) {
-      // 强制更新编辑器内容
-      if (this.editor) {
-        this.editor.setValue(this.props.initialCode || getDefaultTemplate());
+      const newCode = this.props.initialCode || getDefaultTemplate();
+      const currentCode = this.editor ? this.editor.getValue() : this.state.code;
+      
+      // 只有在内容确实不同时才更新编辑器，避免不必要的重置
+      if (currentCode !== newCode) {
+        if (this.editor) {
+          // 保存当前光标位置
+          const position = this.editor.getPosition();
+          
+          // 更新编辑器内容
+          this.editor.setValue(newCode);
+          
+          // 恢复光标位置（如果可能）
+          if (position) {
+            this.editor.setPosition(position);
+          }
+        }
+        this.setState({ code: newCode });
       }
-      this.setState({ code: this.props.initialCode || getDefaultTemplate() });
     }
     if (prevProps.fontSize !== this.props.fontSize && this.editor) {
       this.setState({ fontSize: this.props.fontSize });
@@ -203,6 +217,15 @@ class ExtensionEditor extends React.Component {
             style={{ width: '100%', height: '100%' }}
           />
         </div>
+        {this.props.onToggleWizard && (
+          <button
+            className="extension-wizard-toggle"
+            onClick={this.props.onToggleWizard}
+            title={this.props.wizardActive ? "切换到积木预览" : "切换到制作向导"}
+          >
+            <span className="extension-wizard-toggle-icon">{this.props.wizardActive ? '🧱' : '📖'}</span>
+          </button>
+        )}
       </div>
     );
   }
@@ -277,7 +300,9 @@ ExtensionEditor.propTypes = {
   onRun: PropTypes.func,
   onOpenExtensionEditorSettings: PropTypes.func,
   fontSize: PropTypes.number,
-  onFontSizeChange: PropTypes.func
+  onFontSizeChange: PropTypes.func,
+  onToggleWizard: PropTypes.func,
+  wizardActive: PropTypes.bool
 };
 
 export default ExtensionEditor;

@@ -14,3 +14,31 @@
 .extension-editor-wrapper .monaco-editor {
   height: 100% !important;
 }
+
+.extension-wizard-toggle {
+    position: absolute;
+    bottom: 0.75rem;
+    left: 0.75rem;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: 100%;
+    background: var(--looks-secondary, #ff6680);
+    color: white;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 0 4px var(--looks-transparent, rgba(255, 102, 128, 0.3));
+    z-index: 1000;
+    transition: transform, box-shadow 0.2s;
+}
+
+.extension-wizard-toggle:hover {
+    transform: scale(1.1);
+    box-shadow: 0 0 0 6px var(--looks-transparent, rgba(255, 102, 128, 0.3));
+}
+
+.extension-wizard-toggle-icon {
+    font-size: 1.5rem;
+}

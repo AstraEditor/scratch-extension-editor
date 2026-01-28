@@ -1,6 +1,8 @@
 import ExtensionEditor from './components/ExtensionEditor';
 import ExtensionEditorSettingsContent from './components/ExtensionEditorSettingsContent';
 import ExtensionEditorCreateContent from './components/ExtensionEditorCreateContent';
+import ExtensionEditorStorageContent from './components/ExtensionEditorStorageContent';
+import ExtensionEditorWizardPanel from './components/ExtensionEditorWizardPanel';
 import extensionEditorStorage from './lib/extension-editor-storage';
 import React from 'react';
 import ReactDOM from 'react-dom';
@@ -11,6 +13,8 @@ export default ExtensionEditor;
 export { 
   ExtensionEditorSettingsContent, 
   ExtensionEditorCreateContent, 
+  ExtensionEditorStorageContent,
+  ExtensionEditorWizardPanel,
   extensionEditorStorage 
 };
 
