@@ -1,8 +1,18 @@
 import ExtensionEditor from './components/ExtensionEditor';
+import ExtensionEditorSettingsContent from './components/ExtensionEditorSettingsContent';
+import ExtensionEditorCreateContent from './components/ExtensionEditorCreateContent';
+import extensionEditorStorage from './lib/extension-editor-storage';
 import React from 'react';
 import ReactDOM from 'react-dom';
 
 export default ExtensionEditor;
+
+// 导出所有组件和服务
+export { 
+  ExtensionEditorSettingsContent, 
+  ExtensionEditorCreateContent, 
+  extensionEditorStorage 
+};
 
 // 导出 React 和 ReactDOM 供示例页面使用
 export { React, ReactDOM };

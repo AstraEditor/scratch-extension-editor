@@ -1,0 +1,128 @@
+.extension-editor-settings-content {
+  background: #292929;
+  color: #ffffff;
+  height: 100%;
+}
+
+.extension-editor-settings-body {
+  padding: 1.5rem 2.25rem;
+  min-height: 150px;
+  max-height: calc(100vh - 250px);
+  overflow-y: auto;
+}
+
+.extension-editor-settings-section h3 {
+  margin: 0.5rem 0 0.75rem 0;
+  font-size: 1rem;
+  font-weight: bold;
+  color: #ffffff;
+}
+
+.extension-editor-settings-setting {
+  display: flex;
+  flex-direction: column;
+  padding: 0.5rem 1rem;
+  margin: 0.25rem 0;
+  border-radius: 4px;
+}
+
+.extension-editor-settings-setting:hover,
+.extension-editor-settings-setting:focus-within {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.extension-editor-settings-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+  color: #ffffff;
+}
+
+.extension-editor-settings-value {
+  float: right;
+  color: #ff6680;
+  font-weight: bold;
+}
+
+.extension-editor-settings-range {
+  width: 100%;
+  margin-top: 0.5rem;
+  cursor: pointer;
+  height: 6px;
+  border-radius: 3px;
+  background: #4a4a4a;
+  outline: none;
+  -webkit-appearance: none;
+}
+
+.extension-editor-settings-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #ff6680;
+  cursor: pointer;
+}
+
+.extension-editor-settings-range::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #ff6680;
+  cursor: pointer;
+  border: none;
+}
+
+.extension-editor-settings-range::-webkit-slider-runnable-track {
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  background: #4a4a4a;
+}
+
+.extension-editor-settings-range::-moz-range-track {
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  background: #4a4a4a;
+}
+
+.extension-editor-settings-footer {
+  padding: 1rem 2.25rem;
+  border-top: 1px solid #4a4a4a;
+  display: flex;
+  justify-content: flex-end;
+  background: #292929;
+}
+
+.extension-editor-settings-button {
+  font-family: inherit;
+  font-size: 14px;
+  background-color: #ff6680;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  margin: 0;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: filter 0.2s ease;
+}
+
+.extension-editor-settings-button:hover {
+  filter: brightness(1.2);
+}
+
+.extension-editor-settings-button:active,
+.extension-editor-settings-button:focus-within {
+  box-shadow: 0 0 0 3px rgba(255, 102, 128, 0.3);
+  filter: brightness(0.8);
+}
+
+/* For small screens, such as in the embed */
+@media (max-height: 600px) {
+  .extension-editor-settings-body {
+    max-height: calc(100vh - 150px);
+  }
+}
