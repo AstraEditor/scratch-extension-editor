@@ -1,7 +1,9 @@
 import PropTypes from 'prop-types';
 import React from 'react';
-import {defineMessages, FormattedMessage, injectIntl, intlShape} from 'react-intl';
+import {defineMessages, FormattedMessage} from 'react-intl';
 import './extension-editor-create-content.css';
+
+const defaultFormatMessage = (message) => message.defaultMessage || '';
 
 const messages = defineMessages({
     nameLabel: {
@@ -72,6 +74,11 @@ const messages = defineMessages({
 });
 
 class ExtensionEditorCreateContent extends React.Component {
+    constructor(props) {
+        super(props);
+        this.formatMessage = props.formatMessage || defaultFormatMessage;
+    }
+
     handleNameChange = (name) => {
         // Auto-generate ID from name if ID is empty
         const newId = this.state.id === '' && name ? 
@@ -106,7 +113,7 @@ class ExtensionEditorCreateContent extends React.Component {
                             <input
                                 type="text"
                                 className="extension-editor-create-input"
-                                placeholder={this.props.intl.formatMessage(messages.namePlaceholder)}
+                                placeholder={this.formatMessage(messages.namePlaceholder)}
                                 value={this.props.name}
                                 onChange={(e) => this.handleNameChange(e.target.value)}
                                 onKeyPress={this.handleKeyPress}
@@ -123,7 +130,7 @@ class ExtensionEditorCreateContent extends React.Component {
                             <input
                                 type="text"
                                 className="extension-editor-create-input"
-                                placeholder={this.props.intl.formatMessage(messages.idPlaceholder)}
+                                placeholder={this.formatMessage(messages.idPlaceholder)}
                                 value={this.props.id}
                                 onChange={(e) => this.handleIdChange(e.target.value)}
                                 onKeyPress={this.handleKeyPress}
@@ -199,7 +206,7 @@ class ExtensionEditorCreateContent extends React.Component {
 }
 
 ExtensionEditorCreateContent.propTypes = {
-    intl: intlShape,
+    formatMessage: PropTypes.func,
     name: PropTypes.string,
     id: PropTypes.string,
     colors: PropTypes.object,
@@ -211,4 +218,4 @@ ExtensionEditorCreateContent.propTypes = {
     onCancel: PropTypes.func
 };
 
-export default injectIntl(ExtensionEditorCreateContent);
+export default ExtensionEditorCreateContent;

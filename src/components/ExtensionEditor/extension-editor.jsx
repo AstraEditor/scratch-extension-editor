@@ -3,6 +3,9 @@ import PropTypes from 'prop-types';
 import * as monaco from 'monaco-editor';
 import './extension-editor.css';
 
+import tutorial from './tutorial.png';
+import blocks from './blocks.svg';
+
 class ExtensionEditor extends React.Component {
   constructor(props) {
     super(props);
@@ -223,7 +226,7 @@ class ExtensionEditor extends React.Component {
             onClick={this.props.onToggleWizard}
             title={this.props.wizardActive ? "切换到积木预览" : "切换到制作向导"}
           >
-            <span className="extension-wizard-toggle-icon">{this.props.wizardActive ? '🧱' : '📖'}</span>
+            <img className="extension-wizard-toggle-icon" src={this.props.wizardActive ? blocks : tutorial}/>
           </button>
         )}
       </div>

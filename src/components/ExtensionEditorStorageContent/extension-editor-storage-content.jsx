@@ -1,7 +1,9 @@
 import PropTypes from 'prop-types';
 import React from 'react';
-import { defineMessages, FormattedMessage, injectIntl, intlShape } from 'react-intl';
+import { defineMessages, FormattedMessage } from 'react-intl';
 import './extension-editor-storage-content.css';
+
+const defaultFormatMessage = (message) => message.defaultMessage || '';
 
 const messages = defineMessages({
     storedExtensions: {
@@ -42,6 +44,11 @@ const messages = defineMessages({
 });
 
 class ExtensionEditorStorageContent extends React.Component {
+    constructor(props) {
+        super(props);
+        this.formatMessage = props.formatMessage || defaultFormatMessage;
+    }
+
     handleDeleteFromStorage = async (extensionId) => {
         if (this.props.onDeleteFromStorage) {
             await this.props.onDeleteFromStorage(extensionId);
@@ -49,7 +56,7 @@ class ExtensionEditorStorageContent extends React.Component {
     };
 
     handleClearAllStorage = async () => {
-        if (!confirm(this.props.intl.formatMessage(messages.clearAll) + '?')) {
+        if (!confirm(this.formatMessage(messages.clearAll) + '?')) {
             return;
         }
         
@@ -125,7 +132,7 @@ class ExtensionEditorStorageContent extends React.Component {
 }
 
 ExtensionEditorStorageContent.propTypes = {
-    intl: intlShape,
+    formatMessage: PropTypes.func,
     onClose: PropTypes.func,
     savedExtensions: PropTypes.arrayOf(PropTypes.shape({
         id: PropTypes.string.isRequired,
@@ -138,4 +145,4 @@ ExtensionEditorStorageContent.propTypes = {
     onClearAllStorage: PropTypes.func
 };
 
-export default injectIntl(ExtensionEditorStorageContent);
+export default ExtensionEditorStorageContent;

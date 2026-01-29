@@ -6,6 +6,8 @@
     width: 100%;
     background: var(--ui-modal-background);
     color: var(--ui-modal-foreground);
+    position: relative;
+    z-index: 1;
 }
 
 .extension-wizard-categories {
@@ -42,6 +44,8 @@
     flex: 1;
     display: flex;
     overflow: hidden;
+    min-height: 0;
+    max-height: calc(100vh - 130px);
 }
 
 .extension-wizard-sidebar {
@@ -57,7 +61,7 @@
     padding: 0.75rem 1rem;
     font-size: 0.75rem;
     font-weight: bold;
-    color: var(--ui-secondary);
+    color: var(--ui-modal-foreground);
     border-bottom: 1px solid var(--ui-secondary);
     text-transform: uppercase;
     letter-spacing: 0.05em;
@@ -153,39 +157,109 @@
     margin-bottom: 0;
 }
 
-.extension-wizard-tutorial-section h3 {
-    margin: 0 0 0.5rem 0;
+/* Markdown 样式 */
+.extension-wizard-markdown {
+    font-size: 0.75rem;
+    line-height: 1.6;
+    color: var(--ui-modal-foreground);
+}
+
+.extension-wizard-markdown h1 {
+    font-size: 1.125rem;
+    font-weight: bold;
+    margin: 1.25rem 0 0.75rem 0;
+    color: var(--ui-modal-foreground);
+    border-bottom: 2px solid var(--ui-secondary);
+    padding-bottom: 0.375rem;
+}
+
+.extension-wizard-markdown h2 {
+    font-size: 1rem;
+    font-weight: bold;
+    margin: 1rem 0 0.625rem 0;
+    color: var(--ui-modal-foreground);
+}
+
+.extension-wizard-markdown h3 {
     font-size: 0.875rem;
     font-weight: bold;
+    margin: 0.875rem 0 0.5rem 0;
     color: var(--ui-modal-foreground);
 }
 
-.extension-wizard-tutorial-section h4 {
-    margin: 0 0 0.375rem 0;
+.extension-wizard-markdown h4 {
     font-size: 0.8125rem;
     font-weight: 600;
+    margin: 0.75rem 0 0.375rem 0;
     color: var(--ui-modal-foreground);
 }
 
-.extension-wizard-tutorial-section p {
-    margin: 0 0 0.5rem 0;
-    font-size: 0.75rem;
-    line-height: 1.5;
-    color: var(--ui-secondary);
+.extension-wizard-markdown p {
+    margin: 0 0 0.625rem 0;
+    color: var(--ui-modal-foreground);
 }
 
-.extension-wizard-tutorial-code {
+.extension-wizard-markdown ul,
+.extension-wizard-markdown ol {
+    margin: 0 0 0.625rem 0;
+    padding-left: 1.5rem;
+    color: var(--ui-modal-foreground);
+}
+
+.extension-wizard-markdown li {
+    margin: 0.25rem 0;
+}
+
+.extension-wizard-markdown li strong {
+    color: var(--looks-primary);
+}
+
+.extension-wizard-markdown strong {
+    font-weight: 600;
+    color: var(--looks-primary);
+}
+
+.extension-wizard-markdown em {
+    font-style: italic;
+}
+
+.extension-wizard-markdown blockquote {
+    margin: 0.625rem 0;
+    padding: 0.5rem 0.75rem;
+    border-left: 3px solid var(--looks-secondary);
+    background: var(--ui-tertiary);
+    color: var(--ui-modal-foreground);
+}
+
+.extension-wizard-markdown hr {
+    margin: 1rem 0;
+    border: none;
+    border-top: 1px solid var(--ui-secondary);
+}
+
+.extension-wizard-markdown code {
+    background: var(--ui-primary);
+    color: var(--ui-modal-foreground);
+    padding: 0.125rem 0.375rem;
+    border-radius: 3px;
+    font-size: 0.6875rem;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', monospace;
+}
+
+.extension-wizard-markdown pre {
     background: var(--ui-primary);
     color: var(--ui-modal-foreground);
     padding: 0.75rem;
     border-radius: 4px;
-    font-size: 0.6875rem;
-    line-height: 1.5;
     overflow-x: auto;
-    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', monospace;
+    margin: 0.625rem 0;
 }
 
-.extension-wizard-tutorial-code code {
+.extension-wizard-markdown pre code {
+    background: none;
+    padding: 0;
+    font-size: 0.6875rem;
+    line-height: 1.5;
     display: block;
 }
 

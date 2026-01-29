@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import React from 'react';
-import {defineMessages, FormattedMessage, injectIntl, intlShape} from 'react-intl';
+import {defineMessages, FormattedMessage} from 'react-intl';
 import './extension-editor-settings-content.css';
 
 const messages = defineMessages({
@@ -66,10 +66,9 @@ class ExtensionEditorSettingsContent extends React.Component {
 }
 
 ExtensionEditorSettingsContent.propTypes = {
-    intl: intlShape,
     onClose: PropTypes.func,
     fontSize: PropTypes.number,
     onFontSizeChange: PropTypes.func
 };
 
-export default injectIntl(ExtensionEditorSettingsContent);
+export default ExtensionEditorSettingsContent;

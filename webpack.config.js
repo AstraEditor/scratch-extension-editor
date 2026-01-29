@@ -45,6 +45,14 @@ module.exports = {
       {
         test: /\.ttf$/,
         type: 'asset/resource'
+      },
+      {
+        test: /\.(png|jpg|jpeg|gif|webp|svg)$/,
+        type: 'asset/resource'
+      },
+      {
+        test: /\.md$/,
+        use: 'raw-loader'
       }
     ]
   },
