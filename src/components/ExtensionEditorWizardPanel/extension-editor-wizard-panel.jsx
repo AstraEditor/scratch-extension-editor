@@ -1,8 +1,22 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import ReactMarkdown from 'react-markdown';
+import { defineMessages } from 'react-intl';
 import tutorialsMarkdown from '../../lib/tutorials.md';
 import './extension-editor-wizard-panel.css';
+
+const messages = defineMessages({
+    chapterDefault: {
+        defaultMessage: 'Chapter {number}',
+        description: 'Default chapter title when no title is provided',
+        id: 'tw.extensionEditorTabs.chapterDefault'
+    },
+    comingSoon: {
+        defaultMessage: 'Coming Soon',
+        description: 'Message shown when no tutorial is available',
+        id: 'tw.extensionEditorTabs.comingSoon'
+    }
+});
 
 class ExtensionEditorWizardPanel extends React.Component {
     constructor(props) {
@@ -32,7 +46,13 @@ class ExtensionEditorWizardPanel extends React.Component {
 
             if (line.match(/^#\s+[^#]/)) {
                 // 一级标题 = 分类
-                if (currentTutorial) tutorials.push(currentTutorial);
+                if (currentTutorial) {
+                    if (currentSection) {
+                        currentTutorial.sections.push(currentSection);
+                    }
+                    currentCategory.tutorials.push(currentTutorial);
+                    tutorials.push(currentTutorial);
+                }
                 if (currentCategory) categories.push(currentCategory);
                 
                 const title = trimmedLine.replace(/^#\s+/, '');
@@ -44,6 +64,9 @@ class ExtensionEditorWizardPanel extends React.Component {
             } else if (line.match(/^##\s+/) && currentCategory) {
                 // 二级标题 = 教程
                 if (currentTutorial) {
+                    if (currentSection) {
+                        currentTutorial.sections.push(currentSection);
+                    }
                     currentCategory.tutorials.push(currentTutorial);
                     tutorials.push(currentTutorial);
                 }
@@ -59,18 +82,24 @@ class ExtensionEditorWizardPanel extends React.Component {
                 
             } else if (line.match(/^###\s+/) && currentTutorial) {
                 // 三级标题 = 章节
+                if (currentSection) {
+                    currentTutorial.sections.push(currentSection);
+                }
+                
                 const title = trimmedLine.replace(/^###\s+/, '');
                 currentSection = { title, content: [] };
-                currentTutorial.sections.push(currentSection);
                 
             } else if (currentSection) {
-                // 章节内容
+                // 章节内容（包括所有更低级别的标题和内容）
                 currentSection.content.push(line);
             }
         }
 
         // 保存最后的内容
         if (currentTutorial) {
+            if (currentSection) {
+                currentTutorial.sections.push(currentSection);
+            }
             currentCategory.tutorials.push(currentTutorial);
             tutorials.push(currentTutorial);
         }
@@ -107,6 +136,8 @@ class ExtensionEditorWizardPanel extends React.Component {
         const categoryTutorials = tutorials.filter(t => t.category === wizardCategory);
         const currentTutorial = tutorials.find(t => t.id === wizardTutorial);
         const currentCategory = categories.find(c => c.id === wizardCategory);
+        const intl = this.props.intl;
+        const formatMessage = intl ? intl.formatMessage : (msg) => msg.defaultMessage;
 
         return (
             <div className="extension-wizard-panel">
@@ -154,7 +185,7 @@ class ExtensionEditorWizardPanel extends React.Component {
                                         className={`extension-wizard-chapter ${wizardChapter === index ? 'extension-wizard-chapter-active' : ''}`}
                                         onClick={() => this.handleChapterChange(index)}
                                     >
-                                        {section.title || `章节 ${index + 1}`}
+                                        {section.title || formatMessage(messages.chapterDefault, { number: index + 1 })}
                                     </button>
                                 ))}
                             </div>
@@ -195,7 +226,7 @@ class ExtensionEditorWizardPanel extends React.Component {
                                 ))
                             ) : (
                                 <div className="extension-wizard-chapter-content-empty">
-                                    Coming Soon
+                                    {formatMessage(messages.comingSoon)}
                                 </div>
                             )}
                         </div>
@@ -212,7 +243,8 @@ ExtensionEditorWizardPanel.propTypes = {
     initialChapter: PropTypes.number,
     onCategoryChange: PropTypes.func,
     onTutorialChange: PropTypes.func,
-    onChapterChange: PropTypes.func
+    onChapterChange: PropTypes.func,
+    intl: PropTypes.object
 };
 
 export default ExtensionEditorWizardPanel;

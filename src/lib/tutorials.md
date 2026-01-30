@@ -1,18 +1,10 @@
-# Basic Tutorial
+# 了解
 
 ## 什么是 Scratch 扩展？
 
+### 什么是 Scratch 扩展？
+
 Scratch 扩展是通过 JavaScript 编写的模块，可以为 Scratch 添加全新的功能和积木。扩展可以访问 Scratch 虚拟机的 API，与角色、变量、舞台等进行交互。
-
-### 扩展类型
-
-Scratch 支持四种类型的扩展：
-
-- **核心（Core）扩展**：内置的核心功能
-- **团队（Team）扩展**：Scratch 团队维护的扩展
-- **官方（Official）扩展**：官方支持的第三方扩展
-- **非官方（Unofficial）扩展**：社区开发的扩展
-
 ---
 
 ## 扩展基本结构
@@ -21,9 +13,6 @@ Scratch 支持四种类型的扩展：
 
 ```javascript
 class MyExtension {
-  constructor(runtime) {
-    this.runtime = runtime;
-  }
 
   getInfo() {
     return {
@@ -103,7 +92,7 @@ getInfo() {
 
 ---
 
-# Block Types
+# 积木
 
 ## 积木类型指南
 
@@ -120,18 +109,17 @@ Scratch 提供了多种积木类型，每种类型都有特定的形状和用途
 ### 积木类型快速参考
 
 ```javascript
-// 使用 BlockType 枚举（推荐）
 const BlockType = Scratch.BlockType;
 
 // 所有可用的积木类型
 BlockType.COMMAND      // 命令积木 - 矩形
 BlockType.REPORTER     // 报告积木 - 圆形
 BlockType.BOOLEAN      // 布尔积木 - 六边形
-BlockType.HAT          // 事件积木 - 帽子形状
+BlockType.HAT          // 事件积木 - 帽子
 BlockType.EVENT        // 事件积木 - 专用事件
 BlockType.LOOP         // 循环积木 - 控制流
 BlockType.CONDITIONAL  // 条件积木 - 控制流
-BlockType.BUTTON       // 按钮积木 - 仅用于面板
+BlockType.BUTTON       // 按钮积木 - 仅在积木区里作为按钮
 ```
 
 ---
@@ -242,7 +230,7 @@ randomNumber(args) {
 
 // 实现方法
 isEven(args) {
-  return args.NUMBER % 2 === 0;
+  return args.NUMBER % 2 == 0;
 }
 ```
 
@@ -345,7 +333,7 @@ CONDITIONAL 积木用于条件分支，可以根据条件执行不同的子分�
 
 ---
 
-# Arguments
+# 参数
 
 ## 参数类型指南
 
@@ -738,7 +726,7 @@ playSound(args) {
 
 ---
 
-# Advanced
+# Suratch-VM
 
 ## Scratch-VM API
 
@@ -757,7 +745,7 @@ constructor(runtime) {
 // 在积木方法中使用 runtime
 myMethod(args) {
   // 获取目标、线程等信息
-  const target = this.runtime.editingTarget;
+  const target = this.runtime.getEditingTarget();
   const threads = this.runtime.threads;
 
   // 触发事件
@@ -765,12 +753,13 @@ myMethod(args) {
 }
 ```
 
-#### Runtime 常用属性
+#### Runtime 常用属性和方法
 
 - **targets** - 所有目标的数组
 - **executableTargets** - 可执行目标的数组
 - **threads** - 当前运行的线程数组
-- **editingTarget** - 当前编辑的目标
+- **getEditingTarget()** - 获取当前编辑的目标
+- **getTargetForStage()** - 获取舞台目标
 - **ioDevices** - I/O 设备（键盘、鼠标等）
 - **sequencer** - 脚本序列器
 
@@ -786,7 +775,7 @@ Target 对象代表一个角色或舞台，包含角色的所有属性和方法�
 
 ```javascript
 // 获取当前编辑的目标
-const target = this.runtime.editingTarget;
+const target = this.runtime.getEditingTarget();
 
 // 角色基本信息
 const name = target.getName();           // 角色名称
@@ -807,7 +796,7 @@ const sounds = target.getSounds();        // 获取所有声音
 
 // 变量相关
 const variables = target.variables;       // 变量对象
-const localVar = target.lookupVariableByName('变量名');  // 查找局部变量
+const localVar = target.lookupVariableByNameAndType('变量名', '');  // 查找局部变量
 
 // 线程相关
 const threads = this.runtime.threads.filter(t => t.target === target);
@@ -840,12 +829,13 @@ for (const target of allTargets) {
 #### 读写变量示例
 
 ```javascript
-const target = this.runtime.editingTarget;
+const target = this.runtime.getEditingTarget();
 
 // 查找变量（先在局部找，再在全局找）
-let variable = target.lookupVariableByName('我的变量');
+// 参数：变量名，类型（''=普通变量，'list'=列表变量）
+let variable = target.lookupVariableByNameAndType('我的变量', '');
 
-// 如果是局部变量
+// 检查是否是云变量
 if (variable && variable.isCloud) {
   // 这是云变量
 }
@@ -859,11 +849,11 @@ if (variable) {
 }
 
 // 创建新变量
-const newVar = target.createVariable('新变量', false);  // false = 局部变量
+const newVar = target.createVariable('新变量', '变量名', '', false);  // false = 非云变量
 
 // 获取舞台变量（全局变量）
 const stage = this.runtime.getTargetForStage();
-const globalVar = stage.lookupVariableByName('全局变量');
+const globalVar = stage.lookupVariableByNameAndType('全局变量', '');
 if (globalVar) {
   globalVar.value = '新值';
 }
@@ -961,17 +951,17 @@ Runtime 提供了访问各种输入/输出设备的接口。
 ```javascript
 // 访问键盘
 const keyboard = this.runtime.ioDevices.keyboard;
-const isPressed = keyboard.isKeyDown('space');
+const isPressed = keyboard.getKeyIsDown('space');
 
 // 访问鼠标
 const mouse = this.runtime.ioDevices.mouse;
-const x = mouse.getClientX();
-const y = mouse.getClientY();
-const isDown = mouse.getIsDown();
+const x = mouse.getScratchX();      // Scratch 坐标系的 X
+const y = mouse.getScratchY();      // Scratch 坐标系的 Y
+const isDown = mouse.getIsDown();   // 鼠标是否按下
 
 // 访问时钟
 const clock = this.runtime.ioDevices.clock;
-const timer = clock.projectTimer();
+const timer = clock.projectTimer();  // 项目运行时间（秒）
 
 // 访问视频（摄像头）
 const video = this.runtime.ioDevices.video;
@@ -983,7 +973,7 @@ const userData = this.runtime.ioDevices.userData;
 
 // 访问云变量
 const cloud = this.runtime.ioDevices.cloud;
-const hasCloudData = cloud.hasCloudData();
+const hasCloudData = cloud.hasCloudData();  // 是否有云数据连接
 ```
 
 ---
@@ -1001,7 +991,7 @@ const hasCloudData = cloud.hasCloudData();
 
 ```javascript
 // 始终检查 null/undefined
-const target = this.runtime.editingTarget;
+const target = this.runtime.getEditingTarget();
 if (!target) return;
 
 // 检查角色是否是舞台
@@ -1139,10 +1129,10 @@ getInfo() {
 async myMethod(args) {
   // 在沙箱中，runtime 方法可能是异步的
   const target = await this.runtime.getEditingTarget();
-  const stage = await this.runtime.getTargetForStage();
+  const stage = this.runtime.getTargetForStage();
 
-  // 使用 await 确保兼容性
-  const variable = target.lookupVariableByName('变量名');
+  // 使用变量查找方法
+  const variable = target.lookupVariableByNameAndType('变量名', '');
 }
 
 // 非沙箱环境会自动处理异步/同步

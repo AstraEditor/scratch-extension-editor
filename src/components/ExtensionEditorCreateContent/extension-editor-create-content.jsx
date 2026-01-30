@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import React from 'react';
-import {defineMessages, FormattedMessage} from 'react-intl';
+import {defineMessages} from 'react-intl';
 import './extension-editor-create-content.css';
 
 const defaultFormatMessage = (message) => message.defaultMessage || '';
@@ -9,67 +9,67 @@ const messages = defineMessages({
     nameLabel: {
         defaultMessage: 'Extension Name',
         description: 'Label for extension name input',
-        id: 'tw.extensionEditorCreate.nameLabel'
+        id: 'tw.extensionEditorTabs.nameLabel'
     },
     namePlaceholder: {
         defaultMessage: 'My Extension',
         description: 'Placeholder for extension name input',
-        id: 'tw.extensionEditorCreate.namePlaceholder'
+        id: 'tw.extensionEditorTabs.namePlaceholder'
     },
     idLabel: {
         defaultMessage: 'Extension ID',
         description: 'Label for extension ID input',
-        id: 'tw.extensionEditorCreate.idLabel'
+        id: 'tw.extensionEditorTabs.idLabel'
     },
     idPlaceholder: {
         defaultMessage: 'myextension',
         description: 'Placeholder for extension ID input',
-        id: 'tw.extensionEditorCreate.idPlaceholder'
+        id: 'tw.extensionEditorTabs.idPlaceholder'
     },
     idHint: {
         defaultMessage: 'Must be lowercase, no spaces, only letters, numbers, and underscores',
         description: 'Hint for extension ID input',
-        id: 'tw.extensionEditorCreate.idHint'
+        id: 'tw.extensionEditorTabs.idHint'
     },
     colorLabel: {
         defaultMessage: 'Extension Color',
         description: 'Label for extension color picker',
-        id: 'tw.extensionEditorCreate.colorLabel'
+        id: 'tw.extensionEditorTabs.colorLabel'
     },
     color1Label: {
         defaultMessage: 'Primary Color',
         description: 'Label for primary color',
-        id: 'tw.extensionEditorCreate.color1Label'
+        id: 'tw.extensionEditorTabs.color1Label'
     },
     color2Label: {
         defaultMessage: 'Secondary Color',
         description: 'Label for secondary color',
-        id: 'tw.extensionEditorCreate.color2Label'
+        id: 'tw.extensionEditorTabs.color2Label'
     },
     color3Label: {
         defaultMessage: 'Tertiary Color',
         description: 'Label for tertiary color',
-        id: 'tw.extensionEditorCreate.color3Label'
+        id: 'tw.extensionEditorTabs.color3Label'
     },
     cancelButton: {
         defaultMessage: 'Cancel',
         description: 'Button to cancel',
-        id: 'tw.extensionEditorCreate.cancelButton'
+        id: 'tw.extensionEditorTabs.closeButton'
     },
     createButton: {
         defaultMessage: 'Create',
         description: 'Button to create the extension',
-        id: 'tw.extensionEditorCreate.createButton'
+        id: 'tw.extensionEditorTabs.createButton'
     },
     nameError: {
         defaultMessage: 'Please enter a name',
         description: 'Error message when name is empty',
-        id: 'tw.extensionEditorCreate.nameError'
+        id: 'tw.extensionEditorTabs.nameError'
     },
     idError: {
         defaultMessage: 'Please enter a valid ID (lowercase letters, numbers, and underscores only)',
         description: 'Error message when ID is invalid',
-        id: 'tw.extensionEditorCreate.idError'
+        id: 'tw.extensionEditorTabs.idError'
     }
 });
 
@@ -102,18 +102,19 @@ class ExtensionEditorCreateContent extends React.Component {
     };
 
     render() {
+        const formatMessage = this.props.formatMessage || defaultFormatMessage;
         return (
             <div className="extension-editor-create-content">
                 <div className="extension-editor-create-container">
                     <div className="extension-editor-create-form">
                         <div className="extension-editor-create-formGroup">
                             <label className="extension-editor-create-label">
-                                <FormattedMessage {...messages.nameLabel} />
+                                {formatMessage(messages.nameLabel)}
                             </label>
                             <input
                                 type="text"
                                 className="extension-editor-create-input"
-                                placeholder={this.formatMessage(messages.namePlaceholder)}
+                                placeholder={formatMessage(messages.namePlaceholder)}
                                 value={this.props.name}
                                 onChange={(e) => this.handleNameChange(e.target.value)}
                                 onKeyPress={this.handleKeyPress}
@@ -125,18 +126,18 @@ class ExtensionEditorCreateContent extends React.Component {
 
                         <div className="extension-editor-create-formGroup">
                             <label className="extension-editor-create-label">
-                                <FormattedMessage {...messages.idLabel} />
+                                {formatMessage(messages.idLabel)}
                             </label>
                             <input
                                 type="text"
                                 className="extension-editor-create-input"
-                                placeholder={this.formatMessage(messages.idPlaceholder)}
+                                placeholder={formatMessage(messages.idPlaceholder)}
                                 value={this.props.id}
                                 onChange={(e) => this.handleIdChange(e.target.value)}
                                 onKeyPress={this.handleKeyPress}
                             />
                             <div className="extension-editor-create-hint">
-                                <FormattedMessage {...messages.idHint} />
+                                {formatMessage(messages.idHint)}
                             </div>
                             {this.props.errors.id && (
                                 <div className="extension-editor-create-error">{this.props.errors.id}</div>
@@ -145,12 +146,12 @@ class ExtensionEditorCreateContent extends React.Component {
 
                         <div className="extension-editor-create-formGroup">
                             <label className="extension-editor-create-label">
-                                <FormattedMessage {...messages.colorLabel} />
+                                {formatMessage(messages.colorLabel)}
                             </label>
                             <div className="extension-editor-create-colorPickers">
                                 <div className="extension-editor-create-colorPicker">
                                     <label className="extension-editor-create-colorLabel">
-                                        <FormattedMessage {...messages.color1Label} />
+                                        {formatMessage(messages.color1Label)}
                                     </label>
                                     <input
                                         type="color"
@@ -161,7 +162,7 @@ class ExtensionEditorCreateContent extends React.Component {
                                 </div>
                                 <div className="extension-editor-create-colorPicker">
                                     <label className="extension-editor-create-colorLabel">
-                                        <FormattedMessage {...messages.color2Label} />
+                                        {formatMessage(messages.color2Label)}
                                     </label>
                                     <input
                                         type="color"
@@ -172,7 +173,7 @@ class ExtensionEditorCreateContent extends React.Component {
                                 </div>
                                 <div className="extension-editor-create-colorPicker">
                                     <label className="extension-editor-create-colorLabel">
-                                        <FormattedMessage {...messages.color3Label} />
+                                        {formatMessage(messages.color3Label)}
                                     </label>
                                     <input
                                         type="color"
@@ -190,13 +191,13 @@ class ExtensionEditorCreateContent extends React.Component {
                             className="extension-editor-create-button"
                             onClick={this.props.onCancel}
                         >
-                            <FormattedMessage {...messages.cancelButton} />
+                            {formatMessage(messages.cancelButton)}
                         </button>
                         <button
                             className="extension-editor-create-button extension-editor-create-primaryButton"
                             onClick={this.props.onCreate}
                         >
-                            <FormattedMessage {...messages.createButton} />
+                            {formatMessage(messages.createButton)}
                         </button>
                     </div>
                 </div>

@@ -1,9 +1,7 @@
 import PropTypes from 'prop-types';
 import React from 'react';
-import { defineMessages, FormattedMessage } from 'react-intl';
+import { defineMessages } from 'react-intl';
 import './extension-editor-storage-content.css';
-
-const defaultFormatMessage = (message) => message.defaultMessage || '';
 
 const messages = defineMessages({
     storedExtensions: {
@@ -40,15 +38,25 @@ const messages = defineMessages({
         defaultMessage: 'Close',
         description: 'Button to close the storage manager',
         id: 'tw.extensionEditorTabs.closeButton'
+    },
+    justNow: {
+        defaultMessage: 'Just now',
+        description: 'Time format for less than a minute ago',
+        id: 'tw.extensionEditorTabs.timeJustNow'
+    },
+    minutesAgo: {
+        defaultMessage: '{minutes} minutes ago',
+        description: 'Time format for minutes ago',
+        id: 'tw.extensionEditorTabs.timeMinutesAgo'
+    },
+    hoursAgo: {
+        defaultMessage: '{hours} hours ago',
+        description: 'Time format for hours ago',
+        id: 'tw.extensionEditorTabs.timeHoursAgo'
     }
 });
 
 class ExtensionEditorStorageContent extends React.Component {
-    constructor(props) {
-        super(props);
-        this.formatMessage = props.formatMessage || defaultFormatMessage;
-    }
-
     handleDeleteFromStorage = async (extensionId) => {
         if (this.props.onDeleteFromStorage) {
             await this.props.onDeleteFromStorage(extensionId);
@@ -56,7 +64,8 @@ class ExtensionEditorStorageContent extends React.Component {
     };
 
     handleClearAllStorage = async () => {
-        if (!confirm(this.formatMessage(messages.clearAll) + '?')) {
+        const confirmMessage = this.props.intl.formatMessage(messages.clearAll) + '?';
+        if (!confirm(confirmMessage)) {
             return;
         }
         
@@ -65,42 +74,69 @@ class ExtensionEditorStorageContent extends React.Component {
         }
     };
 
+    formatDate = (timestamp) => {
+        const date = new Date(timestamp);
+        const now = new Date();
+        const diff = now - date;
+        
+        // 如果在24小时内，显示相对时间
+        if (diff < 86400000) {
+            const hours = Math.floor(diff / 3600000);
+            if (hours < 1) {
+                const minutes = Math.floor(diff / 60000);
+                if (minutes < 1) {
+                    return this.props.intl.formatMessage(messages.justNow);
+                }
+                return this.props.intl.formatMessage(messages.minutesAgo, { minutes });
+            }
+            return this.props.intl.formatMessage(messages.hoursAgo, { hours });
+        }
+        
+        // 否则显示完整日期
+        return date.toLocaleString();
+    };
+
     render() {
         const { savedExtensions = [] } = this.props;
+        const intl = this.props.intl;
 
         return (
             <div className="extension-editor-storage-content">
                 <div className="extension-editor-storage-container">
                     <div className="extension-editor-storage-body">
-                        <h2><FormattedMessage {...messages.storedExtensions} /></h2>
+                        <h2>{intl.formatMessage(messages.storedExtensions)}</h2>
                         
                         {savedExtensions.length === 0 ? (
                             <div className="extension-editor-storage-empty">
-                                <FormattedMessage {...messages.noStoredExtensions} />
+                                {intl.formatMessage(messages.noStoredExtensions)}
                             </div>
                         ) : (
                             <div className="extension-editor-storage-list">
                                 {savedExtensions.map(extension => (
                                     <div key={extension.id} className="extension-editor-storage-item">
                                         <div className="extension-editor-storage-item-info">
-                                            <div className="extension-editor-storage-item-name">{extension.name}</div>
-                                            <div className="extension-editor-storage-item-date">
-                                                <FormattedMessage {...messages.lastModified} />
-                                                {new Date(extension.updatedAt).toLocaleString()}
+                                            <div className="extension-editor-storage-item-name" title={extension.name}>
+                                                {extension.name}
+                                            </div>
+                                            <div className="extension-editor-storage-item-date" title={new Date(extension.updatedAt).toLocaleString()}>
+                                                {intl.formatMessage(messages.lastModified)}
+                                                {this.formatDate(extension.updatedAt)}
                                             </div>
                                         </div>
                                         <div className="extension-editor-storage-item-actions">
                                             <button
                                                 className="extension-editor-storage-load-button"
                                                 onClick={() => this.props.onLoadFromStorage(extension)}
+                                                title={intl.formatMessage(messages.load)}
                                             >
-                                                <FormattedMessage {...messages.load} />
+                                                {intl.formatMessage(messages.load)}
                                             </button>
                                             <button
                                                 className="extension-editor-storage-delete-button"
                                                 onClick={() => this.handleDeleteFromStorage(extension.id)}
+                                                title={intl.formatMessage(messages.deleteExtension)}
                                             >
-                                                <FormattedMessage {...messages.deleteExtension} />
+                                                {intl.formatMessage(messages.deleteExtension)}
                                             </button>
                                         </div>
                                     </div>
@@ -114,15 +150,17 @@ class ExtensionEditorStorageContent extends React.Component {
                             <button
                                 className="extension-editor-storage-clear-all-button"
                                 onClick={this.handleClearAllStorage}
+                                title={intl.formatMessage(messages.clearAll)}
                             >
-                                <FormattedMessage {...messages.clearAll} />
+                                {intl.formatMessage(messages.clearAll)}
                             </button>
                         )}
                         <button
                             className="extension-editor-storage-close-button"
                             onClick={this.props.onClose}
+                            title={intl.formatMessage(messages.closeButton)}
                         >
-                            <FormattedMessage {...messages.closeButton} />
+                            {intl.formatMessage(messages.closeButton)}
                         </button>
                     </div>
                 </div>
@@ -132,7 +170,7 @@ class ExtensionEditorStorageContent extends React.Component {
 }
 
 ExtensionEditorStorageContent.propTypes = {
-    formatMessage: PropTypes.func,
+    intl: PropTypes.object.isRequired,
     onClose: PropTypes.func,
     savedExtensions: PropTypes.arrayOf(PropTypes.shape({
         id: PropTypes.string.isRequired,

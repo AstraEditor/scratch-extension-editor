@@ -3,6 +3,7 @@ import ExtensionEditorSettingsContent from './components/ExtensionEditorSettings
 import ExtensionEditorCreateContent from './components/ExtensionEditorCreateContent';
 import ExtensionEditorStorageContent from './components/ExtensionEditorStorageContent';
 import ExtensionEditorWizardPanel from './components/ExtensionEditorWizardPanel';
+import BlockPreview from './components/BlockPreview';
 import extensionEditorStorage from './lib/extension-editor-storage';
 import React from 'react';
 import ReactDOM from 'react-dom';
@@ -15,6 +16,7 @@ export {
   ExtensionEditorCreateContent, 
   ExtensionEditorStorageContent,
   ExtensionEditorWizardPanel,
+  BlockPreview,
   extensionEditorStorage 
 };
 

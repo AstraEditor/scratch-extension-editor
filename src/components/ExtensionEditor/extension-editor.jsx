@@ -1,10 +1,24 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import * as monaco from 'monaco-editor';
+import { defineMessages } from 'react-intl';
 import './extension-editor.css';
 
 import tutorial from './tutorial.png';
 import blocks from './blocks.svg';
+
+const messages = defineMessages({
+    toggleToBlockPreview: {
+        defaultMessage: 'Switch to Block Preview',
+        description: 'Tooltip for switching to block preview',
+        id: 'tw.extensionEditorSettings.toggleToBlockPreview'
+    },
+    toggleToWizard: {
+        defaultMessage: 'Switch to Wizard',
+        description: 'Tooltip for switching to wizard',
+        id: 'tw.extensionEditorSettings.toggleToWizard'
+    }
+});
 
 class ExtensionEditor extends React.Component {
   constructor(props) {
@@ -211,6 +225,15 @@ class ExtensionEditor extends React.Component {
     }
   };
 
+  getToggleTitle = () => {
+    if (!this.props.intl) {
+      return this.props.wizardActive ? "Switch to Block Preview" : "Switch to Wizard";
+    }
+    return this.props.intl.formatMessage(
+      this.props.wizardActive ? messages.toggleToBlockPreview : messages.toggleToWizard
+    );
+  };
+
   render() {
     return (
       <div className="extension-editor-container">
@@ -224,7 +247,7 @@ class ExtensionEditor extends React.Component {
           <button
             className="extension-wizard-toggle"
             onClick={this.props.onToggleWizard}
-            title={this.props.wizardActive ? "切换到积木预览" : "切换到制作向导"}
+            title={this.getToggleTitle()}
           >
             <img className="extension-wizard-toggle-icon" src={this.props.wizardActive ? blocks : tutorial}/>
           </button>
@@ -305,7 +328,8 @@ ExtensionEditor.propTypes = {
   fontSize: PropTypes.number,
   onFontSizeChange: PropTypes.func,
   onToggleWizard: PropTypes.func,
-  wizardActive: PropTypes.bool
+  wizardActive: PropTypes.bool,
+  intl: PropTypes.object
 };
 
 export default ExtensionEditor;
