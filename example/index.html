@@ -82,8 +82,8 @@
         const errorDiv = document.getElementById('error');
         errorDiv.style.display = 'block';
         errorDiv.innerHTML = `
-          <h3>加载失败</h3>
-          <p><strong>错误信息:</strong> ${error.message}</p>
+          <h3>Load Failed</h3>
+          <p><strong>Message:</strong> ${error.message}</p>
           <pre style="background: #3e3e3e; padding: 10px; overflow: auto; max-height: 300px;">${error.stack}</pre>
         `;
       }

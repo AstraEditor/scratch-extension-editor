@@ -5,34 +5,83 @@
 ### 什么是 Scratch 扩展？
 
 Scratch 扩展是通过 JavaScript 编写的模块，可以为 Scratch 添加全新的功能和积木。扩展可以访问 Scratch 虚拟机的 API，与角色、变量、舞台等进行交互。
+
+> 此教程由AI编写，仅作参考
 ---
 
 ## 扩展基本结构
 
+### 扩展标准形式
+
+我们建议扩展使用以下标准形式：
+
+```javascript
+(function (Scratch) {
+    "use strict";
+    class MyExtension {
+        constructor(runtime) {
+            this.runtime = runtime;
+        }
+
+        getInfo() {
+            return {
+                id: 'myextension',
+                name: '我的扩展',
+                color1: '#FF6680',
+                color2: '#FF4D6A',
+                color3: '#CC3D55',
+                blocks: []
+            };
+        }
+
+        // 积木实现方法
+        myBlock(args) {
+            // 积木逻辑
+        }
+    }
+
+    Scratch.extensions.register(new MyExtension());
+})(Scratch);
+```
+
+**关键说明：**
+
+- **IIFE 包裹**：扩展代码必须包裹在立即调用函数表达式（IIFE）中，参数为 `Scratch`
+- **"use strict"**：使用严格模式，避免全局变量污染
+- **constructor**：接收 `runtime` 参数，保存到 `this.runtime`
+- **Scratch 参数**：通过参数接收 `Scratch` 对象，而不是直接使用全局变量
+- **注册扩展**：使用 `Scratch.extensions.register()` 注册扩展实例
+
 ### 完整的扩展模板
 
 ```javascript
-class MyExtension {
+(function (Scratch) {
+    "use strict";
+    class MyExtension {
+        constructor(runtime) {
+            this.runtime = runtime;
+        }
 
-  getInfo() {
-    return {
-      id: 'myextension',           // 扩展唯一标识
-      name: '我的扩展',             // 显示名称
-      color1: '#FF6680',           // 主颜色
-      color2: '#FF4D6A',           // 次颜色
-      color3: '#CC3D55',           // 第三颜色
-      blocks: [...]                 // 积木定义数组
-    };
-  }
+        getInfo() {
+            return {
+                id: 'myextension',           // 扩展唯一标识
+                name: '我的扩展',             // 显示名称
+                color1: '#FF6680',           // 主颜色
+                color2: '#FF4D6A',           // 次颜色
+                color3: '#CC3D55',           // 第三颜色
+                blocks: [...]                 // 积木定义数组
+            };
+        }
 
-  // 积木实现方法
-  myBlock(args) {
-    // 积木逻辑
-  }
-}
+        // 积木实现方法
+        myBlock(args) {
+            // 积木逻辑
+        }
+    }
 
-// 注册扩展
-Scratch.extensions.register(new MyExtension());
+    // 注册扩展
+    Scratch.extensions.register(new MyExtension());
+})(Scratch);
 ```
 
 ### 关键说明
@@ -133,24 +182,45 @@ BlockType.BUTTON       // 按钮积木 - 仅在积木区里作为按钮
 #### 示例：移动积木
 
 ```javascript
-{
-  opcode: 'moveSteps',           // 方法名
-  blockType: Scratch.BlockType.COMMAND,
-  text: '移动 [STEPS] 步',
-  arguments: {
-    STEPS: {
-      type: Scratch.ArgumentType.NUMBER,
-      defaultValue: 10
-    }
-  }
-}
+(function (Scratch) {
+    "use strict";
+    class MyExtension {
+        constructor(runtime) {
+            this.runtime = runtime;
+        }
 
-// 实现方法
-moveSteps(args) {
-  const steps = args.STEPS;
-  // 执行移动逻辑
-  // 注意：命令积木不返回值
-}
+        getInfo() {
+            return {
+                id: 'myextension',
+                name: '我的扩展',
+                color1: '#FF6680',
+                color2: '#FF4D6A',
+                color3: '#CC3D55',
+                blocks: [
+                    {
+                        opcode: 'moveSteps',
+                        blockType: Scratch.BlockType.COMMAND,
+                        text: '移动 [STEPS] 步',
+                        arguments: {
+                            STEPS: {
+                                type: Scratch.ArgumentType.NUMBER,
+                                defaultValue: 10
+                            }
+                        }
+                    }
+                ]
+            };
+        }
+
+        moveSteps(args) {
+            const steps = args.STEPS;
+            // 执行移动逻辑
+            // 注意：命令积木不返回值
+        }
+    }
+
+    Scratch.extensions.register(new MyExtension());
+})(Scratch);
 ```
 
 #### 使用场景
@@ -172,28 +242,49 @@ moveSteps(args) {
 #### 示例：随机数积木
 
 ```javascript
-{
-  opcode: 'randomNumber',
-  blockType: Scratch.BlockType.REPORTER,
-  text: '随机数 [MIN] 到 [MAX]',
-  arguments: {
-    MIN: {
-      type: Scratch.ArgumentType.NUMBER,
-      defaultValue: 1
-    },
-    MAX: {
-      type: Scratch.ArgumentType.NUMBER,
-      defaultValue: 100
-    }
-  }
-}
+(function (Scratch) {
+    "use strict";
+    class MyExtension {
+        constructor(runtime) {
+            this.runtime = runtime;
+        }
 
-// 实现方法
-randomNumber(args) {
-  const min = args.MIN;
-  const max = args.MAX;
-  return Math.floor(Math.random() * (max - min + 1)) + min;
-}
+        getInfo() {
+            return {
+                id: 'myextension',
+                name: '我的扩展',
+                color1: '#FF6680',
+                color2: '#FF4D6A',
+                color3: '#CC3D55',
+                blocks: [
+                    {
+                        opcode: 'randomNumber',
+                        blockType: Scratch.BlockType.REPORTER,
+                        text: '随机数 [MIN] 到 [MAX]',
+                        arguments: {
+                            MIN: {
+                                type: Scratch.ArgumentType.NUMBER,
+                                defaultValue: 1
+                            },
+                            MAX: {
+                                type: Scratch.ArgumentType.NUMBER,
+                                defaultValue: 100
+                            }
+                        }
+                    }
+                ]
+            };
+        }
+
+        randomNumber(args) {
+            const min = args.MIN;
+            const max = args.MAX;
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+    }
+
+    Scratch.extensions.register(new MyExtension());
+})(Scratch);
 ```
 
 #### 返回值类型
@@ -216,22 +307,43 @@ randomNumber(args) {
 #### 示例：判断偶数
 
 ```javascript
-{
-  opcode: 'isEven',
-  blockType: Scratch.BlockType.BOOLEAN,
-  text: '[NUMBER] 是偶数?',
-  arguments: {
-    NUMBER: {
-      type: Scratch.ArgumentType.NUMBER,
-      defaultValue: 10
-    }
-  }
-}
+(function (Scratch) {
+    "use strict";
+    class MyExtension {
+        constructor(runtime) {
+            this.runtime = runtime;
+        }
 
-// 实现方法
-isEven(args) {
-  return args.NUMBER % 2 == 0;
-}
+        getInfo() {
+            return {
+                id: 'myextension',
+                name: '我的扩展',
+                color1: '#FF6680',
+                color2: '#FF4D6A',
+                color3: '#CC3D55',
+                blocks: [
+                    {
+                        opcode: 'isEven',
+                        blockType: Scratch.BlockType.BOOLEAN,
+                        text: '[NUMBER] 是偶数?',
+                        arguments: {
+                            NUMBER: {
+                                type: Scratch.ArgumentType.NUMBER,
+                                defaultValue: 10
+                            }
+                        }
+                    }
+                ]
+            };
+        }
+
+        isEven(args) {
+            return args.NUMBER % 2 == 0;
+        }
+    }
+
+    Scratch.extensions.register(new MyExtension());
+})(Scratch);
 ```
 
 #### 使用场景
@@ -252,36 +364,51 @@ isEven(args) {
 #### 示例：按键事件
 
 ```javascript
-{
-  opcode: 'whenKeyPressed',
-  blockType: Scratch.BlockType.HAT,
-  text: '当按下 [KEY] 键',
-  arguments: {
-    KEY: {
-      type: Scratch.ArgumentType.STRING,
-      menu: 'KEYS',
-      defaultValue: 'space'
+(function (Scratch) {
+    "use strict";
+    class MyExtension {
+        constructor(runtime) {
+            this.runtime = runtime;
+        }
+
+        getInfo() {
+            return {
+                id: 'myextension',
+                name: '我的扩展',
+                color1: '#FF6680',
+                color2: '#FF4D6A',
+                color3: '#CC3D55',
+                menus: {
+                    KEYS: {
+                        acceptReporters: false,
+                        items: ['space', 'up', 'down', 'left', 'right']
+                    }
+                },
+                blocks: [
+                    {
+                        opcode: 'whenKeyPressed',
+                        blockType: Scratch.BlockType.HAT,
+                        text: '当按下 [KEY] 键',
+                        arguments: {
+                            KEY: {
+                                type: Scratch.ArgumentType.STRING,
+                                menu: 'KEYS',
+                                defaultValue: 'space'
+                            }
+                        }
+                    }
+                ]
+            };
+        }
+
+        // 实现方法（通常不需要实现，事件由 VM 处理）
+        whenKeyPressed(args) {
+            // 当按下指定键时，这个脚本会自动启动
+        }
     }
-  }
-}
 
-// 菜单定义
-getInfo() {
-  return {
-    menus: {
-      KEYS: {
-        acceptReporters: false,
-        items: ['space', 'up', 'down', 'left', 'right']
-      }
-    },
-    blocks: [...]
-  };
-}
-
-// 实现方法（通常不需要实现，事件由 VM 处理）
-whenKeyPressed(args) {
-  // 当按下指定键时，这个脚本会自动启动
-}
+    Scratch.extensions.register(new MyExtension());
+})(Scratch);
 ```
 
 #### 事件触发机制
@@ -300,14 +427,36 @@ whenKeyPressed(args) {
 LOOP 积木用于控制流，可以重复执行子积木。类似于 CONDITIONAL，但每次子分支完成后会再次调用循环积木。
 
 ```javascript
-{
-  opcode: 'repeatForever',
-  blockType: Scratch.BlockType.LOOP,
-  text: '重复执行',
-  branchCount: 1,                 // 子分支数量
-  terminal: true,                 // 是否终止堆栈
-  arguments: {}
-}
+(function (Scratch) {
+    "use strict";
+    class MyExtension {
+        constructor(runtime) {
+            this.runtime = runtime;
+        }
+
+        getInfo() {
+            return {
+                id: 'myextension',
+                name: '我的扩展',
+                color1: '#FF6680',
+                color2: '#FF4D6A',
+                color3: '#CC3D55',
+                blocks: [
+                    {
+                        opcode: 'repeatForever',
+                        blockType: Scratch.BlockType.LOOP,
+                        text: '重复执行',
+                        branchCount: 1,                 // 子分支数量
+                        terminal: true,                 // 是否终止堆栈
+                        arguments: {}
+                    }
+                ]
+            };
+        }
+    }
+
+    Scratch.extensions.register(new MyExtension());
+})(Scratch);
 ```
 
 ### 条件积木（CONDITIONAL）
@@ -315,20 +464,42 @@ LOOP 积木用于控制流，可以重复执行子积木。类似于 CONDITIONAL
 CONDITIONAL 积木用于条件分支，可以根据条件执行不同的子分支。可以返回 1-based 索引来指定运行哪个分支。
 
 ```javascript
-{
-  opcode: 'ifElse',
-  blockType: Scratch.BlockType.CONDITIONAL,
-  text: '如果 <CONDITION> 那么 [ELSE]',
-  branchCount: 2,                 // 两个分支：then 和 else
-  arguments: {
-    CONDITION: {
-      type: Scratch.ArgumentType.BOOLEAN
-    },
-    ELSE: {
-      type: Scratch.ArgumentType.BOOLEAN
+(function (Scratch) {
+    "use strict";
+    class MyExtension {
+        constructor(runtime) {
+            this.runtime = runtime;
+        }
+
+        getInfo() {
+            return {
+                id: 'myextension',
+                name: '我的扩展',
+                color1: '#FF6680',
+                color2: '#FF4D6A',
+                color3: '#CC3D55',
+                blocks: [
+                    {
+                        opcode: 'ifElse',
+                        blockType: Scratch.BlockType.CONDITIONAL,
+                        text: '如果 <CONDITION> 那么 [ELSE]',
+                        branchCount: 2,                 // 两个分支：then 和 else
+                        arguments: {
+                            CONDITION: {
+                                type: Scratch.ArgumentType.BOOLEAN
+                            },
+                            ELSE: {
+                                type: Scratch.ArgumentType.BOOLEAN
+                            }
+                        }
+                    }
+                ]
+            };
+        }
     }
-  }
-}
+
+    Scratch.extensions.register(new MyExtension());
+})(Scratch);
 ```
 
 ---
@@ -380,24 +551,46 @@ ArgumentType.SOUND     // 声音选择
 #### 示例：打招呼积木
 
 ```javascript
-{
-  opcode: 'sayHello',
-  blockType: Scratch.BlockType.COMMAND,
-  text: '说 [MESSAGE]',
-  arguments: {
-    MESSAGE: {
-      type: Scratch.ArgumentType.STRING,
-      defaultValue: '你好'
-    }
-  }
-}
+(function (Scratch) {
+    "use strict";
+    class MyExtension {
+        constructor(runtime) {
+            this.runtime = runtime;
+        }
 
-sayHello(args) {
-  const message = args.MESSAGE;
-  console.log(message);
-  // 可以访问 runtime 来在 Scratch 中显示消息
-  // this.runtime.emit('SAY', target, 'say', message);
-}
+        getInfo() {
+            return {
+                id: 'myextension',
+                name: '我的扩展',
+                color1: '#FF6680',
+                color2: '#FF4D6A',
+                color3: '#CC3D55',
+                blocks: [
+                    {
+                        opcode: 'sayHello',
+                        blockType: Scratch.BlockType.COMMAND,
+                        text: '说 [MESSAGE]',
+                        arguments: {
+                            MESSAGE: {
+                                type: Scratch.ArgumentType.STRING,
+                                defaultValue: '你好'
+                            }
+                        }
+                    }
+                ]
+            };
+        }
+
+        sayHello(args) {
+            const message = args.MESSAGE;
+            console.log(message);
+            // 可以访问 runtime 来在 Scratch 中显示消息
+            // this.runtime.emit('SAY', target, 'say', message);
+        }
+    }
+
+    Scratch.extensions.register(new MyExtension());
+})(Scratch);
 ```
 
 #### 特性说明
@@ -417,25 +610,47 @@ sayHello(args) {
 #### 示例：数学运算
 
 ```javascript
-{
-  opcode: 'addNumbers',
-  blockType: Scratch.BlockType.REPORTER,
-  text: '[A] 加 [B]',
-  arguments: {
-    A: {
-      type: Scratch.ArgumentType.NUMBER,
-      defaultValue: 10
-    },
-    B: {
-      type: Scratch.ArgumentType.NUMBER,
-      defaultValue: 20
-    }
-  }
-}
+(function (Scratch) {
+    "use strict";
+    class MyExtension {
+        constructor(runtime) {
+            this.runtime = runtime;
+        }
 
-addNumbers(args) {
-  return args.A + args.B;
-}
+        getInfo() {
+            return {
+                id: 'myextension',
+                name: '我的扩展',
+                color1: '#FF6680',
+                color2: '#FF4D6A',
+                color3: '#CC3D55',
+                blocks: [
+                    {
+                        opcode: 'addNumbers',
+                        blockType: Scratch.BlockType.REPORTER,
+                        text: '[A] 加 [B]',
+                        arguments: {
+                            A: {
+                                type: Scratch.ArgumentType.NUMBER,
+                                defaultValue: 10
+                            },
+                            B: {
+                                type: Scratch.ArgumentType.NUMBER,
+                                defaultValue: 20
+                            }
+                        }
+                    }
+                ]
+            };
+        }
+
+        addNumbers(args) {
+            return args.A + args.B;
+        }
+    }
+
+    Scratch.extensions.register(new MyExtension());
+})(Scratch);
 ```
 
 #### 特性说明
@@ -456,26 +671,48 @@ addNumbers(args) {
 #### 示例：设置方向
 
 ```javascript
-{
-  opcode: 'setDirection',
-  blockType: Scratch.BlockType.COMMAND,
-  text: '面向 [DIRECTION] 度',
-  arguments: {
-    DIRECTION: {
-      type: Scratch.ArgumentType.ANGLE,
-      defaultValue: 90
-    }
-  }
-}
+(function (Scratch) {
+    "use strict";
+    class MyExtension {
+        constructor(runtime) {
+            this.runtime = runtime;
+        }
 
-setDirection(args) {
-  const direction = args.DIRECTION;
-  // 设置角色方向
-  const target = this.runtime.editingTarget;
-  if (target && !target.isStage) {
-    target.direction = direction;
-  }
-}
+        getInfo() {
+            return {
+                id: 'myextension',
+                name: '我的扩展',
+                color1: '#FF6680',
+                color2: '#FF4D6A',
+                color3: '#CC3D55',
+                blocks: [
+                    {
+                        opcode: 'setDirection',
+                        blockType: Scratch.BlockType.COMMAND,
+                        text: '面向 [DIRECTION] 度',
+                        arguments: {
+                            DIRECTION: {
+                                type: Scratch.ArgumentType.ANGLE,
+                                defaultValue: 90
+                            }
+                        }
+                    }
+                ]
+            };
+        }
+
+        setDirection(args) {
+            const direction = args.DIRECTION;
+            // 设置角色方向
+            const target = this.runtime.editingTarget;
+            if (target && !target.isStage) {
+                target.direction = direction;
+            }
+        }
+    }
+
+    Scratch.extensions.register(new MyExtension());
+})(Scratch);
 ```
 
 ---
@@ -489,20 +726,42 @@ setDirection(args) {
 #### 示例：逻辑运算
 
 ```javascript
-{
-  opcode: 'notOperator',
-  blockType: Scratch.BlockType.BOOLEAN,
-  text: '不 [CONDITION]',
-  arguments: {
-    CONDITION: {
-      type: Scratch.ArgumentType.BOOLEAN
-    }
-  }
-}
+(function (Scratch) {
+    "use strict";
+    class MyExtension {
+        constructor(runtime) {
+            this.runtime = runtime;
+        }
 
-notOperator(args) {
-  return !args.CONDITION;
-}
+        getInfo() {
+            return {
+                id: 'myextension',
+                name: '我的扩展',
+                color1: '#FF6680',
+                color2: '#FF4D6A',
+                color3: '#CC3D55',
+                blocks: [
+                    {
+                        opcode: 'notOperator',
+                        blockType: Scratch.BlockType.BOOLEAN,
+                        text: '不 [CONDITION]',
+                        arguments: {
+                            CONDITION: {
+                                type: Scratch.ArgumentType.BOOLEAN
+                            }
+                        }
+                    }
+                ]
+            };
+        }
+
+        notOperator(args) {
+            return !args.CONDITION;
+        }
+    }
+
+    Scratch.extensions.register(new MyExtension());
+})(Scratch);
 ```
 
 #### 使用场景
@@ -523,23 +782,45 @@ notOperator(args) {
 #### 示例：设置颜色
 
 ```javascript
-{
-  opcode: 'setPenColor',
-  blockType: Scratch.BlockType.COMMAND,
-  text: '将画笔颜色设为 [COLOR]',
-  arguments: {
-    COLOR: {
-      type: Scratch.ArgumentType.COLOR,
-      defaultValue: '#FF6680'
-    }
-  }
-}
+(function (Scratch) {
+    "use strict";
+    class MyExtension {
+        constructor(runtime) {
+            this.runtime = runtime;
+        }
 
-setPenColor(args) {
-  const color = args.COLOR;
-  // color 是十六进制颜色值，如 #FF6680
-  console.log('设置颜色为:', color);
-}
+        getInfo() {
+            return {
+                id: 'myextension',
+                name: '我的扩展',
+                color1: '#FF6680',
+                color2: '#FF4D6A',
+                color3: '#CC3D55',
+                blocks: [
+                    {
+                        opcode: 'setPenColor',
+                        blockType: Scratch.BlockType.COMMAND,
+                        text: '将画笔颜色设为 [COLOR]',
+                        arguments: {
+                            COLOR: {
+                                type: Scratch.ArgumentType.COLOR,
+                                defaultValue: '#FF6680'
+                            }
+                        }
+                    }
+                ]
+            };
+        }
+
+        setPenColor(args) {
+            const color = args.COLOR;
+            // color 是十六进制颜色值，如 #FF6680
+            console.log('设置颜色为:', color);
+        }
+    }
+
+    Scratch.extensions.register(new MyExtension());
+})(Scratch);
 ```
 
 #### 颜色值格式
@@ -559,25 +840,47 @@ setPenColor(args) {
 #### 示例：显示图案
 
 ```javascript
-{
-  opcode: 'showMatrix',
-  blockType: Scratch.BlockType.COMMAND,
-  text: '显示图案 [MATRIX]',
-  arguments: {
-    MATRIX: {
-      type: Scratch.ArgumentType.MATRIX,
-      defaultValue: '01110,01110,01110,01110,01110'
-    }
-  }
-}
+(function (Scratch) {
+    "use strict";
+    class MyExtension {
+        constructor(runtime) {
+            this.runtime = runtime;
+        }
 
-showMatrix(args) {
-  const matrix = args.MATRIX;
-  // matrix 是一个字符串，每行用逗号分隔
-  // 0 表示关闭，1 表示开启
-  const rows = matrix.split(',');
-  console.log('显示图案:', rows);
-}
+        getInfo() {
+            return {
+                id: 'myextension',
+                name: '我的扩展',
+                color1: '#FF6680',
+                color2: '#FF4D6A',
+                color3: '#CC3D55',
+                blocks: [
+                    {
+                        opcode: 'showMatrix',
+                        blockType: Scratch.BlockType.COMMAND,
+                        text: '显示图案 [MATRIX]',
+                        arguments: {
+                            MATRIX: {
+                                type: Scratch.ArgumentType.MATRIX,
+                                defaultValue: '01110,01110,01110,01110,01110'
+                            }
+                        }
+                    }
+                ]
+            };
+        }
+
+        showMatrix(args) {
+            const matrix = args.MATRIX;
+            // matrix 是一个字符串，每行用逗号分隔
+            // 0 表示关闭，1 表示开启
+            const rows = matrix.split(',');
+            console.log('显示图案:', rows);
+        }
+    }
+
+    Scratch.extensions.register(new MyExtension());
+})(Scratch);
 ```
 
 #### 矩阵格式
@@ -597,28 +900,50 @@ showMatrix(args) {
 #### 示例：播放音符
 
 ```javascript
-{
-  opcode: 'playNote',
-  blockType: Scratch.BlockType.COMMAND,
-  text: '演奏音符 [NOTE] [BEATS] 拍',
-  arguments: {
-    NOTE: {
-      type: Scratch.ArgumentType.NOTE,
-      defaultValue: 60  // 中央 C
-    },
-    BEATS: {
-      type: Scratch.ArgumentType.NUMBER,
-      defaultValue: 0.5
-    }
-  }
-}
+(function (Scratch) {
+    "use strict";
+    class MyExtension {
+        constructor(runtime) {
+            this.runtime = runtime;
+        }
 
-playNote(args) {
-  const note = args.NOTE;
-  const beats = args.BEATS;
-  // note 是 MIDI 音符编号（0-127）
-  console.log(`播放音符 ${note}，时长 ${beats} 拍`);
-}
+        getInfo() {
+            return {
+                id: 'myextension',
+                name: '我的扩展',
+                color1: '#FF6680',
+                color2: '#FF4D6A',
+                color3: '#CC3D55',
+                blocks: [
+                    {
+                        opcode: 'playNote',
+                        blockType: Scratch.BlockType.COMMAND,
+                        text: '演奏音符 [NOTE] [BEATS] 拍',
+                        arguments: {
+                            NOTE: {
+                                type: Scratch.ArgumentType.NOTE,
+                                defaultValue: 60  // 中央 C
+                            },
+                            BEATS: {
+                                type: Scratch.ArgumentType.NUMBER,
+                                defaultValue: 0.5
+                            }
+                        }
+                    }
+                ]
+            };
+        }
+
+        playNote(args) {
+            const note = args.NOTE;
+            const beats = args.BEATS;
+            // note 是 MIDI 音符编号（0-127）
+            console.log(`播放音符 ${note}，时长 ${beats} 拍`);
+        }
+    }
+
+    Scratch.extensions.register(new MyExtension());
+})(Scratch);
 ```
 
 ---
@@ -632,19 +957,41 @@ playNote(args) {
 #### 示例：带图标的积木
 
 ```javascript
-{
-  opcode: 'showIcon',
-  blockType: Scratch.BlockType.COMMAND,
-  text: '显示图标 [ICON]',
-  arguments: {
-    ICON: {
-      type: Scratch.ArgumentType.IMAGE,
-      dataURI: 'data:image/svg+xml;base64,...',  // 图像的 Data URI
-      alt: '我的图标',                            // 替代文本
-      flipRTL: false                               // RTL 语言时是否翻转
+(function (Scratch) {
+    "use strict";
+    class MyExtension {
+        constructor(runtime) {
+            this.runtime = runtime;
+        }
+
+        getInfo() {
+            return {
+                id: 'myextension',
+                name: '我的扩展',
+                color1: '#FF6680',
+                color2: '#FF4D6A',
+                color3: '#CC3D55',
+                blocks: [
+                    {
+                        opcode: 'showIcon',
+                        blockType: Scratch.BlockType.COMMAND,
+                        text: '显示图标 [ICON]',
+                        arguments: {
+                            ICON: {
+                                type: Scratch.ArgumentType.IMAGE,
+                                dataURI: 'data:image/svg+xml;base64,...',  // 图像的 Data URI
+                                alt: '我的图标',                            // 替代文本
+                                flipRTL: false                               // RTL 语言时是否翻转
+                            }
+                        }
+                    }
+                ]
+            };
+        }
     }
-  }
-}
+
+    Scratch.extensions.register(new MyExtension());
+})(Scratch);
 ```
 
 #### 注意事项
@@ -665,28 +1012,50 @@ playNote(args) {
 #### 示例：切换造型
 
 ```javascript
-{
-  opcode: 'switchCostume',
-  blockType: Scratch.BlockType.COMMAND,
-  text: '切换到造型 [COSTUME]',
-  arguments: {
-    COSTUME: {
-      type: Scratch.ArgumentType.COSTUME
-    }
-  }
-}
+(function (Scratch) {
+    "use strict";
+    class MyExtension {
+        constructor(runtime) {
+            this.runtime = runtime;
+        }
 
-switchCostume(args) {
-  const costumeName = args.COSTUME;
-  const target = this.runtime.editingTarget;
-  if (target && !target.isStage) {
-    // 查找并切换到指定造型
-    const costumeIndex = target.getCostumeIndexByName(costumeName);
-    if (costumeIndex !== -1) {
-      target.setCostume(costumeIndex);
+        getInfo() {
+            return {
+                id: 'myextension',
+                name: '我的扩展',
+                color1: '#FF6680',
+                color2: '#FF4D6A',
+                color3: '#CC3D55',
+                blocks: [
+                    {
+                        opcode: 'switchCostume',
+                        blockType: Scratch.BlockType.COMMAND,
+                        text: '切换到造型 [COSTUME]',
+                        arguments: {
+                            COSTUME: {
+                                type: Scratch.ArgumentType.COSTUME
+                            }
+                        }
+                    }
+                ]
+            };
+        }
+
+        switchCostume(args) {
+            const costumeName = args.COSTUME;
+            const target = this.runtime.editingTarget;
+            if (target && !target.isStage) {
+                // 查找并切换到指定造型
+                const costumeIndex = target.getCostumeIndexByName(costumeName);
+                if (costumeIndex !== -1) {
+                    target.setCostume(costumeIndex);
+                }
+            }
+        }
     }
-  }
-}
+
+    Scratch.extensions.register(new MyExtension());
+})(Scratch);
 ```
 
 ---
@@ -700,33 +1069,55 @@ switchCostume(args) {
 #### 示例：播放声音
 
 ```javascript
-{
-  opcode: 'playSound',
-  blockType: Scratch.BlockType.COMMAND,
-  text: '播放声音 [SOUND]',
-  arguments: {
-    SOUND: {
-      type: Scratch.ArgumentType.SOUND
-    }
-  }
-}
+(function (Scratch) {
+    "use strict";
+    class MyExtension {
+        constructor(runtime) {
+            this.runtime = runtime;
+        }
 
-playSound(args) {
-  const soundName = args.SOUND;
-  const target = this.runtime.editingTarget;
-  if (target) {
-    // 查找并播放指定声音
-    const sound = target.sprite.sounds.find(s => s.name === soundName);
-    if (sound) {
-      target.audioEngine.playSound(target, sound.name);
+        getInfo() {
+            return {
+                id: 'myextension',
+                name: '我的扩展',
+                color1: '#FF6680',
+                color2: '#FF4D6A',
+                color3: '#CC3D55',
+                blocks: [
+                    {
+                        opcode: 'playSound',
+                        blockType: Scratch.BlockType.COMMAND,
+                        text: '播放声音 [SOUND]',
+                        arguments: {
+                            SOUND: {
+                                type: Scratch.ArgumentType.SOUND
+                            }
+                        }
+                    }
+                ]
+            };
+        }
+
+        playSound(args) {
+            const soundName = args.SOUND;
+            const target = this.runtime.editingTarget;
+            if (target) {
+                // 查找并播放指定声音
+                const sound = target.sprite.sounds.find(s => s.name === soundName);
+                if (sound) {
+                    target.audioEngine.playSound(target, sound.name);
+                }
+            }
+        }
     }
-  }
-}
+
+    Scratch.extensions.register(new MyExtension());
+})(Scratch);
 ```
 
 ---
 
-# Suratch-VM
+# Scratch-VM
 
 ## Scratch-VM API
 
@@ -737,20 +1128,38 @@ Runtime 是 Scratch 虚拟机的核心对象，管理着所有目标、线程、
 #### 基本用法
 
 ```javascript
-constructor(runtime) {
-  // 存储 runtime 引用
-  this.runtime = runtime;
-}
+(function (Scratch) {
+    "use strict";
+    class MyExtension {
+        constructor(runtime) {
+            // 存储 runtime 引用
+            this.runtime = runtime;
+        }
 
-// 在积木方法中使用 runtime
-myMethod(args) {
-  // 获取目标、线程等信息
-  const target = this.runtime.getEditingTarget();
-  const threads = this.runtime.threads;
+        getInfo() {
+            return {
+                id: 'myextension',
+                name: '我的扩展',
+                color1: '#FF6680',
+                color2: '#FF4D6A',
+                color3: '#CC3D55',
+                blocks: []
+            };
+        }
 
-  // 触发事件
-  this.runtime.emit('MY_EVENT', data);
-}
+        // 在积木方法中使用 runtime
+        myMethod(args) {
+            // 获取目标、线程等信息
+            const target = this.runtime.getEditingTarget();
+            const threads = this.runtime.threads;
+
+            // 触发事件
+            this.runtime.emit('MY_EVENT', data);
+        }
+    }
+
+    Scratch.extensions.register(new MyExtension());
+})(Scratch);
 ```
 
 #### Runtime 常用属性和方法
@@ -829,34 +1238,58 @@ for (const target of allTargets) {
 #### 读写变量示例
 
 ```javascript
-const target = this.runtime.getEditingTarget();
+(function (Scratch) {
+    "use strict";
+    class MyExtension {
+        constructor(runtime) {
+            this.runtime = runtime;
+        }
 
-// 查找变量（先在局部找，再在全局找）
-// 参数：变量名，类型（''=普通变量，'list'=列表变量）
-let variable = target.lookupVariableByNameAndType('我的变量', '');
+        getInfo() {
+            return {
+                id: 'myextension',
+                name: '我的扩展',
+                color1: '#FF6680',
+                color2: '#FF4D6A',
+                color3: '#CC3D55',
+                blocks: []
+            };
+        }
 
-// 检查是否是云变量
-if (variable && variable.isCloud) {
-  // 这是云变量
-}
+        variableOperations() {
+            const target = this.runtime.getEditingTarget();
 
-// 读取变量值
-const value = variable ? variable.value : null;
+            // 查找变量（先在局部找，再在全局找）
+            // 参数：变量名，类型（''=普通变量，'list'=列表变量）
+            let variable = target.lookupVariableByNameAndType('我的变量', '');
 
-// 修改变量值
-if (variable) {
-  variable.value = 100;
-}
+            // 检查是否是云变量
+            if (variable && variable.isCloud) {
+                // 这是云变量
+            }
 
-// 创建新变量
-const newVar = target.createVariable('新变量', '变量名', '', false);  // false = 非云变量
+            // 读取变量值
+            const value = variable ? variable.value : null;
 
-// 获取舞台变量（全局变量）
-const stage = this.runtime.getTargetForStage();
-const globalVar = stage.lookupVariableByNameAndType('全局变量', '');
-if (globalVar) {
-  globalVar.value = '新值';
-}
+            // 修改变量值
+            if (variable) {
+                variable.value = 100;
+            }
+
+            // 创建新变量
+            const newVar = target.createVariable('新变量', '变量名', '', false);  // false = 非云变量
+
+            // 获取舞台变量（全局变量）
+            const stage = this.runtime.getTargetForStage();
+            const globalVar = stage.lookupVariableByNameAndType('全局变量', '');
+            if (globalVar) {
+                globalVar.value = '新值';
+            }
+        }
+    }
+
+    Scratch.extensions.register(new MyExtension());
+})(Scratch);
 ```
 
 #### 变量类型
@@ -878,30 +1311,64 @@ if (globalVar) {
 #### 发送广播示例
 
 ```javascript
-// 方法 1：使用 startHats
-const stage = this.runtime.getTargetForStage();
-this.runtime.startHats('event_whenbroadcastreceived', {
-  BROADCAST_OPTION: '我的消息'
-});
+(function (Scratch) {
+    "use strict";
+    class MyExtension {
+        constructor(runtime) {
+            this.runtime = runtime;
+        }
 
-// 方法 2：查找广播变量并发送
-const stage = this.runtime.getTargetForStage();
-const broadcastVar = stage.lookupBroadcastMsg(null, '我的消息');
-if (broadcastVar) {
-  this.runtime.startHats('event_whenbroadcastreceived', {
-    BROADCAST_OPTION: broadcastVar.name
-  });
-}
+        getInfo() {
+            return {
+                id: 'myextension',
+                name: '我的扩展',
+                color1: '#FF6680',
+                color2: '#FF4D6A',
+                color3: '#CC3D55',
+                blocks: [
+                    {
+                        opcode: 'sendBroadcast',
+                        blockType: Scratch.BlockType.COMMAND,
+                        text: '发送广播 [MESSAGE]',
+                        arguments: {
+                            MESSAGE: {
+                                type: Scratch.ArgumentType.STRING,
+                                defaultValue: '我的消息'
+                            }
+                        }
+                    }
+                ]
+            };
+        }
 
-// 方法 3：创建广播并发送
-const stage = this.runtime.getTargetForStage();
-const newBroadcast = stage.createVariable(
-  '新消息',
-  'broadcast_msg'  // 广播消息类型
-);
-this.runtime.startHats('event_whenbroadcastreceived', {
-  BROADCAST_OPTION: newBroadcast.name
-});
+        sendBroadcast(args) {
+            // 方法 1：使用 startHats
+            const stage = this.runtime.getTargetForStage();
+            this.runtime.startHats('event_whenbroadcastreceived', {
+                BROADCAST_OPTION: args.MESSAGE
+            });
+
+            // 方法 2：查找广播变量并发送
+            const broadcastVar = stage.lookupBroadcastMsg(null, args.MESSAGE);
+            if (broadcastVar) {
+                this.runtime.startHats('event_whenbroadcastreceived', {
+                    BROADCAST_OPTION: broadcastVar.name
+                });
+            }
+
+            // 方法 3：创建广播并发送
+            const newBroadcast = stage.createVariable(
+                '新消息',
+                'broadcast_msg'  // 广播消息类型
+            );
+            this.runtime.startHats('event_whenbroadcastreceived', {
+                BROADCAST_OPTION: newBroadcast.name
+            });
+        }
+    }
+
+    Scratch.extensions.register(new MyExtension());
+})(Scratch);
 ```
 
 ---
@@ -915,27 +1382,55 @@ Runtime 是一个事件发射器，可以触发和监听各种事件。
 #### 常用事件
 
 ```javascript
-// 触发事件
-this.runtime.emit('MY_EVENT', data);
+(function (Scratch) {
+    "use strict";
+    class MyExtension {
+        constructor(runtime) {
+            this.runtime = runtime;
+        }
 
-// 监听事件
-this.runtime.on('MY_EVENT', (data) => {
-  console.log('收到事件:', data);
-});
+        getInfo() {
+            return {
+                id: 'myextension',
+                name: '我的扩展',
+                color1: '#FF6680',
+                color2: '#FF4D6A',
+                color3: '#CC3D55',
+                blocks: []
+            };
+        }
 
-// 移除监听器
-const listener = (data) => { /* ... */ };
-this.runtime.on('MY_EVENT', listener);
-// ...
-this.runtime.removeListener('MY_EVENT', listener);
+        // 触发事件
+        myMethod() {
+            this.runtime.emit('MY_EVENT', data);
+        }
 
-// 常用预定义事件
-this.runtime.emit('PROJECT_START');           // 项目开始
-this.runtime.emit('PROJECT_RUN_START');       // 运行开始
-this.runtime.emit('PROJECT_RUN_STOP');        // 运行停止
-this.runtime.emit('TURBO_MODE_ON');           // 开启加速模式
-this.runtime.emit('TURBO_MODE_OFF');          // 关闭加速模式
-this.runtime.emit('MONITORS_UPDATE', data);   // 更新监视器
+        // 监听事件
+        setupEventListeners() {
+            this.runtime.on('MY_EVENT', (data) => {
+                console.log('收到事件:', data);
+            });
+        }
+
+        // 移除监听器
+        cleanupEventListeners() {
+            const listener = (data) => { /* ... */ };
+            this.runtime.on('MY_EVENT', listener);
+            // ...
+            this.runtime.removeListener('MY_EVENT', listener);
+
+            // 常用预定义事件
+            this.runtime.emit('PROJECT_START');           // 项目开始
+            this.runtime.emit('PROJECT_RUN_START');       // 运行开始
+            this.runtime.emit('PROJECT_RUN_STOP');        // 运行停止
+            this.runtime.emit('TURBO_MODE_ON');           // 开启加速模式
+            this.runtime.emit('TURBO_MODE_OFF');          // 关闭加速模式
+            this.runtime.emit('MONITORS_UPDATE', data);   // 更新监视器
+        }
+    }
+
+    Scratch.extensions.register(new MyExtension());
+})(Scratch);
 ```
 
 ---
@@ -990,24 +1485,48 @@ const hasCloudData = cloud.hasCloudData();  // 是否有云数据连接
 ### 错误处理
 
 ```javascript
-// 始终检查 null/undefined
-const target = this.runtime.getEditingTarget();
-if (!target) return;
+(function (Scratch) {
+    "use strict";
+    class MyExtension {
+        constructor(runtime) {
+            this.runtime = runtime;
+        }
 
-// 检查角色是否是舞台
-if (target.isStage) {
-  // 某些操作只适用于角色
-}
+        getInfo() {
+            return {
+                id: 'myextension',
+                name: '我的扩展',
+                color1: '#FF6680',
+                color2: '#FF4D6A',
+                color3: '#CC3D55',
+                blocks: []
+            };
+        }
 
-// 提供默认值
-const value = args.VALUE || defaultValue;
+        // 始终检查 null/undefined
+        myMethod(args) {
+            const target = this.runtime.getEditingTarget();
+            if (!target) return;
 
-// 捕获错误
-try {
-  // 可能失败的代码
-} catch (error) {
-  console.error('扩展错误:', error);
-}
+            // 检查角色是否是舞台
+            if (target.isStage) {
+                // 某些操作只适用于角色
+            }
+
+            // 提供默认值
+            const value = args.VALUE || defaultValue;
+
+            // 捕获错误
+            try {
+                // 可能失败的代码
+            } catch (error) {
+                console.error('扩展错误:', error);
+            }
+        }
+    }
+
+    Scratch.extensions.register(new MyExtension());
+})(Scratch);
 ```
 
 ### 性能优化
@@ -1051,36 +1570,47 @@ Scratch 设计为完全向后兼容。积木定义和 opcode 永远不应该改�
 #### 示例
 
 ```javascript
-// 引入 formatMessage（仅适用于核心/团队/官方扩展）
-const formatMessage = require('format-message');
-
-getInfo() {
-  return {
-    name: formatMessage({
-      id: 'extensionName',
-      defaultMessage: 'My Extension',
-      description: 'The name of the extension'
-    }),
-    blocks: [
-      {
-        text: formatMessage({
-          id: 'blockText',
-          defaultMessage: 'Hello [NAME]',
-          description: 'Text for the hello block'
-        }),
-        arguments: {
-          NAME: {
-            defaultValue: formatMessage({
-              id: 'nameDefault',
-              defaultMessage: 'World',
-              description: 'Default name'
-            })
-          }
+(function (Scratch) {
+    "use strict";
+    class MyExtension {
+        constructor(runtime) {
+            this.runtime = runtime;
         }
-      }
-    ]
-  };
-}
+
+        getInfo() {
+            // 引入 formatMessage（仅适用于核心/团队/官方扩展）
+            const formatMessage = require('format-message');
+
+            return {
+                name: formatMessage({
+                    id: 'extensionName',
+                    defaultMessage: 'My Extension',
+                    description: 'The name of the extension'
+                }),
+                blocks: [
+                    {
+                        text: formatMessage({
+                            id: 'blockText',
+                            defaultMessage: 'Hello [NAME]',
+                            description: 'Text for the hello block'
+                        }),
+                        arguments: {
+                            NAME: {
+                                defaultValue: formatMessage({
+                                    id: 'nameDefault',
+                                    defaultMessage: 'World',
+                                    description: 'Default name'
+                                })
+                            }
+                        }
+                    }
+                ]
+            };
+        }
+    }
+
+    Scratch.extensions.register(new MyExtension());
+})(Scratch);
 ```
 
 ---
@@ -1094,24 +1624,35 @@ getInfo() {
 #### 示例
 
 ```javascript
-getInfo() {
-  return {
-    name: 'My Extension',
-    blocks: [...],
-    translation_map: {
-      zh: {  // 中文
-        'extensionName': '我的扩展',
-        'blockText': '你好 [NAME]',
-        'nameDefault': '世界'
-      },
-      es: {  // 西班牙语
-        'extensionName': 'Mi Extensión',
-        'blockText': 'Hola [NAME]',
-        'nameDefault': 'Mundo'
-      }
+(function (Scratch) {
+    "use strict";
+    class MyExtension {
+        constructor(runtime) {
+            this.runtime = runtime;
+        }
+
+        getInfo() {
+            return {
+                name: 'My Extension',
+                blocks: [],
+                translation_map: {
+                    zh: {  // 中文
+                        'extensionName': '我的扩展',
+                        'blockText': '你好 [NAME]',
+                        'nameDefault': '世界'
+                    },
+                    es: {  // 西班牙语
+                        'extensionName': 'Mi Extensión',
+                        'blockText': 'Hola [NAME]',
+                        'nameDefault': 'Mundo'
+                    }
+                }
+            };
+        }
     }
-  };
-}
+
+    Scratch.extensions.register(new MyExtension());
+})(Scratch);
 ```
 
 ---
@@ -1125,17 +1666,39 @@ getInfo() {
 #### 兼容性建议
 
 ```javascript
-// 沙箱兼容的代码
-async myMethod(args) {
-  // 在沙箱中，runtime 方法可能是异步的
-  const target = await this.runtime.getEditingTarget();
-  const stage = this.runtime.getTargetForStage();
+(function (Scratch) {
+    "use strict";
+    class MyExtension {
+        constructor(runtime) {
+            this.runtime = runtime;
+        }
 
-  // 使用变量查找方法
-  const variable = target.lookupVariableByNameAndType('变量名', '');
-}
+        getInfo() {
+            return {
+                id: 'myextension',
+                name: '我的扩展',
+                color1: '#FF6680',
+                color2: '#FF4D6A',
+                color3: '#CC3D55',
+                blocks: []
+            };
+        }
 
-// 非沙箱环境会自动处理异步/同步
+        // 沙箱兼容的代码
+        async myMethod(args) {
+            // 在沙箱中，runtime 方法可能是异步的
+            const target = await this.runtime.getEditingTarget();
+            const stage = this.runtime.getTargetForStage();
+
+            // 使用变量查找方法
+            const variable = target.lookupVariableByNameAndType('变量名', '');
+        }
+
+        // 非沙箱环境会自动处理异步/同步
+    }
+
+    Scratch.extensions.register(new MyExtension());
+})(Scratch);
 ```
 
 #### 注意事项

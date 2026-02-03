@@ -260,62 +260,66 @@ function getDefaultTemplate() {
   return `// Scratch 扩展模板
 // 在这里编写你的扩展代码
 
-class MyExtension {
-  constructor(runtime) {
-    this.runtime = runtime;
-  }
+(function (Scratch) {
+  "use strict";
 
-  getInfo() {
-    return {
-      id: 'myextension',
-      name: '我的扩展',
-      color1: '#FF6680',
-      color2: '#FF4D6A',
-      color3: '#CC3D55',
-      blocks: [
-        {
-          opcode: 'hello',
-          blockType: 'command',
-          text: '你好 [MESSAGE]',
-          arguments: {
-            MESSAGE: {
-              type: 'string',
-              defaultValue: '世界'
+  class MyExtension {
+    constructor(runtime) {
+      this.runtime = runtime;
+    }
+    getInfo() {
+      return {
+        id: 'myextension',
+        name: '我的扩展',
+        color1: '#FF6680',
+        color2: '#FF4D6A',
+        color3: '#CC3D55',
+        blocks: [
+          {
+            opcode: 'hello',
+            blockType: 'command',
+            text: '你好 [MESSAGE]',
+            arguments: {
+              MESSAGE: {
+                type: 'string',
+                defaultValue: '世界'
+              }
+            }
+          },
+          "---",
+          {
+            opcode: 'getRandomNumber',
+            blockType: 'reporter',
+            text: '随机数 [MIN] 到 [MAX]',
+            arguments: {
+              MIN: {
+                type: 'number',
+                defaultValue: 1
+              },
+              MAX: {
+                type: 'number',
+                defaultValue: 100
+              }
             }
           }
-        },
-        {
-          opcode: 'getRandomNumber',
-          blockType: 'reporter',
-          text: '随机数 [MIN] 到 [MAX]',
-          arguments: {
-            MIN: {
-              type: 'number',
-              defaultValue: 1
-            },
-            MAX: {
-              type: 'number',
-              defaultValue: 100
-            }
-          }
-        }
-      ]
-    };
+        ]
+      };
+    }
+    hello(args) {
+      console.log('Hello, ' + args.MESSAGE);
+    }
+
+    getRandomNumber(args) {
+      const min = args.MIN;
+      const max = args.MAX;
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
   }
 
-  hello(args) {
-    console.log('Hello, ' + args.MESSAGE);
-  }
 
-  getRandomNumber(args) {
-    const min = args.MIN;
-    const max = args.MAX;
-    return Math.floor(Math.random() * (max - min + 1)) + min;
-  }
-}
+  Scratch.extensions.register(new MyExtension());
+})(Scratch);
 
-// 导出扩展
-Scratch.extensions.register(new MyExtension());
 `;
 }
 
@@ -333,3 +337,4 @@ ExtensionEditor.propTypes = {
 };
 
 export default ExtensionEditor;
+
