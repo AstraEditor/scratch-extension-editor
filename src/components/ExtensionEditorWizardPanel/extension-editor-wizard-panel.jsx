@@ -2,7 +2,6 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import ReactMarkdown from 'react-markdown';
 import { defineMessages } from 'react-intl';
-import tutorialsMarkdown from '../../lib/tutorials.md';
 import './extension-editor-wizard-panel.css';
 
 const messages = defineMessages({
@@ -21,18 +20,52 @@ const messages = defineMessages({
 class ExtensionEditorWizardPanel extends React.Component {
     constructor(props) {
         super(props);
-        const parsed = this.parseTutorials();
-        const initialCategory = props.initialCategory || (parsed.categories[0] ? parsed.categories[0].id : null);
+        const tutorialsMarkdown = this.getTutorialsMarkdown();
+        const parsed = this.parseTutorials(tutorialsMarkdown);
+
+        const initialCategory =
+            props.initialCategory || (parsed.categories[0] ? parsed.categories[0].id : null);
+
+        const firstTutorialInCategory = parsed.tutorials.find(t => t.category === initialCategory);
+        const initialTutorial =
+            props.initialTutorial ||
+            (firstTutorialInCategory ? firstTutorialInCategory.id : null);
+
         this.state = {
+            ...parsed,
             wizardCategory: initialCategory,
-            wizardTutorial: null,
-            wizardChapter: props.initialChapter || 0,
-            ...parsed
+            wizardTutorial: initialTutorial,
+            wizardChapter: props.initialChapter || 0
         };
-        this.selectFirstTutorial(initialCategory);
     }
 
-    parseTutorials() {
+    getTutorialsMarkdown() {
+        // Get language setting from localStorage
+        let language = 'en';
+        try {
+            const languageSetting = localStorage.getItem('tw:language');
+            if (
+                typeof languageSetting === 'string' &&
+                languageSetting.toLowerCase().startsWith('zh')
+            ) {
+                language = 'zh';
+            }
+        } catch (e) {
+            // ignore
+        }
+
+        // Import the appropriate tutorials file based on language
+        let tutorialsFile;
+        if (language === 'zh') {
+            tutorialsFile = require('../../lib/tutorials-zh.md');
+        } else {
+            tutorialsFile = require('../../lib/tutorials.md');
+        }
+
+        return tutorialsFile.default || tutorialsFile;
+    }
+
+    parseTutorials(tutorialsMarkdown) {
         const lines = tutorialsMarkdown.split('\n');
         const categories = [];
         const tutorials = [];
@@ -108,16 +141,13 @@ class ExtensionEditorWizardPanel extends React.Component {
         return { categories, tutorials };
     }
 
-    selectFirstTutorial(category) {
-        const tutorial = this.state.tutorials.find(t => t.category === category);
-        if (tutorial) {
-            this.setState({ wizardTutorial: tutorial.id });
-        }
-    }
-
     handleCategoryChange = (category) => {
-        this.setState({ wizardCategory: category, wizardChapter: 0 });
-        this.selectFirstTutorial(category);
+        const tutorial = this.state.tutorials.find(t => t.category === category);
+        this.setState({
+            wizardCategory: category,
+            wizardTutorial: tutorial ? tutorial.id : null,
+            wizardChapter: 0
+        });
         this.props.onCategoryChange?.(category);
     };
 

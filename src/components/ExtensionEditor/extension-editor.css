@@ -6,13 +6,18 @@
   background-color: #1e1e1e;
 }
 
+.extension-editor-container[data-theme="light"] {
+  background-color: #ffffff;
+}
+
 .extension-editor-wrapper {
   flex: 1;
   overflow: hidden;
+  min-height: 0;
 }
 
-.extension-editor-wrapper .monaco-editor {
-  height: 100% !important;
+.extension-editor-wrapper {
+  max-height: 99%; /*这很奇怪却能解决你知道吗*/
 }
 
 .extension-wizard-toggle {
@@ -31,7 +36,7 @@
     justify-content: center;
     box-shadow: 0 0 0 4px var(--looks-transparent, rgba(255, 102, 128, 0.3));
     z-index: 1000;
-    transition: transform, box-shadow 0.2s;
+    transition: transform 0.2s, box-shadow 0.2s;
 }
 
 .extension-wizard-toggle:hover {

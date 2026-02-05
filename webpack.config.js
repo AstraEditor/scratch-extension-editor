@@ -4,7 +4,7 @@ const MonacoWebpackPlugin = require('monaco-editor-webpack-plugin');
 module.exports = {
   mode: 'development',
   devtool: 'source-map',
-  entry: './src/index.js',
+  entry: ['./src/set-public-path.js', './src/index.js'],
   externals: {
     'react': {
       commonjs: 'react',

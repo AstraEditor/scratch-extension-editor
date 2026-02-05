@@ -26,32 +26,56 @@ class ExtensionEditor extends React.Component {
     this.state = {
       code: props.initialCode || getDefaultTemplate(),
       isEditorReady: false,
-      fontSize: props.fontSize || 14
+      fontSize: props.fontSize || 14,
+      guiTheme: 'dark'
     };
     this.editorContainer = React.createRef();
     this.editor = null;
     this.lastTheme = null; // 用于存储上一次的主题
   }
 
+  getExtensionEditorPublicPath() {
+    if (typeof window === 'undefined') return './';
+    const configured = window.__SCRATCH_EXTENSION_EDITOR_PUBLIC_PATH__;
+    if (typeof configured !== 'string' || configured.length === 0) return './';
+    return configured.endsWith('/') ? configured : `${configured}/`;
+  }
+
   componentDidMount() {
     // 配置 Monaco Editor worker
     if (typeof window !== 'undefined') {
+      const publicPath = this.getExtensionEditorPublicPath();
+      const getWorkerUrl = (moduleId, label) => {
+        // Workers are shipped with scratch-extension-editor and served from a dedicated folder.
+        if (label === 'typescript' || label === 'javascript') {
+          return `${publicPath}ts.worker.js`;
+        }
+        return `${publicPath}editor.worker.js`;
+      };
+
+      // Monaco may call either getWorker() or getWorkerUrl() depending on version/config.
       window.MonacoEnvironment = {
-        getWorkerUrl: function (moduleId, label) {
-          // 使用 require.ensure 的方式加载 worker
-          if (label === 'json') {
-            return './editor.worker.js';
+        getWorkerUrl,
+        getWorker: function (moduleId, label) {
+          const url = getWorkerUrl(moduleId, label);
+          try {
+            return new Worker(url);
+          } catch (e) {
+            // Some environments require an absolute URL.
+            try {
+              const absoluteUrl = new URL(url, window.location.href).toString();
+              return new Worker(absoluteUrl);
+            } catch (e2) {
+              // Log the original error; throw to surface failure loudly.
+              // eslint-disable-next-line no-console
+              console.error('[scratch-extension-editor] Failed to create Monaco worker', {
+                label,
+                url,
+                error: e
+              });
+              throw e;
+            }
           }
-          if (label === 'css' || label === 'scss' || label === 'less') {
-            return './editor.worker.js';
-          }
-          if (label === 'html' || label === 'handlebars' || label === 'razor') {
-            return './editor.worker.js';
-          }
-          if (label === 'typescript' || label === 'javascript') {
-            return './ts.worker.js';
-          }
-          return './editor.worker.js';
         }
       };
     }
@@ -63,6 +87,7 @@ class ExtensionEditor extends React.Component {
 
     // 轮询检查主题变化（用于当前标签页）
     this.lastTheme = this.getEditorTheme();
+    this.setState({ guiTheme: this.lastTheme });
     this.themeCheckInterval = setInterval(() => {
       const currentTheme = this.getEditorTheme();
       if (currentTheme !== this.lastTheme) {
@@ -109,7 +134,7 @@ class ExtensionEditor extends React.Component {
         const themeData = JSON.parse(themeStr);
         switch (themeData.gui) {
           case undefined:
-            theme = 'dark';
+            theme = 'light';
             break;
           case 'dark':
             theme = 'dark';
@@ -118,7 +143,7 @@ class ExtensionEditor extends React.Component {
             theme = 'light';
             break;
           default:
-            theme = 'dark';
+            theme = 'light';
         }
       }
     } catch (e) {
@@ -133,6 +158,9 @@ class ExtensionEditor extends React.Component {
     const currentTheme = this.getEditorTheme();
     const monacoTheme = currentTheme === 'light' ? 'vs' : 'vs-dark';
     monaco.editor.setTheme(monacoTheme);
+    if (this.state.guiTheme !== currentTheme) {
+      this.setState({ guiTheme: currentTheme });
+    }
   }
 
   handleStorageChange(e) {
@@ -236,7 +264,7 @@ class ExtensionEditor extends React.Component {
 
   render() {
     return (
-      <div className="extension-editor-container">
+      <div className="extension-editor-container" data-theme={this.state.guiTheme}>
         <div className="extension-editor-wrapper">
           <div
             ref={this.editorContainer}
@@ -257,15 +285,17 @@ class ExtensionEditor extends React.Component {
   }
 }
 function getDefaultTemplate() {
-  return `// Scratch 扩展模板
-// 在这里编写你的扩展代码
-
+  return `
 (function (Scratch) {
   "use strict";
 
+  const BlockType = Scratch.BlockType;
+  const ArgumentType = Scratch.ArgumentType;
+
   class MyExtension {
-    constructor(runtime) {
-      this.runtime = runtime;
+    constructor() {
+      // TurboWarp/unsandboxed extensions can access the VM through Scratch.vm.
+      this.runtime = Scratch.vm && Scratch.vm.runtime;
     }
     getInfo() {
       return {
@@ -277,11 +307,11 @@ function getDefaultTemplate() {
         blocks: [
           {
             opcode: 'hello',
-            blockType: 'command',
+            blockType: BlockType.COMMAND,
             text: '你好 [MESSAGE]',
             arguments: {
               MESSAGE: {
-                type: 'string',
+                type: ArgumentType.STRING,
                 defaultValue: '世界'
               }
             }
@@ -289,15 +319,15 @@ function getDefaultTemplate() {
           "---",
           {
             opcode: 'getRandomNumber',
-            blockType: 'reporter',
+            blockType: BlockType.REPORTER,
             text: '随机数 [MIN] 到 [MAX]',
             arguments: {
               MIN: {
-                type: 'number',
+                type: ArgumentType.NUMBER,
                 defaultValue: 1
               },
               MAX: {
-                type: 'number',
+                type: ArgumentType.NUMBER,
                 defaultValue: 100
               }
             }
@@ -337,4 +367,3 @@ ExtensionEditor.propTypes = {
 };
 
 export default ExtensionEditor;
-

@@ -74,17 +74,13 @@ const messages = defineMessages({
 });
 
 class ExtensionEditorCreateContent extends React.Component {
-    constructor(props) {
-        super(props);
-        this.formatMessage = props.formatMessage || defaultFormatMessage;
-    }
-
     handleNameChange = (name) => {
         // Auto-generate ID from name if ID is empty
-        const newId = this.state.id === '' && name ? 
-            name.toLowerCase().replace(/[^a-z0-9_]/g, '_') : 
-            this.state.id;
-        this.props.onNameChange && this.props.onNameChange(name, newId);
+        const currentId = this.props.id || '';
+        const newId = currentId === '' && name ?
+            name.toLowerCase().replace(/[^a-z0-9_]/g, '_') :
+            currentId;
+        if (this.props.onNameChange) this.props.onNameChange(name, newId);
     };
 
     handleIdChange = (id) => {

@@ -52,6 +52,10 @@
   <div id="error"></div>
   <div id="editor"></div>
 
+  <script>
+    // Let scratch-extension-editor locate its own workers/chunks when served from /dist.
+    window.__SCRATCH_EXTENSION_EDITOR_PUBLIC_PATH__ = '/dist/';
+  </script>
   <script src="/dist/index.js"></script>
   <script>
     window.addEventListener('DOMContentLoaded', function() {

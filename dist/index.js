@@ -49503,13 +49503,18 @@ ___CSS_LOADER_EXPORT___.push([module.id, `.extension-editor-container {
   background-color: #1e1e1e;
 }
 
+.extension-editor-container[data-theme="light"] {
+  background-color: #ffffff;
+}
+
 .extension-editor-wrapper {
   flex: 1;
   overflow: hidden;
+  min-height: 0;
 }
 
-.extension-editor-wrapper .monaco-editor {
-  height: 100% !important;
+.extension-editor-wrapper {
+  max-height: 99%; /*这很奇怪却能解决你知道吗*/
 }
 
 .extension-wizard-toggle {
@@ -49528,7 +49533,7 @@ ___CSS_LOADER_EXPORT___.push([module.id, `.extension-editor-container {
     justify-content: center;
     box-shadow: 0 0 0 4px var(--looks-transparent, rgba(255, 102, 128, 0.3));
     z-index: 1000;
-    transition: transform, box-shadow 0.2s;
+    transition: transform 0.2s, box-shadow 0.2s;
 }
 
 .extension-wizard-toggle:hover {
@@ -49539,7 +49544,8 @@ ___CSS_LOADER_EXPORT___.push([module.id, `.extension-editor-container {
 .extension-wizard-toggle-icon {
     width: 1.5rem;
     height: auto
-}`, "",{"version":3,"sources":["webpack://./src/components/ExtensionEditor/extension-editor.css"],"names":[],"mappings":"AAAA;EACE,aAAa;EACb,sBAAsB;EACtB,YAAY;EACZ,WAAW;EACX,yBAAyB;AAC3B;;AAEA;EACE,OAAO;EACP,gBAAgB;AAClB;;AAEA;EACE,uBAAuB;AACzB;;AAEA;IACI,kBAAkB;IAClB,eAAe;IACf,aAAa;IACb,cAAc;IACd,eAAe;IACf,mBAAmB;IACnB,2CAA2C;IAC3C,YAAY;IACZ,YAAY;IACZ,eAAe;IACf,aAAa;IACb,mBAAmB;IACnB,uBAAuB;IACvB,wEAAwE;IACxE,aAAa;IACb,sCAAsC;AAC1C;;AAEA;IACI,qBAAqB;IACrB,wEAAwE;AAC5E;;AAEA;IACI,aAAa;IACb;AACJ","sourcesContent":[".extension-editor-container {\n  display: flex;\n  flex-direction: column;\n  height: 100%;\n  width: 100%;\n  background-color: #1e1e1e;\n}\n\n.extension-editor-wrapper {\n  flex: 1;\n  overflow: hidden;\n}\n\n.extension-editor-wrapper .monaco-editor {\n  height: 100% !important;\n}\n\n.extension-wizard-toggle {\n    position: absolute;\n    bottom: 0.75rem;\n    left: 0.75rem;\n    width: 2.75rem;\n    height: 2.75rem;\n    border-radius: 100%;\n    background: var(--looks-secondary, #ff6680);\n    color: white;\n    border: none;\n    cursor: pointer;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n    box-shadow: 0 0 0 4px var(--looks-transparent, rgba(255, 102, 128, 0.3));\n    z-index: 1000;\n    transition: transform, box-shadow 0.2s;\n}\n\n.extension-wizard-toggle:hover {\n    transform: scale(1.1);\n    box-shadow: 0 0 0 6px var(--looks-transparent, rgba(255, 102, 128, 0.3));\n}\n\n.extension-wizard-toggle-icon {\n    width: 1.5rem;\n    height: auto\n}"],"sourceRoot":""}]);
+}
+`, "",{"version":3,"sources":["webpack://./src/components/ExtensionEditor/extension-editor.css"],"names":[],"mappings":"AAAA;EACE,aAAa;EACb,sBAAsB;EACtB,YAAY;EACZ,WAAW;EACX,yBAAyB;AAC3B;;AAEA;EACE,yBAAyB;AAC3B;;AAEA;EACE,OAAO;EACP,gBAAgB;EAChB,aAAa;AACf;;AAEA;EACE,eAAe,EAAE,eAAe;AAClC;;AAEA;IACI,kBAAkB;IAClB,eAAe;IACf,aAAa;IACb,cAAc;IACd,eAAe;IACf,mBAAmB;IACnB,2CAA2C;IAC3C,YAAY;IACZ,YAAY;IACZ,eAAe;IACf,aAAa;IACb,mBAAmB;IACnB,uBAAuB;IACvB,wEAAwE;IACxE,aAAa;IACb,2CAA2C;AAC/C;;AAEA;IACI,qBAAqB;IACrB,wEAAwE;AAC5E;;AAEA;IACI,aAAa;IACb;AACJ","sourcesContent":[".extension-editor-container {\n  display: flex;\n  flex-direction: column;\n  height: 100%;\n  width: 100%;\n  background-color: #1e1e1e;\n}\n\n.extension-editor-container[data-theme=\"light\"] {\n  background-color: #ffffff;\n}\n\n.extension-editor-wrapper {\n  flex: 1;\n  overflow: hidden;\n  min-height: 0;\n}\n\n.extension-editor-wrapper {\n  max-height: 99%; /*这很奇怪却能解决你知道吗*/\n}\n\n.extension-wizard-toggle {\n    position: absolute;\n    bottom: 0.75rem;\n    left: 0.75rem;\n    width: 2.75rem;\n    height: 2.75rem;\n    border-radius: 100%;\n    background: var(--looks-secondary, #ff6680);\n    color: white;\n    border: none;\n    cursor: pointer;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n    box-shadow: 0 0 0 4px var(--looks-transparent, rgba(255, 102, 128, 0.3));\n    z-index: 1000;\n    transition: transform 0.2s, box-shadow 0.2s;\n}\n\n.extension-wizard-toggle:hover {\n    transform: scale(1.1);\n    box-shadow: 0 0 0 6px var(--looks-transparent, rgba(255, 102, 128, 0.3));\n}\n\n.extension-wizard-toggle-icon {\n    width: 1.5rem;\n    height: auto\n}\n"],"sourceRoot":""}]);
 // Exports
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (___CSS_LOADER_EXPORT___);
 
@@ -79927,6 +79933,18 @@ const languages_TokenizationRegistry = new TokenizationRegistry();
 
 /***/ },
 
+/***/ 44433
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("# 入门指南\n\n## 最小扩展示例\n\n### 你需要什么\n\n本编辑器专为 **TurboWarp 风格的非沙箱扩展**设计：你编写 JavaScript，然后将其加载到 VM 中。\n\n- 你的代码必须通过 `Scratch.extensions.register(new MyExtension())` 注册。\n- 你的扩展必须实现 `getInfo()` 并返回 `id`、`name` 和 `blocks`。\n\n### 最小模板（推荐）\n\n```js\n(function (Scratch) {\n  \"use strict\";\n\n  const BlockType = Scratch.BlockType;\n  const ArgumentType = Scratch.ArgumentType;\n\n  class MyExtension {\n    constructor() {\n      // 仅在 TurboWarp/非沙箱环境中可用：\n      this.runtime = Scratch.vm && Scratch.vm.runtime;\n    }\n\n    getInfo() {\n      return {\n        id: \"myextension\",\n        name: \"我的扩展\",\n        color1: \"#FF6680\",\n        color2: \"#FF4D6A\",\n        color3: \"#CC3D55\",\n        blocks: [\n          {\n            opcode: \"hello\",\n            blockType: BlockType.COMMAND,\n            text: \"问候 [NAME]\",\n            arguments: {\n              NAME: {type: ArgumentType.STRING, defaultValue: \"世界\"}\n            }\n          }\n        ]\n      };\n    }\n\n    hello(args) {\n      console.log(\"你好，\" + args.NAME);\n    }\n  }\n\n  Scratch.extensions.register(new MyExtension());\n})(Scratch);\n```\n\n### 常见错误\n\n- 忘记 IIFE 包装器：`((Scratch) => { ... })(Scratch)`\n- 使用无效的 `id`（必须唯一；避免空格和大写字母）\n- 注册太晚（每次加载只注册一次）\n\n## 热重载与多次加载\n\n### 为什么有时会\"加载两次\"\n\n当你多次点击 **运行** 时，VM 会：\n\n1) 卸载之前的扩展（如果可能），\n2) 然后加载新代码。\n\n如果你的扩展写入全局作用域（例如 `window.foo = ...`），可能会看到奇怪的行为。\n\n### 推荐模式\n\n- 将所有内容保留在 IIFE 内部。\n- 避免全局变量。\n- 仅在需要时使用 `Scratch.vm`/`Scratch.renderer`。\n\n# Scratch API\n\n## Scratch 对象概览\n\n### TurboWarp 注入的内容\n\n在 TurboWarp 的非沙箱扩展环境中，VM 会注入一个全局 `Scratch` 对象，包含以下 API。\n此列表来自 TurboWarp 的 VM 实现：\n\n- `scratch-vm/src/extension-support/tw-extension-api-common.js`\n- `scratch-vm/src/extension-support/tw-unsandboxed-extension-runner.js`\n- `scratch-vm/src/extension-support/tw-external.js`\n\n### 常量与工具\n\n这些在非沙箱扩展中始终可用：\n\n- `Scratch.ArgumentType`\n- `Scratch.BlockType`\n- `Scratch.BlockShape`\n- `Scratch.TargetType`\n- `Scratch.Cast`\n- `Scratch.external`（见下文）\n\n### 注册你的扩展\n\nTurboWarp 注入：\n\n- `Scratch.extensions.unsandboxed === true`\n- `Scratch.extensions.register(extensionObject)`\n\n此外，TurboWarp 提供了 ScratchX 兼容的全局对象：\n\n- `ScratchExtensions`（传统的 ScratchX 风格 API）\n\n### VM 与渲染器\n\n非沙箱扩展可以访问：\n\n- `Scratch.vm`（VirtualMachine 实例）\n- `Scratch.renderer`（渲染器实例；通常是 `Scratch.vm.runtime.renderer`）\n\n重要提示：`Scratch.vm` 和 `Scratch.renderer` 是**强大但不稳定的公共 API**。尽可能使用正常的块 API。\n\n### 翻译\n\n- `Scratch.translate(...)`\n\n你可以使用它来使块可本地化（高级用法）。\n\n## 权限与安全功能\n\n### 权限检查（can*）\n\nTurboWarp 暴露异步权限检查：\n\n- `Scratch.canFetch(url)`\n- `Scratch.canOpenWindow(url)`\n- `Scratch.canRedirect(url)`\n- `Scratch.canDownload(url, name)`\n- `Scratch.canEmbed(url)`\n- `Scratch.canRecordAudio()`\n- `Scratch.canRecordVideo()`\n- `Scratch.canReadClipboard()`\n- `Scratch.canNotify()`\n- `Scratch.canGeolocate()`\n\n这些返回 `Promise<boolean>`。\n\n### 操作（fetch/openWindow/redirect/download）\n\nTurboWarp 提供安全包装器，强制执行权限检查：\n\n- `Scratch.fetch(url, options)`（类似 `fetch`，但检查 `Scratch.canFetch`）\n- `Scratch.openWindow(url, features)`（打开新标签页；检查 `Scratch.canOpenWindow`）\n- `Scratch.redirect(url)`（更改 `location.href`；检查 `Scratch.canRedirect`）\n- `Scratch.download(url, name)`（通过 `<a download>` 下载；检查 `Scratch.canDownload`）\n\n示例：\n\n```js\nasync function getText(url) {\n  const res = await Scratch.fetch(url);\n  return res.text();\n}\n```\n\n注意：\n\n- URL 是相对于当前页面解析的（`new URL(url, location.href)`）。\n- `javascript:` URL 在 open/redirect/download 中始终被拒绝。\n\n## Scratch.external\n\n### 它是什么\n\n`Scratch.external` 是一个用于加载外部资源/模块的小型助手集。\n\n它包括：\n\n- `Scratch.external.importModule(url)` -> `import(url)`（需要**绝对** URL）\n- `Scratch.external.fetch(url)` -> `fetch(url)` 并带有基本的 HTTP 错误处理\n- `Scratch.external.dataURL(url)` -> fetch -> 转换为 `data:` URL\n- `Scratch.external.blob(url)` -> fetch -> `Blob`\n- `Scratch.external.evalAndReturn(url, returnExpression)` -> fetch JS -> `new Function(...)`\n\n### URL 规则（非常重要）\n\nTurboWarp 要求 URL 以下列之一开头：\n\n- `http:`\n- `https:`\n- `data:`\n- `blob:`\n\n相对 URL 会被拒绝。\n\n### 示例：导入 ES 模块\n\n```js\nconst {default: md5} = await Scratch.external.importModule(\n  \"https://cdn.jsdelivr.net/npm/blueimp-md5@2.19.0/js/md5.min.js\"\n);\nconsole.log(md5(\"hello\"));\n```\n\n# 积木与 getInfo()\n\n## 定义积木\n\n### BlockType 快速参考\n\n```js\nconst BlockType = Scratch.BlockType;\n\nBlockType.COMMAND\nBlockType.REPORTER\nBlockType.BOOLEAN\nBlockType.HAT\nBlockType.EVENT\nBlockType.LOOP\nBlockType.CONDITIONAL\nBlockType.BUTTON\nBlockType.LABEL\nBlockType.XML\n```\n\n### ArgumentType 快速参考\n\n```js\nconst ArgumentType = Scratch.ArgumentType;\n\nArgumentType.STRING\nArgumentType.NUMBER\nArgumentType.BOOLEAN\nArgumentType.ANGLE\nArgumentType.COLOR\nArgumentType.MATRIX\nArgumentType.NOTE\nArgumentType.IMAGE\nArgumentType.COSTUME\nArgumentType.SOUND\n```\n\n## 菜单\n\n### 静态菜单\n\n```js\ngetInfo() {\n  return {\n    id: \"demo\",\n    name: \"示例\",\n    blocks: [\n      {\n        opcode: \"pick\",\n        blockType: Scratch.BlockType.COMMAND,\n        text: \"选择 [ITEM]\",\n        arguments: {\n          ITEM: {type: Scratch.ArgumentType.STRING, menu: \"items\"}\n        }\n      }\n    ],\n    menus: {\n      items: [\"苹果\", \"香蕉\", \"橙子\"]\n    }\n  };\n}\n```\n\n### 动态菜单（函数）\n\n```js\ngetInfo() {\n  return {\n    id: \"demo\",\n    name: \"示例\",\n    blocks: [\n      {\n        opcode: \"pick\",\n        blockType: Scratch.BlockType.COMMAND,\n        text: \"选择 [ITEM]\",\n        arguments: {\n          ITEM: {type: Scratch.ArgumentType.STRING, menu: \"items\"}\n        }\n      }\n    ],\n    menus: {\n      items: {\n        acceptReporters: true,\n        items: \"getItems\"\n      }\n    }\n  };\n}\n\ngetItems() {\n  return [\"A\", \"B\", \"C\"];\n}\n```\n\n# VM 与运行时（高级）\n\n## 访问运行时\n\n### Scratch.vm.runtime\n\n在非沙箱模式下，你可以访问：\n\n```js\nconst vm = Scratch.vm;\nconst runtime = vm && vm.runtime;\n```\n\n这让你可以与目标、线程和内部 VM 状态进行交互。\n\n警告：\n\n- 许多运行时 API 不被认为是稳定的。\n- 尽可能使用公共扩展 API。\n\n## 常见模式\n\n### 获取舞台目标\n\n```js\nconst stage = Scratch.vm && Scratch.vm.runtime && Scratch.vm.runtime.getTargetForStage();\n```\n\n### 列出所有目标\n\n```js\nconst targets = Scratch.vm.runtime.targets;\nconsole.log(targets.map(t => t.getName ? t.getName() : t.sprite && t.sprite.name));\n```\n\n### 刷新积木 UI（依赖于宿主）\n\n某些宿主暴露了辅助工具：\n\n- `Scratch.vm.refreshWorkspace()`\n- `Scratch.vm.emitWorkspaceUpdate()`\n\n如果你的宿主提供了它们，可以在加载/卸载扩展后使用。\n\n# 调试与发布\n\n## 调试技巧\n\n### Worker/Chunk 问题\n\n如果语法高亮不工作：\n\n- 确保 `ts.worker.js` 和 `editor.worker.js` 可访问。\n- 确保宿主将 `window.__SCRATCH_EXTENSION_EDITOR_PUBLIC_PATH__` 设置为包含这些文件的文件夹。\n\n### 使用控制台\n\n在块实现中使用 `console.log`、`console.warn` 和 `console.error`。TurboWarp 会在 DevTools 中显示它们。\n\n## 发布你的扩展\n\n### 导出为 .js\n\n此编辑器可以将你的代码导出为 `.js` 文件。然后你可以：\n\n- 将其托管在静态服务器上（GitHub Pages 等），\n- 在你的编辑器中通过 URL 加载它，\n- 或者将其打包到你自己的 mod 中。");
+
+/***/ },
+
 /***/ 44978
 (module, __webpack_exports__, __webpack_require__) {
 
@@ -82345,6 +82363,7 @@ ___CSS_LOADER_EXPORT___.push([module.id, `/* Wizard Panel */
     gap: 0.25rem;
     border-bottom: 1px solid var(--ui-secondary);
     flex-shrink: 0;
+    flex-wrap: wrap;
 }
 
 .extension-wizard-category {
@@ -82374,7 +82393,7 @@ ___CSS_LOADER_EXPORT___.push([module.id, `/* Wizard Panel */
     display: flex;
     overflow: hidden;
     min-height: 0;
-    max-height: calc(100vh - 130px);
+    max-height: calc(100vh - 170px);
 }
 
 .extension-wizard-sidebar {
@@ -82612,7 +82631,7 @@ ___CSS_LOADER_EXPORT___.push([module.id, `/* Wizard Panel */
 .extension-wizard-sidebar-items::-webkit-scrollbar-thumb:hover,
 .extension-wizard-chapter-content::-webkit-scrollbar-thumb:hover {
     background: var(--badge-border);
-}`, "",{"version":3,"sources":["webpack://./src/components/ExtensionEditorWizardPanel/extension-editor-wizard-panel.css"],"names":[],"mappings":"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","sourcesContent":["/* Wizard Panel */\n.extension-wizard-panel {\n    display: flex;\n    flex-direction: column;\n    height: 100%;\n    width: 100%;\n    background: var(--ui-modal-background);\n    color: var(--ui-modal-foreground);\n    position: relative;\n    z-index: 1;\n}\n\n.extension-wizard-categories {\n    display: flex;\n    padding: 0.5rem;\n    gap: 0.25rem;\n    border-bottom: 1px solid var(--ui-secondary);\n    flex-shrink: 0;\n}\n\n.extension-wizard-category {\n    background: var(--ui-tertiary);\n    color: var(--ui-modal-foreground);\n    border: none;\n    padding: 0.5rem 0.75rem;\n    border-radius: 4px;\n    cursor: pointer;\n    font-family: inherit;\n    font-size: 0.8125rem;\n    white-space: nowrap;\n    transition: background 0.2s ease;\n}\n\n.extension-wizard-category:hover {\n    background: var(--ui-secondary);\n}\n\n.extension-wizard-category-active {\n    background: var(--looks-secondary);\n    color: white;\n}\n\n.extension-wizard-body {\n    flex: 1;\n    display: flex;\n    overflow: hidden;\n    min-height: 0;\n    max-height: calc(100vh - 130px);\n}\n\n.extension-wizard-sidebar {\n    width: 180px;\n    border-right: 1px solid var(--ui-secondary);\n    display: flex;\n    flex-direction: column;\n    overflow: hidden;\n    flex-shrink: 0;\n}\n\n.extension-wizard-sidebar-header {\n    padding: 0.75rem 1rem;\n    font-size: 0.75rem;\n    font-weight: bold;\n    color: var(--ui-modal-foreground);\n    border-bottom: 1px solid var(--ui-secondary);\n    text-transform: uppercase;\n    letter-spacing: 0.05em;\n}\n\n.extension-wizard-sidebar-items {\n    flex: 1;\n    overflow-y: auto;\n    padding: 0.25rem 0;\n}\n\n.extension-wizard-sidebar-item {\n    padding: 0.5rem 0.75rem;\n    cursor: pointer;\n    font-size: 0.75rem;\n    transition: background 0.2s ease;\n    border-left: 3px solid transparent;\n    white-space: nowrap;\n    overflow: hidden;\n    text-overflow: ellipsis;\n}\n\n.extension-wizard-sidebar-item:hover {\n    background: var(--ui-tertiary);\n}\n\n.extension-wizard-sidebar-item-active {\n    background: var(--ui-tertiary);\n    border-left-color: var(--looks-secondary);\n    color: var(--ui-modal-foreground);\n    font-weight: 500;\n}\n\n.extension-wizard-detail {\n    flex: 1;\n    display: flex;\n    flex-direction: column;\n    overflow: hidden;\n    min-width: 0;\n}\n\n.extension-wizard-chapters {\n    display: flex;\n    flex-wrap: wrap;\n    gap: 0.25rem;\n    padding: 0.5rem;\n    border-bottom: 1px solid var(--ui-secondary);\n    flex-shrink: 0;\n}\n\n.extension-wizard-chapter {\n    background: var(--ui-tertiary);\n    color: var(--ui-modal-foreground);\n    border: none;\n    padding: 0.375rem 0.75rem;\n    border-radius: 4px;\n    cursor: pointer;\n    font-family: inherit;\n    font-size: 0.75rem;\n    white-space: nowrap;\n    transition: background 0.2s ease;\n}\n\n.extension-wizard-chapter:hover {\n    background: var(--ui-secondary);\n}\n\n.extension-wizard-chapter-active {\n    background: var(--looks-secondary);\n    color: white;\n}\n\n.extension-wizard-chapter-content {\n    flex: 1;\n    overflow-y: auto;\n    padding: 1rem;\n}\n\n.extension-wizard-chapter-content-empty {\n    display: flex;\n    align-items: center;\n    justify-content: center;\n    height: 100%;\n    color: var(--ui-secondary);\n    font-size: 0.75rem;\n}\n\n.extension-wizard-tutorial-section {\n    margin-bottom: 1.5rem;\n}\n\n.extension-wizard-tutorial-section:last-child {\n    margin-bottom: 0;\n}\n\n/* Markdown 样式 */\n.extension-wizard-markdown {\n    font-size: 0.75rem;\n    line-height: 1.6;\n    color: var(--ui-modal-foreground);\n}\n\n.extension-wizard-markdown h1 {\n    font-size: 1.125rem;\n    font-weight: bold;\n    margin: 1.25rem 0 0.75rem 0;\n    color: var(--ui-modal-foreground);\n    border-bottom: 2px solid var(--ui-secondary);\n    padding-bottom: 0.375rem;\n}\n\n.extension-wizard-markdown h2 {\n    font-size: 1rem;\n    font-weight: bold;\n    margin: 1rem 0 0.625rem 0;\n    color: var(--ui-modal-foreground);\n}\n\n.extension-wizard-markdown h3 {\n    font-size: 0.875rem;\n    font-weight: bold;\n    margin: 0.875rem 0 0.5rem 0;\n    color: var(--ui-modal-foreground);\n}\n\n.extension-wizard-markdown h4 {\n    font-size: 0.8125rem;\n    font-weight: 600;\n    margin: 0.75rem 0 0.375rem 0;\n    color: var(--ui-modal-foreground);\n}\n\n.extension-wizard-markdown p {\n    margin: 0 0 0.625rem 0;\n    color: var(--ui-modal-foreground);\n}\n\n.extension-wizard-markdown ul,\n.extension-wizard-markdown ol {\n    margin: 0 0 0.625rem 0;\n    padding-left: 1.5rem;\n    color: var(--ui-modal-foreground);\n}\n\n.extension-wizard-markdown li {\n    margin: 0.25rem 0;\n}\n\n.extension-wizard-markdown li strong {\n    color: var(--looks-primary);\n}\n\n.extension-wizard-markdown strong {\n    font-weight: 600;\n    color: var(--looks-primary);\n}\n\n.extension-wizard-markdown em {\n    font-style: italic;\n}\n\n.extension-wizard-markdown blockquote {\n    margin: 0.625rem 0;\n    padding: 0.5rem 0.75rem;\n    border-left: 3px solid var(--looks-secondary);\n    background: var(--ui-tertiary);\n    color: var(--ui-modal-foreground);\n}\n\n.extension-wizard-markdown hr {\n    margin: 1rem 0;\n    border: none;\n    border-top: 1px solid var(--ui-secondary);\n}\n\n.extension-wizard-markdown code {\n    background: var(--ui-primary);\n    color: var(--ui-modal-foreground);\n    padding: 0.125rem 0.375rem;\n    border-radius: 3px;\n    font-size: 0.6875rem;\n    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', monospace;\n}\n\n.extension-wizard-markdown pre {\n    background: var(--ui-primary);\n    color: var(--ui-modal-foreground);\n    padding: 0.75rem;\n    border-radius: 4px;\n    overflow-x: auto;\n    margin: 0.625rem 0;\n}\n\n.extension-wizard-markdown pre code {\n    background: none;\n    padding: 0;\n    font-size: 0.6875rem;\n    line-height: 1.5;\n    display: block;\n}\n\n/* Scrollbar styling */\n.extension-wizard-sidebar-items::-webkit-scrollbar,\n.extension-wizard-chapter-content::-webkit-scrollbar {\n    width: 4px;\n}\n\n.extension-wizard-sidebar-items::-webkit-scrollbar-track,\n.extension-wizard-chapter-content::-webkit-scrollbar-track {\n    background: var(--ui-tertiary);\n}\n\n.extension-wizard-sidebar-items::-webkit-scrollbar-thumb,\n.extension-wizard-chapter-content::-webkit-scrollbar-thumb {\n    background: var(--ui-secondary);\n    border-radius: 2px;\n}\n\n.extension-wizard-sidebar-items::-webkit-scrollbar-thumb:hover,\n.extension-wizard-chapter-content::-webkit-scrollbar-thumb:hover {\n    background: var(--badge-border);\n}"],"sourceRoot":""}]);
+}`, "",{"version":3,"sources":["webpack://./src/components/ExtensionEditorWizardPanel/extension-editor-wizard-panel.css"],"names":[],"mappings":"AAAA,iBAAiB;AACjB;IACI,aAAa;IACb,sBAAsB;IACtB,YAAY;IACZ,WAAW;IACX,sCAAsC;IACtC,iCAAiC;IACjC,kBAAkB;IAClB,UAAU;AACd;;AAEA;IACI,aAAa;IACb,eAAe;IACf,YAAY;IACZ,4CAA4C;IAC5C,cAAc;IACd,eAAe;AACnB;;AAEA;IACI,8BAA8B;IAC9B,iCAAiC;IACjC,YAAY;IACZ,uBAAuB;IACvB,kBAAkB;IAClB,eAAe;IACf,oBAAoB;IACpB,oBAAoB;IACpB,mBAAmB;IACnB,gCAAgC;AACpC;;AAEA;IACI,+BAA+B;AACnC;;AAEA;IACI,kCAAkC;IAClC,YAAY;AAChB;;AAEA;IACI,OAAO;IACP,aAAa;IACb,gBAAgB;IAChB,aAAa;IACb,+BAA+B;AACnC;;AAEA;IACI,YAAY;IACZ,2CAA2C;IAC3C,aAAa;IACb,sBAAsB;IACtB,gBAAgB;IAChB,cAAc;AAClB;;AAEA;IACI,qBAAqB;IACrB,kBAAkB;IAClB,iBAAiB;IACjB,iCAAiC;IACjC,4CAA4C;IAC5C,yBAAyB;IACzB,sBAAsB;AAC1B;;AAEA;IACI,OAAO;IACP,gBAAgB;IAChB,kBAAkB;AACtB;;AAEA;IACI,uBAAuB;IACvB,eAAe;IACf,kBAAkB;IAClB,gCAAgC;IAChC,kCAAkC;IAClC,mBAAmB;IACnB,gBAAgB;IAChB,uBAAuB;AAC3B;;AAEA;IACI,8BAA8B;AAClC;;AAEA;IACI,8BAA8B;IAC9B,yCAAyC;IACzC,iCAAiC;IACjC,gBAAgB;AACpB;;AAEA;IACI,OAAO;IACP,aAAa;IACb,sBAAsB;IACtB,gBAAgB;IAChB,YAAY;AAChB;;AAEA;IACI,aAAa;IACb,eAAe;IACf,YAAY;IACZ,eAAe;IACf,4CAA4C;IAC5C,cAAc;AAClB;;AAEA;IACI,8BAA8B;IAC9B,iCAAiC;IACjC,YAAY;IACZ,yBAAyB;IACzB,kBAAkB;IAClB,eAAe;IACf,oBAAoB;IACpB,kBAAkB;IAClB,mBAAmB;IACnB,gCAAgC;AACpC;;AAEA;IACI,+BAA+B;AACnC;;AAEA;IACI,kCAAkC;IAClC,YAAY;AAChB;;AAEA;IACI,OAAO;IACP,gBAAgB;IAChB,aAAa;AACjB;;AAEA;IACI,aAAa;IACb,mBAAmB;IACnB,uBAAuB;IACvB,YAAY;IACZ,0BAA0B;IAC1B,kBAAkB;AACtB;;AAEA;IACI,qBAAqB;AACzB;;AAEA;IACI,gBAAgB;AACpB;;AAEA,gBAAgB;AAChB;IACI,kBAAkB;IAClB,gBAAgB;IAChB,iCAAiC;AACrC;;AAEA;IACI,mBAAmB;IACnB,iBAAiB;IACjB,2BAA2B;IAC3B,iCAAiC;IACjC,4CAA4C;IAC5C,wBAAwB;AAC5B;;AAEA;IACI,eAAe;IACf,iBAAiB;IACjB,yBAAyB;IACzB,iCAAiC;AACrC;;AAEA;IACI,mBAAmB;IACnB,iBAAiB;IACjB,2BAA2B;IAC3B,iCAAiC;AACrC;;AAEA;IACI,oBAAoB;IACpB,gBAAgB;IAChB,4BAA4B;IAC5B,iCAAiC;AACrC;;AAEA;IACI,sBAAsB;IACtB,iCAAiC;AACrC;;AAEA;;IAEI,sBAAsB;IACtB,oBAAoB;IACpB,iCAAiC;AACrC;;AAEA;IACI,iBAAiB;AACrB;;AAEA;IACI,2BAA2B;AAC/B;;AAEA;IACI,gBAAgB;IAChB,2BAA2B;AAC/B;;AAEA;IACI,kBAAkB;AACtB;;AAEA;IACI,kBAAkB;IAClB,uBAAuB;IACvB,6CAA6C;IAC7C,8BAA8B;IAC9B,iCAAiC;AACrC;;AAEA;IACI,cAAc;IACd,YAAY;IACZ,yCAAyC;AAC7C;;AAEA;IACI,6BAA6B;IAC7B,iCAAiC;IACjC,0BAA0B;IAC1B,kBAAkB;IAClB,oBAAoB;IACpB,uFAAuF;AAC3F;;AAEA;IACI,6BAA6B;IAC7B,iCAAiC;IACjC,gBAAgB;IAChB,kBAAkB;IAClB,gBAAgB;IAChB,kBAAkB;AACtB;;AAEA;IACI,gBAAgB;IAChB,UAAU;IACV,oBAAoB;IACpB,gBAAgB;IAChB,cAAc;AAClB;;AAEA,sBAAsB;AACtB;;IAEI,UAAU;AACd;;AAEA;;IAEI,8BAA8B;AAClC;;AAEA;;IAEI,+BAA+B;IAC/B,kBAAkB;AACtB;;AAEA;;IAEI,+BAA+B;AACnC","sourcesContent":["/* Wizard Panel */\n.extension-wizard-panel {\n    display: flex;\n    flex-direction: column;\n    height: 100%;\n    width: 100%;\n    background: var(--ui-modal-background);\n    color: var(--ui-modal-foreground);\n    position: relative;\n    z-index: 1;\n}\n\n.extension-wizard-categories {\n    display: flex;\n    padding: 0.5rem;\n    gap: 0.25rem;\n    border-bottom: 1px solid var(--ui-secondary);\n    flex-shrink: 0;\n    flex-wrap: wrap;\n}\n\n.extension-wizard-category {\n    background: var(--ui-tertiary);\n    color: var(--ui-modal-foreground);\n    border: none;\n    padding: 0.5rem 0.75rem;\n    border-radius: 4px;\n    cursor: pointer;\n    font-family: inherit;\n    font-size: 0.8125rem;\n    white-space: nowrap;\n    transition: background 0.2s ease;\n}\n\n.extension-wizard-category:hover {\n    background: var(--ui-secondary);\n}\n\n.extension-wizard-category-active {\n    background: var(--looks-secondary);\n    color: white;\n}\n\n.extension-wizard-body {\n    flex: 1;\n    display: flex;\n    overflow: hidden;\n    min-height: 0;\n    max-height: calc(100vh - 170px);\n}\n\n.extension-wizard-sidebar {\n    width: 180px;\n    border-right: 1px solid var(--ui-secondary);\n    display: flex;\n    flex-direction: column;\n    overflow: hidden;\n    flex-shrink: 0;\n}\n\n.extension-wizard-sidebar-header {\n    padding: 0.75rem 1rem;\n    font-size: 0.75rem;\n    font-weight: bold;\n    color: var(--ui-modal-foreground);\n    border-bottom: 1px solid var(--ui-secondary);\n    text-transform: uppercase;\n    letter-spacing: 0.05em;\n}\n\n.extension-wizard-sidebar-items {\n    flex: 1;\n    overflow-y: auto;\n    padding: 0.25rem 0;\n}\n\n.extension-wizard-sidebar-item {\n    padding: 0.5rem 0.75rem;\n    cursor: pointer;\n    font-size: 0.75rem;\n    transition: background 0.2s ease;\n    border-left: 3px solid transparent;\n    white-space: nowrap;\n    overflow: hidden;\n    text-overflow: ellipsis;\n}\n\n.extension-wizard-sidebar-item:hover {\n    background: var(--ui-tertiary);\n}\n\n.extension-wizard-sidebar-item-active {\n    background: var(--ui-tertiary);\n    border-left-color: var(--looks-secondary);\n    color: var(--ui-modal-foreground);\n    font-weight: 500;\n}\n\n.extension-wizard-detail {\n    flex: 1;\n    display: flex;\n    flex-direction: column;\n    overflow: hidden;\n    min-width: 0;\n}\n\n.extension-wizard-chapters {\n    display: flex;\n    flex-wrap: wrap;\n    gap: 0.25rem;\n    padding: 0.5rem;\n    border-bottom: 1px solid var(--ui-secondary);\n    flex-shrink: 0;\n}\n\n.extension-wizard-chapter {\n    background: var(--ui-tertiary);\n    color: var(--ui-modal-foreground);\n    border: none;\n    padding: 0.375rem 0.75rem;\n    border-radius: 4px;\n    cursor: pointer;\n    font-family: inherit;\n    font-size: 0.75rem;\n    white-space: nowrap;\n    transition: background 0.2s ease;\n}\n\n.extension-wizard-chapter:hover {\n    background: var(--ui-secondary);\n}\n\n.extension-wizard-chapter-active {\n    background: var(--looks-secondary);\n    color: white;\n}\n\n.extension-wizard-chapter-content {\n    flex: 1;\n    overflow-y: auto;\n    padding: 1rem;\n}\n\n.extension-wizard-chapter-content-empty {\n    display: flex;\n    align-items: center;\n    justify-content: center;\n    height: 100%;\n    color: var(--ui-secondary);\n    font-size: 0.75rem;\n}\n\n.extension-wizard-tutorial-section {\n    margin-bottom: 1.5rem;\n}\n\n.extension-wizard-tutorial-section:last-child {\n    margin-bottom: 0;\n}\n\n/* Markdown 样式 */\n.extension-wizard-markdown {\n    font-size: 0.75rem;\n    line-height: 1.6;\n    color: var(--ui-modal-foreground);\n}\n\n.extension-wizard-markdown h1 {\n    font-size: 1.125rem;\n    font-weight: bold;\n    margin: 1.25rem 0 0.75rem 0;\n    color: var(--ui-modal-foreground);\n    border-bottom: 2px solid var(--ui-secondary);\n    padding-bottom: 0.375rem;\n}\n\n.extension-wizard-markdown h2 {\n    font-size: 1rem;\n    font-weight: bold;\n    margin: 1rem 0 0.625rem 0;\n    color: var(--ui-modal-foreground);\n}\n\n.extension-wizard-markdown h3 {\n    font-size: 0.875rem;\n    font-weight: bold;\n    margin: 0.875rem 0 0.5rem 0;\n    color: var(--ui-modal-foreground);\n}\n\n.extension-wizard-markdown h4 {\n    font-size: 0.8125rem;\n    font-weight: 600;\n    margin: 0.75rem 0 0.375rem 0;\n    color: var(--ui-modal-foreground);\n}\n\n.extension-wizard-markdown p {\n    margin: 0 0 0.625rem 0;\n    color: var(--ui-modal-foreground);\n}\n\n.extension-wizard-markdown ul,\n.extension-wizard-markdown ol {\n    margin: 0 0 0.625rem 0;\n    padding-left: 1.5rem;\n    color: var(--ui-modal-foreground);\n}\n\n.extension-wizard-markdown li {\n    margin: 0.25rem 0;\n}\n\n.extension-wizard-markdown li strong {\n    color: var(--looks-primary);\n}\n\n.extension-wizard-markdown strong {\n    font-weight: 600;\n    color: var(--looks-primary);\n}\n\n.extension-wizard-markdown em {\n    font-style: italic;\n}\n\n.extension-wizard-markdown blockquote {\n    margin: 0.625rem 0;\n    padding: 0.5rem 0.75rem;\n    border-left: 3px solid var(--looks-secondary);\n    background: var(--ui-tertiary);\n    color: var(--ui-modal-foreground);\n}\n\n.extension-wizard-markdown hr {\n    margin: 1rem 0;\n    border: none;\n    border-top: 1px solid var(--ui-secondary);\n}\n\n.extension-wizard-markdown code {\n    background: var(--ui-primary);\n    color: var(--ui-modal-foreground);\n    padding: 0.125rem 0.375rem;\n    border-radius: 3px;\n    font-size: 0.6875rem;\n    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', monospace;\n}\n\n.extension-wizard-markdown pre {\n    background: var(--ui-primary);\n    color: var(--ui-modal-foreground);\n    padding: 0.75rem;\n    border-radius: 4px;\n    overflow-x: auto;\n    margin: 0.625rem 0;\n}\n\n.extension-wizard-markdown pre code {\n    background: none;\n    padding: 0;\n    font-size: 0.6875rem;\n    line-height: 1.5;\n    display: block;\n}\n\n/* Scrollbar styling */\n.extension-wizard-sidebar-items::-webkit-scrollbar,\n.extension-wizard-chapter-content::-webkit-scrollbar {\n    width: 4px;\n}\n\n.extension-wizard-sidebar-items::-webkit-scrollbar-track,\n.extension-wizard-chapter-content::-webkit-scrollbar-track {\n    background: var(--ui-tertiary);\n}\n\n.extension-wizard-sidebar-items::-webkit-scrollbar-thumb,\n.extension-wizard-chapter-content::-webkit-scrollbar-thumb {\n    background: var(--ui-secondary);\n    border-radius: 2px;\n}\n\n.extension-wizard-sidebar-items::-webkit-scrollbar-thumb:hover,\n.extension-wizard-chapter-content::-webkit-scrollbar-thumb:hover {\n    background: var(--badge-border);\n}"],"sourceRoot":""}]);
 // Exports
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (___CSS_LOADER_EXPORT___);
 
@@ -162215,6 +162234,18 @@ class StandaloneThemeService extends lifecycle/* Disposable */.jG {
 
 /***/ },
 
+/***/ 93632
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("# 入门指南\n\n## 最小扩展示例\n\n### 你需要什么\n\n本编辑器专为 **TurboWarp 风格的非沙箱扩展**设计：你编写 JavaScript，然后将其加载到 VM 中。\n\n- 你的代码必须通过 `Scratch.extensions.register(new MyExtension())` 注册。\n- 你的扩展必须实现 `getInfo()` 并返回 `id`、`name` 和 `blocks`。\n\n### 最小模板（推荐）\n\n```javascript\n(function (Scratch) {\n  \"use strict\";           // ① 使用严格模式，避免常见的错误\n  \n  const BlockType = Scratch.BlockType;       // ② 引入积木类型常量\n  const ArgumentType = Scratch.ArgumentType; // ③ 引入参数类型常量\n\n  class MyExtension {        // ④ 创建扩展类\n    constructor() {\n      // 仅在 TurboWarp/非沙箱环境中可用：\n      this.runtime = Scratch.vm && Scratch.vm.runtime;\n    }\n\n    getInfo() {             // ⑤ 必须实现的方法，返回扩展信息\n      return {\n        id: \"myextension\",   // 唯一标识符，不能有空格或大写\n        name: \"我的扩展\",      // 积木显示的名称\n        color1: \"#FF6680\",     // 主色调\n        color2: \"#FF4D6A\",     // 次色调\n        color3: \"#CC3D55\",     // 边框颜色\n        blocks: [             // ⑥ 定义积木列表\n          {\n            opcode: \"hello\",   // 积木的唯一标识符\n            blockType: BlockType.COMMAND, // 积木类型：命令积木\n            text: \"问候 [NAME]\", // 积木文本，[NAME] 是参数占位符\n            arguments: {         // ⑦ 定义参数\n              NAME: {\n                type: ArgumentType.STRING,  // 参数类型：字符串\n                defaultValue: \"世界\"          // 默认值\n              }\n            }\n          }\n        ]\n      };\n    }\n\n    hello(args) {            // ⑧ 当积木执行时调用的方法\n      console.log(\"你好，\" + args.NAME);  // 在控制台输出问候消息\n    }\n  }\n\n  // ⑧ 注册扩展到 Scratch\n  Scratch.extensions.register(new MyExtension());\n})(Scratch);\n```\n\n### 常见错误\n\n- 忘记 IIFE 包装器：`((Scratch) => { ... })(Scratch)`\n- 使用无效的 `id`（必须唯一；避免空格和大写字母）\n- 注册太晚（每次加载只注册一次）\n\n## 热重载与多次加载\n\n### 为什么有时会\"加载两次\"\n\n当你多次点击 **运行** 时，VM 会：\n\n1) 卸载之前的扩展（如果可能），\n2) 然后加载新代码。\n\n如果你的扩展写入全局作用域（例如 `window.foo = ...`），可能会看到奇怪的行为。\n\n### 推荐模式\n\n- 将所有内容保留在 IIFE 内部。\n- 避免全局变量。\n- 仅在需要时使用 `Scratch.vm`/`Scratch.renderer`。\n\n# Scratch API\n\n## Scratch 对象概览\n\n### TurboWarp 注入的内容\n\n在 TurboWarp 的非沙箱扩展环境中，VM 会注入一个全局 `Scratch` 对象，包含以下 API。\n此列表来自 TurboWarp 的 VM 实现：\n\n- `scratch-vm/src/extension-support/tw-extension-api-common.js`\n- `scratch-vm/src/extension-support/tw-unsandboxed-extension-runner.js`\n- `scratch-vm/src/extension-support/tw-external.js`\n\n### 常量与工具\n\n这些在非沙箱扩展中始终可用：\n\n- `Scratch.ArgumentType`\n- `Scratch.BlockType`\n- `Scratch.BlockShape`\n- `Scratch.TargetType`\n- `Scratch.Cast`\n- `Scratch.external`（见下文）\n\n### 注册你的扩展\n\nTurboWarp 注入：\n\n- `Scratch.extensions.unsandboxed === true`\n- `Scratch.extensions.register(extensionObject)`\n\n此外，TurboWarp 提供了 ScratchX 兼容的全局对象：\n\n- `ScratchExtensions`（传统的 ScratchX 风格 API）\n\n### VM 与渲染器\n\n非沙箱扩展可以访问：\n\n- `Scratch.vm`（VirtualMachine 实例）\n- `Scratch.renderer`（渲染器实例；通常是 `Scratch.vm.runtime.renderer`）\n\n重要提示：`Scratch.vm` 和 `Scratch.renderer` 是**强大但不稳定的公共 API**。尽可能使用正常的块 API。\n\n### 翻译\n\n- `Scratch.translate(...)`\n\n你可以使用它来使块可本地化（高级用法）。\n\n## 权限与安全功能\n\n### 权限检查（can*）\n\nTurboWarp 暴露异步权限检查：\n\n- `Scratch.canFetch(url)`\n- `Scratch.canOpenWindow(url)`\n- `Scratch.canRedirect(url)`\n- `Scratch.canDownload(url, name)`\n- `Scratch.canEmbed(url)`\n- `Scratch.canRecordAudio()`\n- `Scratch.canRecordVideo()`\n- `Scratch.canReadClipboard()`\n- `Scratch.canNotify()`\n- `Scratch.canGeolocate()`\n\n这些返回 `Promise<boolean>`。\n\n### 操作（fetch/openWindow/redirect/download）\n\nTurboWarp 提供安全包装器，强制执行权限检查：\n\n- `Scratch.fetch(url, options)`（类似 `fetch`，但检查 `Scratch.canFetch`）\n- `Scratch.openWindow(url, features)`（打开新标签页；检查 `Scratch.canOpenWindow`）\n- `Scratch.redirect(url)`（更改 `location.href`；检查 `Scratch.canRedirect`）\n- `Scratch.download(url, name)`（通过 `<a download>` 下载；检查 `Scratch.canDownload`）\n\n示例：\n\n```javascript\nasync function getText(url) {\n  const res = await Scratch.fetch(url);\n  return res.text();\n}\n```\n\n注意：\n\n- URL 是相对于当前页面解析的（`new URL(url, location.href)`）。\n- `javascript:` URL 在 open/redirect/download 中始终被拒绝。\n\n## Scratch.external\n\n### 它是什么\n\n`Scratch.external` 是一个用于加载外部资源/模块的小型助手集。\n\n它包括：\n\n- `Scratch.external.importModule(url)` -> `import(url)`（需要**绝对** URL）\n- `Scratch.external.fetch(url)` -> `fetch(url)` 并带有基本的 HTTP 错误处理\n- `Scratch.external.dataURL(url)` -> fetch -> 转换为 `data:` URL\n- `Scratch.external.blob(url)` -> fetch -> `Blob`\n- `Scratch.external.evalAndReturn(url, returnExpression)` -> fetch JS -> `new Function(...)`\n\n### URL 规则（非常重要）\n\nTurboWarp 要求 URL 以下列之一开头：\n\n- `http:`\n- `https:`\n- `data:`\n- `blob:`\n\n相对 URL 会被拒绝。\n\n### 示例：导入 ES 模块\n\n```javascript\nconst {default: md5} = await Scratch.external.importModule(\n  \"https://cdn.jsdelivr.net/npm/blueimp-md5@2.19.0/js/md5.min.js\"\n);\nconsole.log(md5(\"hello\"));\n```\n\n# 积木与 getInfo()\n\n## 定义积木\n\n### BlockType 快速参考\n\n```javascript\nconst BlockType = Scratch.BlockType;\n\nBlockType.COMMAND    // 命令积木（六边形）\nBlockType.REPORTER   // 报告积木（椭圆形，返回值）\nBlockType.BOOLEAN    // 布尔积木（六边形，返回 true/false）\nBlockType.HAT        // 事件积木（顶部有缺口）\nBlockType.EVENT      // 事件积木（顶部有缺口）\nBlockType.LOOP       // 循环积木（C 形）\nBlockType.CONDITIONAL // 条件积木（C 形）\nBlockType.BUTTON     // 按钮积木（可点击）\nBlockType.LABEL      // 标签积木（静态文本）\nBlockType.XML        // 自定义 XML 积木\n```\n\n### ArgumentType 快速参考\n\n```javascript\nconst ArgumentType = Scratch.ArgumentType;\n\nArgumentType.STRING   // 字符串类型\nArgumentType.NUMBER   // 数字类型\nArgumentType.BOOLEAN  // 布尔类型\nArgumentType.ANGLE    // 角度类型（0-360）\nArgumentType.COLOR    // 颜色类型\nArgumentType.MATRIX   // 矩阵类型\nArgumentType.NOTE     // 音符类型\nArgumentType.IMAGE    // 图片类型\nArgumentType.COSTUME  // 角色类型\nArgumentType.SOUND    // 声音类型\n```\n\n## 菜单\n\n### 静态菜单\n\n```javascript\nclass MyExtension {\n  getInfo() {\n      return {\n        id: \"fruitpicker\",\n        name: \"水果选择器\",\n        color1: \"#FF9800\",\n        color2: \"#F57C00\",\n        color3: \"#E65100\",\n        blocks: [\n          {\n            opcode: \"pickFruit\",\n            blockType: Scratch.BlockType.COMMAND,\n            text: \"选择 [FRUIT]\",\n            arguments: {\n              FRUIT: {\n                type: Scratch.ArgumentType.STRING,\n                menu: \"fruitMenu\"  // 引用菜单\n              }\n            }\n          }\n        ],\n        menus: {\n          fruitMenu: [\"苹果\", \"香蕉\", \"橙子\", \"葡萄\", \"西瓜\"]\n        }\n      };\n    }\n    \n    pickFruit(args) {\n      console.log(\"你选择了：\" + args.FRUIT);\n    }\n  }\n}\n```\n\n关键点：\n\n- `menu: \"fruitMenu\"` 让参数成为下拉菜单\n- `menus` 对象定义菜单选项\n- 菜单选项必须是数组\n\n### 动态菜单（函数）\n\n```javascript\nclass DynamicMenuExtension {\n  getInfo() {\n    return {\n      id: \"dynamic\",\n      name: \"动态菜单\",\n      color1: \"#4CAF50\",\n      color2: \"#388E3C\",\n      color3: \"#2E7D32\",\n      blocks: [\n        {\n          opcode: \"listVars\",\n          blockType: Scratch.BlockType.REPORTER,\n          text: \"所有变量列表\",\n          disableMonitor: true\n        }\n      ]\n    };\n  }\n\n  listVars() {\n    // 获取所有变量\n    const stage = Scratch.vm.runtime.getTargetForStage();\n    const variables = stage.variables;\n    \n    // 提取变量名\n    const varNames = Object.keys(variables);\n    return varNames.join(\", \");\n  }\n}\n```\n\n# VM 与运行时（高级）\n\n## 访问运行时\n\n### Scratch.vm.runtime\n\n在非沙箱模式下，你可以访问：\n\n```javascript\nconst vm = Scratch.vm;\nconst runtime = vm && vm.runtime;\n```\n\n这让你可以与目标、线程和内部 VM 状态进行交互。\n\n警告：\n\n- 许多运行时 API 不被认为是稳定的。\n- 尽可能使用公共扩展 API。\n\n## 常见模式\n\n### 获取舞台目标\n\n```javascript\nconst stage = Scratch.vm && Scratch.vm.runtime && Scratch.vm.runtime.getTargetForStage();\n```\n\n### 读取变量值\n\n```javascript\nclass VariableExtension {\n  constructor(runtime) {\n    this.runtime = runtime;\n  }\n\n  getInfo() {\n    return {\n      id: \"varreader\",\n      name: \"变量读取器\",\n      color1: \"#2196F3\",\n      color2: \"1976D2\",\n      color3: \"#0D47A1\",\n      blocks: [\n        {\n          opcode: \"getVar\",\n          blockType: Scratch.BlockType.REPORTER,\n          text: \"变量 [VAR] 的值\",\n          arguments: {\n            VAR: {\n              type: Scratch.ArgumentType.STRING,\n              menu: \"variableMenu\"\n            }\n          }\n        }\n      ],\n      menus: {\n        variableMenu: null  // 将动态生成\n      }\n    };\n  }\n\n  getVar(args) {\n    // 获取舞台\n    const stage = Scratch.vm.runtime.getTargetForStage();\n    \n    // 查找变量\n    const variable = stage.lookupVariableByName(args.VAR);\n    \n    if (variable) {\n      return variable.value;\n    }\n    return \"\";\n  }\n}\n```\n\n### 修改变量值\n\n```javascript\nsetVar(args) {\n  const stage = Scratch.vm.runtime.getTargetForStage();\n  const variable = stage.lookupVariableByName(args.VAR);\n  \n  if (variable) {\n    variable.value = args.VALUE;\n  }\n}\n```\n\n### 与角色交互\n\n```javascript\nclass SpriteInteraction {\n  getInfo() {\n    return {\n      id: \"spritehelper\",\n      name: \"角色助手\",\n      color1: \"#E91E63\",\n      color2: \"#C2185B\",\n      color3: \"#880E4F\",\n      blocks: [\n        {\n          opcode: \"getSpriteX\",\n          blockType: Scratch.REPORTER,\n          text: \"[SPRITE] 的 X 坐标\",\n          arguments: {\n            SPRITE: {\n              type: Scratch.ArgumentType.STRING,\n              menu: \"spriteMenu\"\n            }\n          }\n        },\n        {\n          opcode: \"moveSprite\",\n          blockType: Scratch.COMMAND,\n          text: \"将 [SPRITE] 移动到 X: [X] Y: [Y]\",\n          arguments: {\n            SPRITE: {\n              type: Scratch.ArgumentType.STRING,\n              menu: \"spriteMenu\"\n            },\n            X: {\n              type: Scratch.ArgumentType.NUMBER,\n              defaultValue: 0\n            },\n            Y: {\n              type: Scratch.ArgumentType.NUMBER,\n              defaultValue: 0\n            }\n          }\n        }\n      ],\n      menus: {\n        spriteMenu: null  // 动态生成\n      }\n    };\n  }\n\n  // 获取所有角色名\n  spriteMenu() {\n    const stage = Scratch.vm.runtime.getTargetForStage();\n    const sprites = Scratch.vm.runtime.targets;\n    \n    // 过滤掉舞台，只保留角色\n    return sprites\n      .filter(t => t !== stage)\n      .map(t => t.getName());\n  }\n\n  getSpriteX(args) {\n    const stage = Scratch.vm.runtime.getTargetForStage();\n    const sprite = stage.lookupSpriteByName(args.SPRITE);\n    \n    if (sprite) {\n      return sprite.x;\n    }\n    return 0;\n  }\n\n  moveSprite(args) {\n    const stage = Scratch.vm.runtime.getTargetForStage();\n    const sprite = stage.lookupSpriteByName(args.SPRITE);\n    \n    if (sprite) {\n      sprite.x = args.X;\n      sprite.y = args.Y;\n    }\n  }\n}\n```\n\n### 列出所有目标\n\n```javascript\nconst targets = Scratch.vm.runtime.targets;\nconsole.log(targets.map(t => t.getName ? t.getName() : t.sprite && t.sprite.name));\n```\n\n### 刷新积木 UI（依赖于宿主）\n\n某些宿主暴露了辅助工具：\n\n- `Scratch.vm.refreshWorkspace()`\n- `Scratch.vm.emitWorkspaceUpdate()`\n\n如果你的宿主提供了它们，可以在加载/卸载扩展后使用。\n\n# 调试与发布\n\n## 调试技巧\n\n### Worker/Chunk 问题\n\n如果语法高亮不工作：\n\n- 确保 `ts.worker.js` 和 `editor.worker.js` 可访问。\n- 确保宿主将 `window.__SCRATCH_EXTENSION_EDITOR_PUBLIC_PATH__` 设置为包含这些文件的文件夹。\n\n### 使用控制台\n\n在块实现中使用 `console.log`、`console.warn` 和 `console.error`。TurboWarp 会在 DevTools 中显示它们。\n\n### 验证数据\n\n```javascript\ncheckNumber(args) {\n  if (typeof args.NUM !== \"number\") {\n    console.warn(\"警告：参数不是数字类型\");\n    return 0;\n  }\n  if (isNaN(args.NUM)) {\n    console.warn(\"警告：参数是 NaN\");\n    return 0;\n  }\n  return args.NUM * 2;\n}\n```\n\n### 错误处理\n\n```javascript\nasync riskyOperation() {\n  try {\n    // 可能失败的代码\n    const result = await Scratch.fetch(url);\n    return result;\n  } catch (error) {\n    console.error(\"操作失败：\", error);\n    return \"错误\";\n  }\n}\n```\n\n## 发布你的扩展\n\n### 测试你的扩展\n\n- 确保所有积木都能正常工作\n- 测试边界情况（空值、异常值）\n- 检查控制台是否有错误\n\n### 优化代码\n\n- 移除调试用的 console.log\n- 添加必要的注释\n- 确保代码格式规范\n\n### 导出为 .js\n\n此编辑器可以将你的代码导出为 `.js` 文件。然后你可以：\n\n- 将其托管在静态服务器上（GitHub Pages 等），\n- 在你的编辑器中通过 URL 加载它，\n- 或者将其打包到你自己的 mod 中。\n\n### 常见问题\n\n**为什么我的积木没有显示？**\n\n检查以下几点：\n\n- 是否正确注册了扩展\n- `id` 是否唯一\n- `getInfo()` 是否正确返回对象\n- 是否有语法错误\n\n**如何获取特定角色的变量？**\n\n```javascript\nconst target = Scratch.vm.runtime.getTargetByName(\"角色名\");\nconst variable = target.lookupVariableByName(\"变量名\");\n```\n\n**可以创建自定义的 UI 吗？**\n\n可以，但这是高级主题。可以创建：\n\n- 自定义模态框\n- 设置页面\n- 工具面板\n\n需要深入了解 TurboWarp 的内部 API。\n\n**如何监听项目状态变化？**\n\n使用运行时事件：\n\n```javascript\nthis.runtime.on(\"PROJECT_START\", () => {\n  console.log(\"项目开始运行\");\n});\n\nthis.runtime.on(\"PROJECT_STOP\", () => {\n  console.log(\"项目停止运行\");\n});\n```\n\n### 下一步学习\n\n现在你已经掌握了扩展开发的基础知识！继续学习：\n\n- 查看 API 文档了解更多可用功能\n- 尝试创建不同类型的积木\n- 探索高级交互功能\n- 分享你的创作给社区\n\n祝你编程愉快！");
+
+/***/ },
+
 /***/ 93702
 (__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
@@ -191057,6 +191088,49 @@ class CancelSelectionAnchor extends editorExtensions/* EditorAction */.ks {
 /******/ 	
 /************************************************************************/
 var __webpack_exports__ = {};
+// This entry needs to be wrapped in an IIFE because it needs to be isolated against other entry modules.
+(() => {
+/* global __webpack_public_path__ */
+
+// scratch-extension-editor is bundled into scratch-gui, but it still loads additional chunks/workers
+// at runtime. Let the host page tell us where those resources live.
+//
+// Host can set:
+//   window.__SCRATCH_EXTENSION_EDITOR_PUBLIC_PATH__ = "extension-editor/"
+// The path must contain scratch-extension-editor's dist files (workers + chunk files).
+(function () {
+  const g = typeof self !== 'undefined' && self || typeof window !== 'undefined' && window || {};
+  const normalize = value => {
+    if (typeof value !== 'string') return null;
+    const trimmed = value.trim();
+    if (!trimmed) return null;
+    return trimmed.endsWith('/') ? trimmed : `${trimmed}/`;
+  };
+  let publicPath = normalize(g.__SCRATCH_EXTENSION_EDITOR_PUBLIC_PATH__);
+
+  // Standalone usage: if the host didn't configure a public path, infer it from the current script URL.
+  // This works when scratch-extension-editor is loaded as its own script tag (e.g. /dist/index.js).
+  if (!publicPath) {
+    try {
+      if (typeof document !== 'undefined') {
+        const current = document.currentScript;
+        const src = current && current.src;
+        if (src) {
+          publicPath = normalize(src.replace(/[^/]*$/, ''));
+        }
+      }
+    } catch (e) {
+      // Ignore.
+    }
+  }
+  if (publicPath) {
+    g.__SCRATCH_EXTENSION_EDITOR_PUBLIC_PATH__ = publicPath;
+    // eslint-disable-next-line no-undef
+    __webpack_require__.p = publicPath;
+  }
+})();
+})();
+
 // This entry needs to be wrapped in an IIFE because it needs to be in strict mode.
 (() => {
 "use strict";
@@ -198145,7 +198219,7 @@ var log = __webpack_require__(46441);
 // EXTERNAL MODULE: ./node_modules/monaco-editor/esm/vs/platform/notification/common/notification.js
 var notification = __webpack_require__(29879);
 // EXTERNAL MODULE: ./node_modules/monaco-editor/esm/vs/platform/registry/common/platform.js
-var src_platform = __webpack_require__(67167);
+var platform = __webpack_require__(67167);
 // EXTERNAL MODULE: ./node_modules/css-loader/dist/cjs.js!./node_modules/monaco-editor/esm/vs/editor/contrib/rename/browser/renameInputField.css
 var renameInputField = __webpack_require__(38869);
 ;// ./node_modules/monaco-editor/esm/vs/editor/contrib/rename/browser/renameInputField.css
@@ -198698,7 +198772,7 @@ const RenameCommand = editorExtensions/* EditorCommand */.DX.bindToContribution(
     return loc;
 });
 //todo@jrieken use editor options world
-src_platform/* Registry */.O.as(configurationRegistry/* Extensions */.Fd.Configuration).registerConfiguration({
+platform/* Registry */.O.as(configurationRegistry/* Extensions */.Fd.Configuration).registerConfiguration({
     id: 'editor',
     properties: {
         'editor.rename.enablePreview': {
@@ -199197,31 +199271,54 @@ class ExtensionEditor extends (external_commonjs_react_commonjs2_react_amd_react
     this.state = {
       code: props.initialCode || getDefaultTemplate(),
       isEditorReady: false,
-      fontSize: props.fontSize || 14
+      fontSize: props.fontSize || 14,
+      guiTheme: 'dark'
     };
     this.editorContainer = /*#__PURE__*/external_commonjs_react_commonjs2_react_amd_react_root_React_default().createRef();
     this.editor = null;
     this.lastTheme = null; // 用于存储上一次的主题
   }
+  getExtensionEditorPublicPath() {
+    if (typeof window === 'undefined') return './';
+    const configured = window.__SCRATCH_EXTENSION_EDITOR_PUBLIC_PATH__;
+    if (typeof configured !== 'string' || configured.length === 0) return './';
+    return configured.endsWith('/') ? configured : `${configured}/`;
+  }
   componentDidMount() {
     // 配置 Monaco Editor worker
     if (typeof window !== 'undefined') {
+      const publicPath = this.getExtensionEditorPublicPath();
+      const getWorkerUrl = (moduleId, label) => {
+        // Workers are shipped with scratch-extension-editor and served from a dedicated folder.
+        if (label === 'typescript' || label === 'javascript') {
+          return `${publicPath}ts.worker.js`;
+        }
+        return `${publicPath}editor.worker.js`;
+      };
+
+      // Monaco may call either getWorker() or getWorkerUrl() depending on version/config.
       window.MonacoEnvironment = {
-        getWorkerUrl: function (moduleId, label) {
-          // 使用 require.ensure 的方式加载 worker
-          if (label === 'json') {
-            return './editor.worker.js';
+        getWorkerUrl,
+        getWorker: function (moduleId, label) {
+          const url = getWorkerUrl(moduleId, label);
+          try {
+            return new Worker(url);
+          } catch (e) {
+            // Some environments require an absolute URL.
+            try {
+              const absoluteUrl = new URL(url, window.location.href).toString();
+              return new Worker(absoluteUrl);
+            } catch (e2) {
+              // Log the original error; throw to surface failure loudly.
+              // eslint-disable-next-line no-console
+              console.error('[scratch-extension-editor] Failed to create Monaco worker', {
+                label,
+                url,
+                error: e
+              });
+              throw e;
+            }
           }
-          if (label === 'css' || label === 'scss' || label === 'less') {
-            return './editor.worker.js';
-          }
-          if (label === 'html' || label === 'handlebars' || label === 'razor') {
-            return './editor.worker.js';
-          }
-          if (label === 'typescript' || label === 'javascript') {
-            return './ts.worker.js';
-          }
-          return './editor.worker.js';
         }
       };
     }
@@ -199233,6 +199330,9 @@ class ExtensionEditor extends (external_commonjs_react_commonjs2_react_amd_react
 
     // 轮询检查主题变化（用于当前标签页）
     this.lastTheme = this.getEditorTheme();
+    this.setState({
+      guiTheme: this.lastTheme
+    });
     this.themeCheckInterval = setInterval(() => {
       const currentTheme = this.getEditorTheme();
       if (currentTheme !== this.lastTheme) {
@@ -199283,7 +199383,7 @@ class ExtensionEditor extends (external_commonjs_react_commonjs2_react_amd_react
         const themeData = JSON.parse(themeStr);
         switch (themeData.gui) {
           case undefined:
-            theme = 'dark';
+            theme = 'light';
             break;
           case 'dark':
             theme = 'dark';
@@ -199292,7 +199392,7 @@ class ExtensionEditor extends (external_commonjs_react_commonjs2_react_amd_react
             theme = 'light';
             break;
           default:
-            theme = 'dark';
+            theme = 'light';
         }
       }
     } catch (e) {
@@ -199306,6 +199406,11 @@ class ExtensionEditor extends (external_commonjs_react_commonjs2_react_amd_react
     const currentTheme = this.getEditorTheme();
     const monacoTheme = currentTheme === 'light' ? 'vs' : 'vs-dark';
     editor_api.editor.setTheme(monacoTheme);
+    if (this.state.guiTheme !== currentTheme) {
+      this.setState({
+        guiTheme: currentTheme
+      });
+    }
   }
   handleStorageChange(e) {
     // 监听 tw:theme 的变化
@@ -199405,7 +199510,8 @@ class ExtensionEditor extends (external_commonjs_react_commonjs2_react_amd_react
   };
   render() {
     return /*#__PURE__*/external_commonjs_react_commonjs2_react_amd_react_root_React_default().createElement("div", {
-      className: "extension-editor-container"
+      className: "extension-editor-container",
+      "data-theme": this.state.guiTheme
     }, /*#__PURE__*/external_commonjs_react_commonjs2_react_amd_react_root_React_default().createElement("div", {
       className: "extension-editor-wrapper"
     }, /*#__PURE__*/external_commonjs_react_commonjs2_react_amd_react_root_React_default().createElement("div", {
@@ -199425,15 +199531,17 @@ class ExtensionEditor extends (external_commonjs_react_commonjs2_react_amd_react
   }
 }
 function getDefaultTemplate() {
-  return `// Scratch 扩展模板
-// 在这里编写你的扩展代码
-
+  return `
 (function (Scratch) {
   "use strict";
 
+  const BlockType = Scratch.BlockType;
+  const ArgumentType = Scratch.ArgumentType;
+
   class MyExtension {
-    constructor(runtime) {
-      this.runtime = runtime;
+    constructor() {
+      // TurboWarp/unsandboxed extensions can access the VM through Scratch.vm.
+      this.runtime = Scratch.vm && Scratch.vm.runtime;
     }
     getInfo() {
       return {
@@ -199445,11 +199553,11 @@ function getDefaultTemplate() {
         blocks: [
           {
             opcode: 'hello',
-            blockType: 'command',
+            blockType: BlockType.COMMAND,
             text: '你好 [MESSAGE]',
             arguments: {
               MESSAGE: {
-                type: 'string',
+                type: ArgumentType.STRING,
                 defaultValue: '世界'
               }
             }
@@ -199457,15 +199565,15 @@ function getDefaultTemplate() {
           "---",
           {
             opcode: 'getRandomNumber',
-            blockType: 'reporter',
+            blockType: BlockType.REPORTER,
             text: '随机数 [MIN] 到 [MAX]',
             arguments: {
               MIN: {
-                type: 'number',
+                type: ArgumentType.NUMBER,
                 defaultValue: 1
               },
               MAX: {
-                type: 'number',
+                type: ArgumentType.NUMBER,
                 defaultValue: 100
               }
             }
@@ -199541,6 +199649,27 @@ var extension_editor_settings_content_update = injectStylesIntoStyleTag_default(
 
 
 
+
+const extension_editor_settings_content_messages = defineMessages({
+  editorOptions: {
+    defaultMessage: 'Editor Options',
+    description: 'Title for editor options section',
+    id: 'tw.extensionEditorSettings.editorOptions'
+  },
+  fontSize: {
+    defaultMessage: 'Font size',
+    description: 'Label for font size setting',
+    id: 'tw.extensionEditorSettings.fontSize'
+  },
+  done: {
+    defaultMessage: 'Done',
+    description: 'Button text to close settings',
+    id: 'tw.extensionEditorSettings.done'
+  }
+});
+const defaultIntl = {
+  formatMessage: message => message.defaultMessage || ''
+};
 class ExtensionEditorSettingsContent extends (external_commonjs_react_commonjs2_react_amd_react_root_React_default()).Component {
   handleFontSizeChange = e => {
     const newFontSize = parseInt(e.target.value, 10);
@@ -199549,21 +199678,18 @@ class ExtensionEditorSettingsContent extends (external_commonjs_react_commonjs2_
     }
   };
   render() {
-    const {
-      messages
-    } = this.props;
-    console.log(this.props.FormattedMessage('fontSize'));
+    const intl = this.props.intl || defaultIntl;
     return /*#__PURE__*/external_commonjs_react_commonjs2_react_amd_react_root_React_default().createElement("div", {
       className: "extension-editor-settings-content"
     }, /*#__PURE__*/external_commonjs_react_commonjs2_react_amd_react_root_React_default().createElement("div", {
       className: "extension-editor-settings-body"
     }, /*#__PURE__*/external_commonjs_react_commonjs2_react_amd_react_root_React_default().createElement("div", {
       className: "extension-editor-settings-section"
-    }, /*#__PURE__*/external_commonjs_react_commonjs2_react_amd_react_root_React_default().createElement("h3", null, this.props.FormattedMessage('editorOptions')), /*#__PURE__*/external_commonjs_react_commonjs2_react_amd_react_root_React_default().createElement("div", {
+    }, /*#__PURE__*/external_commonjs_react_commonjs2_react_amd_react_root_React_default().createElement("h3", null, intl.formatMessage(extension_editor_settings_content_messages.editorOptions)), /*#__PURE__*/external_commonjs_react_commonjs2_react_amd_react_root_React_default().createElement("div", {
       className: "extension-editor-settings-setting"
     }, /*#__PURE__*/external_commonjs_react_commonjs2_react_amd_react_root_React_default().createElement("label", null, /*#__PURE__*/external_commonjs_react_commonjs2_react_amd_react_root_React_default().createElement("span", {
       className: "extension-editor-settings-label"
-    }, this.props.FormattedMessage('fontSize')), /*#__PURE__*/external_commonjs_react_commonjs2_react_amd_react_root_React_default().createElement("span", {
+    }, intl.formatMessage(extension_editor_settings_content_messages.fontSize)), /*#__PURE__*/external_commonjs_react_commonjs2_react_amd_react_root_React_default().createElement("span", {
       className: "extension-editor-settings-value"
     }, this.props.fontSize, "px")), /*#__PURE__*/external_commonjs_react_commonjs2_react_amd_react_root_React_default().createElement("input", {
       type: "range",
@@ -199577,12 +199703,11 @@ class ExtensionEditorSettingsContent extends (external_commonjs_react_commonjs2_
     }, /*#__PURE__*/external_commonjs_react_commonjs2_react_amd_react_root_React_default().createElement("button", {
       className: "extension-editor-settings-button",
       onClick: this.props.onClose
-    }, this.props.FormattedMessage('done')))));
+    }, intl.formatMessage(extension_editor_settings_content_messages.done)))));
   }
 }
 ExtensionEditorSettingsContent.propTypes = {
   intl: (prop_types_default()).object,
-  messages: (prop_types_default()).object.isRequired,
   onClose: (prop_types_default()).func,
   fontSize: (prop_types_default()).number,
   onFontSizeChange: (prop_types_default()).func
@@ -199696,14 +199821,11 @@ const extension_editor_create_content_messages = defineMessages({
   }
 });
 class ExtensionEditorCreateContent extends (external_commonjs_react_commonjs2_react_amd_react_root_React_default()).Component {
-  constructor(props) {
-    super(props);
-    this.formatMessage = props.formatMessage || defaultFormatMessage;
-  }
   handleNameChange = name => {
     // Auto-generate ID from name if ID is empty
-    const newId = this.state.id === '' && name ? name.toLowerCase().replace(/[^a-z0-9_]/g, '_') : this.state.id;
-    this.props.onNameChange && this.props.onNameChange(name, newId);
+    const currentId = this.props.id || '';
+    const newId = currentId === '' && name ? name.toLowerCase().replace(/[^a-z0-9_]/g, '_') : currentId;
+    if (this.props.onNameChange) this.props.onNameChange(name, newId);
   };
   handleIdChange = id => {
     this.props.onIdChange && this.props.onIdChange(id);
@@ -217981,8 +218103,6 @@ ReactMarkdown.propTypes = {
   components: prop_types.object
 }
 
-;// ./src/lib/tutorials.md
-/* harmony default export */ const lib_tutorials = ("# 了解\n\n## 什么是 Scratch 扩展？\n\n### 什么是 Scratch 扩展？\n\nScratch 扩展是通过 JavaScript 编写的模块，可以为 Scratch 添加全新的功能和积木。扩展可以访问 Scratch 虚拟机的 API，与角色、变量、舞台等进行交互。\n\n> 此教程由AI编写，仅作参考\n---\n\n## 扩展基本结构\n\n### 扩展标准形式\n\n我们建议扩展使用以下标准形式：\n\n```javascript\n(function (Scratch) {\n    \"use strict\";\n    class MyExtension {\n        constructor(runtime) {\n            this.runtime = runtime;\n        }\n\n        getInfo() {\n            return {\n                id: 'myextension',\n                name: '我的扩展',\n                color1: '#FF6680',\n                color2: '#FF4D6A',\n                color3: '#CC3D55',\n                blocks: []\n            };\n        }\n\n        // 积木实现方法\n        myBlock(args) {\n            // 积木逻辑\n        }\n    }\n\n    Scratch.extensions.register(new MyExtension());\n})(Scratch);\n```\n\n**关键说明：**\n\n- **IIFE 包裹**：扩展代码必须包裹在立即调用函数表达式（IIFE）中，参数为 `Scratch`\n- **\"use strict\"**：使用严格模式，避免全局变量污染\n- **constructor**：接收 `runtime` 参数，保存到 `this.runtime`\n- **Scratch 参数**：通过参数接收 `Scratch` 对象，而不是直接使用全局变量\n- **注册扩展**：使用 `Scratch.extensions.register()` 注册扩展实例\n\n### 完整的扩展模板\n\n```javascript\n(function (Scratch) {\n    \"use strict\";\n    class MyExtension {\n        constructor(runtime) {\n            this.runtime = runtime;\n        }\n\n        getInfo() {\n            return {\n                id: 'myextension',           // 扩展唯一标识\n                name: '我的扩展',             // 显示名称\n                color1: '#FF6680',           // 主颜色\n                color2: '#FF4D6A',           // 次颜色\n                color3: '#CC3D55',           // 第三颜色\n                blocks: [...]                 // 积木定义数组\n            };\n        }\n\n        // 积木实现方法\n        myBlock(args) {\n            // 积木逻辑\n        }\n    }\n\n    // 注册扩展\n    Scratch.extensions.register(new MyExtension());\n})(Scratch);\n```\n\n### 关键说明\n\n- 类名可以任意命名，但建议基于扩展名称\n- `getInfo()` 必须返回扩展的元数据\n- 每个积木都需要一个对应的实现方法\n- 扩展必须使用 `Scratch.extensions.register()` 注册\n\n---\n\n## 扩展配置\n\n### getInfo() 方法详解\n\n#### 完整配置选项\n\n```javascript\ngetInfo() {\n  return {\n    // === 必需属性 ===\n    id: 'myextension',              // 唯一标识符，只能包含 a-z, 0-9，无空格\n    name: '我的扩展',                // 在工具箱中显示的名称\n\n    // === 颜色配置 ===\n    color1: '#FF6680',              // 主颜色\n    color2: '#FF4D6A',              // 次颜色（可选）\n    color3: '#CC3D55',              // 第三颜色（可选）\n\n    // === 图标配置 ===\n    blockIconURI: 'data:image/png;base64,...',  // 积木边缘图标（可选）\n    menuIconURI: 'data:image/png;base64,...',   // 菜单图标（可选）\n\n    // === 文档链接 ===\n    docsURI: 'https://example.com/docs',        // 文档链接（可选）\n\n    // === 积木定义 ===\n    blocks: [\n      // 积木定义数组...\n    ],\n\n    // === 菜单定义 ===\n    menus: {\n      // 菜单定义...\n    }\n  };\n}\n```\n\n#### id 属性说明\n\n- 扩展的唯一标识符\n- 只能使用字母 a-z 和数字 0-9\n- 不能包含空格或特殊字符\n- 多个扩展不能共享相同的 ID\n- 用作扩展的命名空间\n\n---\n\n# 积木\n\n## 积木类型指南\n\n### 积木类型概览\n\nScratch 提供了多种积木类型，每种类型都有特定的形状和用途：\n\n1. **命令积木（COMMAND）** - 执行动作但不返回值\n2. **报告积木（REPORTER）** - 返回字符串或数字值\n3. **布尔积木（BOOLEAN）** - 返回 true 或 false\n4. **事件积木（HAT）** - 在特定条件触发时启动\n5. **专用积木（EVENT/LOOP/CONDITIONAL）** - 特殊用途积木\n\n### 积木类型快速参考\n\n```javascript\nconst BlockType = Scratch.BlockType;\n\n// 所有可用的积木类型\nBlockType.COMMAND      // 命令积木 - 矩形\nBlockType.REPORTER     // 报告积木 - 圆形\nBlockType.BOOLEAN      // 布尔积木 - 六边形\nBlockType.HAT          // 事件积木 - 帽子\nBlockType.EVENT        // 事件积木 - 专用事件\nBlockType.LOOP         // 循环积木 - 控制流\nBlockType.CONDITIONAL  // 条件积木 - 控制流\nBlockType.BUTTON       // 按钮积木 - 仅在积木区里作为按钮\n```\n\n---\n\n## 命令积木（COMMAND）\n\n### 定义命令积木\n\n命令积木是最常见的积木类型，用于执行动作但不返回任何值。它们的形状是矩形，可以像堆叠其他积木一样堆叠它们。\n\n#### 示例：移动积木\n\n```javascript\n(function (Scratch) {\n    \"use strict\";\n    class MyExtension {\n        constructor(runtime) {\n            this.runtime = runtime;\n        }\n\n        getInfo() {\n            return {\n                id: 'myextension',\n                name: '我的扩展',\n                color1: '#FF6680',\n                color2: '#FF4D6A',\n                color3: '#CC3D55',\n                blocks: [\n                    {\n                        opcode: 'moveSteps',\n                        blockType: Scratch.BlockType.COMMAND,\n                        text: '移动 [STEPS] 步',\n                        arguments: {\n                            STEPS: {\n                                type: Scratch.ArgumentType.NUMBER,\n                                defaultValue: 10\n                            }\n                        }\n                    }\n                ]\n            };\n        }\n\n        moveSteps(args) {\n            const steps = args.STEPS;\n            // 执行移动逻辑\n            // 注意：命令积木不返回值\n        }\n    }\n\n    Scratch.extensions.register(new MyExtension());\n})(Scratch);\n```\n\n#### 使用场景\n\n- 改变角色位置、方向、大小\n- 播放声音或显示/隐藏角色\n- 创建或修改变量\n- 发送广播消息\n- 任何不需要返回值的操作\n\n---\n\n## 报告积木（REPORTER）\n\n### 定义报告积木\n\n报告积木返回一个值，可以是字符串、数字或其他类型。它们的形状是圆形，可以插入到其他积木的输入槽中。\n\n#### 示例：随机数积木\n\n```javascript\n(function (Scratch) {\n    \"use strict\";\n    class MyExtension {\n        constructor(runtime) {\n            this.runtime = runtime;\n        }\n\n        getInfo() {\n            return {\n                id: 'myextension',\n                name: '我的扩展',\n                color1: '#FF6680',\n                color2: '#FF4D6A',\n                color3: '#CC3D55',\n                blocks: [\n                    {\n                        opcode: 'randomNumber',\n                        blockType: Scratch.BlockType.REPORTER,\n                        text: '随机数 [MIN] 到 [MAX]',\n                        arguments: {\n                            MIN: {\n                                type: Scratch.ArgumentType.NUMBER,\n                                defaultValue: 1\n                            },\n                            MAX: {\n                                type: Scratch.ArgumentType.NUMBER,\n                                defaultValue: 100\n                            }\n                        }\n                    }\n                ]\n            };\n        }\n\n        randomNumber(args) {\n            const min = args.MIN;\n            const max = args.MAX;\n            return Math.floor(Math.random() * (max - min + 1)) + min;\n        }\n    }\n\n    Scratch.extensions.register(new MyExtension());\n})(Scratch);\n```\n\n#### 返回值类型\n\n报告积木可以返回：\n\n- 数字（整数或小数）\n- 字符串\n- 布尔值（会自动转换为布尔积木）\n- 数组（某些情况下）\n\n---\n\n## 布尔积木（BOOLEAN）\n\n### 定义布尔积木\n\n布尔积木返回 true 或 false，用于条件判断。它们的形状是六边形，通常用于\"如果\"、\"重复直到\"等积木的条件输入。\n\n#### 示例：判断偶数\n\n```javascript\n(function (Scratch) {\n    \"use strict\";\n    class MyExtension {\n        constructor(runtime) {\n            this.runtime = runtime;\n        }\n\n        getInfo() {\n            return {\n                id: 'myextension',\n                name: '我的扩展',\n                color1: '#FF6680',\n                color2: '#FF4D6A',\n                color3: '#CC3D55',\n                blocks: [\n                    {\n                        opcode: 'isEven',\n                        blockType: Scratch.BlockType.BOOLEAN,\n                        text: '[NUMBER] 是偶数?',\n                        arguments: {\n                            NUMBER: {\n                                type: Scratch.ArgumentType.NUMBER,\n                                defaultValue: 10\n                            }\n                        }\n                    }\n                ]\n            };\n        }\n\n        isEven(args) {\n            return args.NUMBER % 2 == 0;\n        }\n    }\n\n    Scratch.extensions.register(new MyExtension());\n})(Scratch);\n```\n\n#### 使用场景\n\n- 条件判断（如果...那么...）\n- 循环条件（重复直到...）\n- 逻辑运算（与、或、非）\n- 比较运算（大于、小于、等于）\n\n---\n\n## 事件积木（HAT）\n\n### 定义事件积木\n\n事件积木（帽子积木）在特定事件发生时触发执行。它们的形状像一顶帽子，通常放在脚本的顶部。当事件触发时，会启动一个新的脚本。\n\n#### 示例：按键事件\n\n```javascript\n(function (Scratch) {\n    \"use strict\";\n    class MyExtension {\n        constructor(runtime) {\n            this.runtime = runtime;\n        }\n\n        getInfo() {\n            return {\n                id: 'myextension',\n                name: '我的扩展',\n                color1: '#FF6680',\n                color2: '#FF4D6A',\n                color3: '#CC3D55',\n                menus: {\n                    KEYS: {\n                        acceptReporters: false,\n                        items: ['space', 'up', 'down', 'left', 'right']\n                    }\n                },\n                blocks: [\n                    {\n                        opcode: 'whenKeyPressed',\n                        blockType: Scratch.BlockType.HAT,\n                        text: '当按下 [KEY] 键',\n                        arguments: {\n                            KEY: {\n                                type: Scratch.ArgumentType.STRING,\n                                menu: 'KEYS',\n                                defaultValue: 'space'\n                            }\n                        }\n                    }\n                ]\n            };\n        }\n\n        // 实现方法（通常不需要实现，事件由 VM 处理）\n        whenKeyPressed(args) {\n            // 当按下指定键时，这个脚本会自动启动\n        }\n    }\n\n    Scratch.extensions.register(new MyExtension());\n})(Scratch);\n```\n\n#### 事件触发机制\n\n- HAT 积木是\"边缘触发\"的\n- 当条件从 false 变为 true 时触发\n- 每次触发都会创建新的线程\n- 需要使用 runtime 来监听事件\n\n---\n\n## 高级积木类型\n\n### 循环积木（LOOP）\n\nLOOP 积木用于控制流，可以重复执行子积木。类似于 CONDITIONAL，但每次子分支完成后会再次调用循环积木。\n\n```javascript\n(function (Scratch) {\n    \"use strict\";\n    class MyExtension {\n        constructor(runtime) {\n            this.runtime = runtime;\n        }\n\n        getInfo() {\n            return {\n                id: 'myextension',\n                name: '我的扩展',\n                color1: '#FF6680',\n                color2: '#FF4D6A',\n                color3: '#CC3D55',\n                blocks: [\n                    {\n                        opcode: 'repeatForever',\n                        blockType: Scratch.BlockType.LOOP,\n                        text: '重复执行',\n                        branchCount: 1,                 // 子分支数量\n                        terminal: true,                 // 是否终止堆栈\n                        arguments: {}\n                    }\n                ]\n            };\n        }\n    }\n\n    Scratch.extensions.register(new MyExtension());\n})(Scratch);\n```\n\n### 条件积木（CONDITIONAL）\n\nCONDITIONAL 积木用于条件分支，可以根据条件执行不同的子分支。可以返回 1-based 索引来指定运行哪个分支。\n\n```javascript\n(function (Scratch) {\n    \"use strict\";\n    class MyExtension {\n        constructor(runtime) {\n            this.runtime = runtime;\n        }\n\n        getInfo() {\n            return {\n                id: 'myextension',\n                name: '我的扩展',\n                color1: '#FF6680',\n                color2: '#FF4D6A',\n                color3: '#CC3D55',\n                blocks: [\n                    {\n                        opcode: 'ifElse',\n                        blockType: Scratch.BlockType.CONDITIONAL,\n                        text: '如果 <CONDITION> 那么 [ELSE]',\n                        branchCount: 2,                 // 两个分支：then 和 else\n                        arguments: {\n                            CONDITION: {\n                                type: Scratch.ArgumentType.BOOLEAN\n                            },\n                            ELSE: {\n                                type: Scratch.ArgumentType.BOOLEAN\n                            }\n                        }\n                    }\n                ]\n            };\n        }\n    }\n\n    Scratch.extensions.register(new MyExtension());\n})(Scratch);\n```\n\n---\n\n# 参数\n\n## 参数类型指南\n\n### 参数类型概览\n\nScratch 支持多种参数类型，每种类型都有不同的输入界面和用途：\n\n1. **STRING** - 字符串输入\n2. **NUMBER** - 数字输入\n3. **ANGLE** - 角度输入（带有圆形选择器）\n4. **BOOLEAN** - 布尔输入（六边形槽）\n5. **COLOR** - 颜色选择器\n6. **MATRIX** - 5x5 矩阵\n7. **NOTE** - 音符选择器\n8. **IMAGE** - 内联图像\n9. **COSTUME** - 造型选择\n10. **SOUND** - 声音选择\n\n### 参数类型快速参考\n\n```javascript\nconst ArgumentType = Scratch.ArgumentType;\n\nArgumentType.STRING    // 字符串输入\nArgumentType.NUMBER    // 数字输入\nArgumentType.ANGLE     // 角度输入\nArgumentType.BOOLEAN   // 布尔输入\nArgumentType.COLOR     // 颜色选择器\nArgumentType.MATRIX    // 5x5 矩阵\nArgumentType.NOTE      // 音符选择器\nArgumentType.IMAGE     // 内联图像\nArgumentType.COSTUME   // 造型选择\nArgumentType.SOUND     // 声音选择\n```\n\n---\n\n## 字符串参数（STRING）\n\n### 定义字符串参数\n\n字符串参数接受文本输入，也可以插入其他报告积木。这是最常用的参数类型之一。\n\n#### 示例：打招呼积木\n\n```javascript\n(function (Scratch) {\n    \"use strict\";\n    class MyExtension {\n        constructor(runtime) {\n            this.runtime = runtime;\n        }\n\n        getInfo() {\n            return {\n                id: 'myextension',\n                name: '我的扩展',\n                color1: '#FF6680',\n                color2: '#FF4D6A',\n                color3: '#CC3D55',\n                blocks: [\n                    {\n                        opcode: 'sayHello',\n                        blockType: Scratch.BlockType.COMMAND,\n                        text: '说 [MESSAGE]',\n                        arguments: {\n                            MESSAGE: {\n                                type: Scratch.ArgumentType.STRING,\n                                defaultValue: '你好'\n                            }\n                        }\n                    }\n                ]\n            };\n        }\n\n        sayHello(args) {\n            const message = args.MESSAGE;\n            console.log(message);\n            // 可以访问 runtime 来在 Scratch 中显示消息\n            // this.runtime.emit('SAY', target, 'say', message);\n        }\n    }\n\n    Scratch.extensions.register(new MyExtension());\n})(Scratch);\n```\n\n#### 特性说明\n\n- 可接受纯文本输入\n- 可插入报告积木\n- 适用于名称、消息、路径等文本数据\n\n---\n\n## 数字参数（NUMBER）\n\n### 定义数字参数\n\n数字参数只接受数字输入，包括整数和小数。也可以插入返回数字的报告积木。\n\n#### 示例：数学运算\n\n```javascript\n(function (Scratch) {\n    \"use strict\";\n    class MyExtension {\n        constructor(runtime) {\n            this.runtime = runtime;\n        }\n\n        getInfo() {\n            return {\n                id: 'myextension',\n                name: '我的扩展',\n                color1: '#FF6680',\n                color2: '#FF4D6A',\n                color3: '#CC3D55',\n                blocks: [\n                    {\n                        opcode: 'addNumbers',\n                        blockType: Scratch.BlockType.REPORTER,\n                        text: '[A] 加 [B]',\n                        arguments: {\n                            A: {\n                                type: Scratch.ArgumentType.NUMBER,\n                                defaultValue: 10\n                            },\n                            B: {\n                                type: Scratch.ArgumentType.NUMBER,\n                                defaultValue: 20\n                            }\n                        }\n                    }\n                ]\n            };\n        }\n\n        addNumbers(args) {\n            return args.A + args.B;\n        }\n    }\n\n    Scratch.extensions.register(new MyExtension());\n})(Scratch);\n```\n\n#### 特性说明\n\n- 只接受数字输入\n- 支持整数和小数\n- 可插入数字报告积木\n- 适用于计算、坐标、大小等\n\n---\n\n## 角度参数（ANGLE）\n\n### 定义角度参数\n\n角度参数接受 0-360 的角度值，并带有一个圆形的角度选择器 UI。特别适合用于方向和旋转相关的积木。\n\n#### 示例：设置方向\n\n```javascript\n(function (Scratch) {\n    \"use strict\";\n    class MyExtension {\n        constructor(runtime) {\n            this.runtime = runtime;\n        }\n\n        getInfo() {\n            return {\n                id: 'myextension',\n                name: '我的扩展',\n                color1: '#FF6680',\n                color2: '#FF4D6A',\n                color3: '#CC3D55',\n                blocks: [\n                    {\n                        opcode: 'setDirection',\n                        blockType: Scratch.BlockType.COMMAND,\n                        text: '面向 [DIRECTION] 度',\n                        arguments: {\n                            DIRECTION: {\n                                type: Scratch.ArgumentType.ANGLE,\n                                defaultValue: 90\n                            }\n                        }\n                    }\n                ]\n            };\n        }\n\n        setDirection(args) {\n            const direction = args.DIRECTION;\n            // 设置角色方向\n            const target = this.runtime.editingTarget;\n            if (target && !target.isStage) {\n                target.direction = direction;\n            }\n        }\n    }\n\n    Scratch.extensions.register(new MyExtension());\n})(Scratch);\n```\n\n---\n\n## 布尔参数（BOOLEAN）\n\n### 定义布尔参数\n\n布尔参数接受六边形的布尔报告积木。这个输入槽不能直接输入值，只能插入布尔积木。\n\n#### 示例：逻辑运算\n\n```javascript\n(function (Scratch) {\n    \"use strict\";\n    class MyExtension {\n        constructor(runtime) {\n            this.runtime = runtime;\n        }\n\n        getInfo() {\n            return {\n                id: 'myextension',\n                name: '我的扩展',\n                color1: '#FF6680',\n                color2: '#FF4D6A',\n                color3: '#CC3D55',\n                blocks: [\n                    {\n                        opcode: 'notOperator',\n                        blockType: Scratch.BlockType.BOOLEAN,\n                        text: '不 [CONDITION]',\n                        arguments: {\n                            CONDITION: {\n                                type: Scratch.ArgumentType.BOOLEAN\n                            }\n                        }\n                    }\n                ]\n            };\n        }\n\n        notOperator(args) {\n            return !args.CONDITION;\n        }\n    }\n\n    Scratch.extensions.register(new MyExtension());\n})(Scratch);\n```\n\n#### 使用场景\n\n- 逻辑运算（与、或、非）\n- 条件组合\n- 只能插入布尔报告积木\n- 不能直接输入值\n\n---\n\n## 颜色参数（COLOR）\n\n### 定义颜色参数\n\n颜色参数显示一个颜色样本，点击可以打开颜色选择器，可以选择色相、饱和度和亮度。\n\n#### 示例：设置颜色\n\n```javascript\n(function (Scratch) {\n    \"use strict\";\n    class MyExtension {\n        constructor(runtime) {\n            this.runtime = runtime;\n        }\n\n        getInfo() {\n            return {\n                id: 'myextension',\n                name: '我的扩展',\n                color1: '#FF6680',\n                color2: '#FF4D6A',\n                color3: '#CC3D55',\n                blocks: [\n                    {\n                        opcode: 'setPenColor',\n                        blockType: Scratch.BlockType.COMMAND,\n                        text: '将画笔颜色设为 [COLOR]',\n                        arguments: {\n                            COLOR: {\n                                type: Scratch.ArgumentType.COLOR,\n                                defaultValue: '#FF6680'\n                            }\n                        }\n                    }\n                ]\n            };\n        }\n\n        setPenColor(args) {\n            const color = args.COLOR;\n            // color 是十六进制颜色值，如 #FF6680\n            console.log('设置颜色为:', color);\n        }\n    }\n\n    Scratch.extensions.register(new MyExtension());\n})(Scratch);\n```\n\n#### 颜色值格式\n\n- 返回十六进制颜色值（如 #FF6680）\n- 可以设置默认颜色\n- 如果不设置默认值，会使用随机颜色\n\n---\n\n## 矩阵参数（MATRIX）\n\n### 定义矩阵参数\n\n矩阵参数显示一个 5x5 的格子矩阵，每个格子可以填充或清除。适用于 LED 矩阵或图案相关的功能。\n\n#### 示例：显示图案\n\n```javascript\n(function (Scratch) {\n    \"use strict\";\n    class MyExtension {\n        constructor(runtime) {\n            this.runtime = runtime;\n        }\n\n        getInfo() {\n            return {\n                id: 'myextension',\n                name: '我的扩展',\n                color1: '#FF6680',\n                color2: '#FF4D6A',\n                color3: '#CC3D55',\n                blocks: [\n                    {\n                        opcode: 'showMatrix',\n                        blockType: Scratch.BlockType.COMMAND,\n                        text: '显示图案 [MATRIX]',\n                        arguments: {\n                            MATRIX: {\n                                type: Scratch.ArgumentType.MATRIX,\n                                defaultValue: '01110,01110,01110,01110,01110'\n                            }\n                        }\n                    }\n                ]\n            };\n        }\n\n        showMatrix(args) {\n            const matrix = args.MATRIX;\n            // matrix 是一个字符串，每行用逗号分隔\n            // 0 表示关闭，1 表示开启\n            const rows = matrix.split(',');\n            console.log('显示图案:', rows);\n        }\n    }\n\n    Scratch.extensions.register(new MyExtension());\n})(Scratch);\n```\n\n#### 矩阵格式\n\n- 5x5 的格子矩阵\n- 返回逗号分隔的字符串\n- 每个字符表示一个格子的状态（0 或 1）\n\n---\n\n## 音符参数（NOTE）\n\n### 定义音符参数\n\n音符参数显示一个虚拟键盘，可以选择音符。特别适合音乐相关的扩展。\n\n#### 示例：播放音符\n\n```javascript\n(function (Scratch) {\n    \"use strict\";\n    class MyExtension {\n        constructor(runtime) {\n            this.runtime = runtime;\n        }\n\n        getInfo() {\n            return {\n                id: 'myextension',\n                name: '我的扩展',\n                color1: '#FF6680',\n                color2: '#FF4D6A',\n                color3: '#CC3D55',\n                blocks: [\n                    {\n                        opcode: 'playNote',\n                        blockType: Scratch.BlockType.COMMAND,\n                        text: '演奏音符 [NOTE] [BEATS] 拍',\n                        arguments: {\n                            NOTE: {\n                                type: Scratch.ArgumentType.NOTE,\n                                defaultValue: 60  // 中央 C\n                            },\n                            BEATS: {\n                                type: Scratch.ArgumentType.NUMBER,\n                                defaultValue: 0.5\n                            }\n                        }\n                    }\n                ]\n            };\n        }\n\n        playNote(args) {\n            const note = args.NOTE;\n            const beats = args.BEATS;\n            // note 是 MIDI 音符编号（0-127）\n            console.log(`播放音符 ${note}，时长 ${beats} 拍`);\n        }\n    }\n\n    Scratch.extensions.register(new MyExtension());\n})(Scratch);\n```\n\n---\n\n## 内联图像参数（IMAGE）\n\n### 定义内联图像\n\n内联图像不是真正的参数，而是在积木上显示的图像。它不表示值，也不接受其他积木插入。\n\n#### 示例：带图标的积木\n\n```javascript\n(function (Scratch) {\n    \"use strict\";\n    class MyExtension {\n        constructor(runtime) {\n            this.runtime = runtime;\n        }\n\n        getInfo() {\n            return {\n                id: 'myextension',\n                name: '我的扩展',\n                color1: '#FF6680',\n                color2: '#FF4D6A',\n                color3: '#CC3D55',\n                blocks: [\n                    {\n                        opcode: 'showIcon',\n                        blockType: Scratch.BlockType.COMMAND,\n                        text: '显示图标 [ICON]',\n                        arguments: {\n                            ICON: {\n                                type: Scratch.ArgumentType.IMAGE,\n                                dataURI: 'data:image/svg+xml;base64,...',  // 图像的 Data URI\n                                alt: '我的图标',                            // 替代文本\n                                flipRTL: false                               // RTL 语言时是否翻转\n                            }\n                        }\n                    }\n                ]\n            };\n        }\n    }\n\n    Scratch.extensions.register(new MyExtension());\n})(Scratch);\n```\n\n#### 注意事项\n\n- IMAGE 不是真正的参数\n- 不表示值，不接受其他积木\n- 需要提供 dataURI\n- 可选设置 flipRTL\n\n---\n\n## 造型参数（COSTUME）\n\n### 定义造型参数\n\n造型参数显示一个下拉菜单，可以选择当前目标的造型。\n\n#### 示例：切换造型\n\n```javascript\n(function (Scratch) {\n    \"use strict\";\n    class MyExtension {\n        constructor(runtime) {\n            this.runtime = runtime;\n        }\n\n        getInfo() {\n            return {\n                id: 'myextension',\n                name: '我的扩展',\n                color1: '#FF6680',\n                color2: '#FF4D6A',\n                color3: '#CC3D55',\n                blocks: [\n                    {\n                        opcode: 'switchCostume',\n                        blockType: Scratch.BlockType.COMMAND,\n                        text: '切换到造型 [COSTUME]',\n                        arguments: {\n                            COSTUME: {\n                                type: Scratch.ArgumentType.COSTUME\n                            }\n                        }\n                    }\n                ]\n            };\n        }\n\n        switchCostume(args) {\n            const costumeName = args.COSTUME;\n            const target = this.runtime.editingTarget;\n            if (target && !target.isStage) {\n                // 查找并切换到指定造型\n                const costumeIndex = target.getCostumeIndexByName(costumeName);\n                if (costumeIndex !== -1) {\n                    target.setCostume(costumeIndex);\n                }\n            }\n        }\n    }\n\n    Scratch.extensions.register(new MyExtension());\n})(Scratch);\n```\n\n---\n\n## 声音参数（SOUND）\n\n### 定义声音参数\n\n声音参数显示一个下拉菜单，可以选择当前目标的声音。\n\n#### 示例：播放声音\n\n```javascript\n(function (Scratch) {\n    \"use strict\";\n    class MyExtension {\n        constructor(runtime) {\n            this.runtime = runtime;\n        }\n\n        getInfo() {\n            return {\n                id: 'myextension',\n                name: '我的扩展',\n                color1: '#FF6680',\n                color2: '#FF4D6A',\n                color3: '#CC3D55',\n                blocks: [\n                    {\n                        opcode: 'playSound',\n                        blockType: Scratch.BlockType.COMMAND,\n                        text: '播放声音 [SOUND]',\n                        arguments: {\n                            SOUND: {\n                                type: Scratch.ArgumentType.SOUND\n                            }\n                        }\n                    }\n                ]\n            };\n        }\n\n        playSound(args) {\n            const soundName = args.SOUND;\n            const target = this.runtime.editingTarget;\n            if (target) {\n                // 查找并播放指定声音\n                const sound = target.sprite.sounds.find(s => s.name === soundName);\n                if (sound) {\n                    target.audioEngine.playSound(target, sound.name);\n                }\n            }\n        }\n    }\n\n    Scratch.extensions.register(new MyExtension());\n})(Scratch);\n```\n\n---\n\n# Scratch-VM\n\n## Scratch-VM API\n\n### Runtime 对象详解\n\nRuntime 是 Scratch 虚拟机的核心对象，管理着所有目标、线程、变量等。扩展通过 `this.runtime` 可以访问虚拟机的所有功能。\n\n#### 基本用法\n\n```javascript\n(function (Scratch) {\n    \"use strict\";\n    class MyExtension {\n        constructor(runtime) {\n            // 存储 runtime 引用\n            this.runtime = runtime;\n        }\n\n        getInfo() {\n            return {\n                id: 'myextension',\n                name: '我的扩展',\n                color1: '#FF6680',\n                color2: '#FF4D6A',\n                color3: '#CC3D55',\n                blocks: []\n            };\n        }\n\n        // 在积木方法中使用 runtime\n        myMethod(args) {\n            // 获取目标、线程等信息\n            const target = this.runtime.getEditingTarget();\n            const threads = this.runtime.threads;\n\n            // 触发事件\n            this.runtime.emit('MY_EVENT', data);\n        }\n    }\n\n    Scratch.extensions.register(new MyExtension());\n})(Scratch);\n```\n\n#### Runtime 常用属性和方法\n\n- **targets** - 所有目标的数组\n- **executableTargets** - 可执行目标的数组\n- **threads** - 当前运行的线程数组\n- **getEditingTarget()** - 获取当前编辑的目标\n- **getTargetForStage()** - 获取舞台目标\n- **ioDevices** - I/O 设备（键盘、鼠标等）\n- **sequencer** - 脚本序列器\n\n---\n\n## 访问角色（Target）\n\n### 获取当前角色\n\nTarget 对象代表一个角色或舞台，包含角色的所有属性和方法。\n\n#### 常用 Target 属性和方法\n\n```javascript\n// 获取当前编辑的目标\nconst target = this.runtime.getEditingTarget();\n\n// 角色基本信息\nconst name = target.getName();           // 角色名称\nconst x = target.x;                       // X 坐标\nconst y = target.y;                       // Y 坐标\nconst direction = target.direction;       // 方向（0-360）\nconst size = target.size;                 // 大小（百分比）\nconst visible = target.visible;           // 是否可见\nconst isStage = target.isStage;           // 是否是舞台\n\n// 造型相关\nconst costumes = target.getCostumes();    // 获取所有造型\nconst currentCostume = target.currentCostume;  // 当前造型\ntarget.setCostume(index);                 // 设置造型\n\n// 声音相关\nconst sounds = target.getSounds();        // 获取所有声音\n\n// 变量相关\nconst variables = target.variables;       // 变量对象\nconst localVar = target.lookupVariableByNameAndType('变量名', '');  // 查找局部变量\n\n// 线程相关\nconst threads = this.runtime.threads.filter(t => t.target === target);\n```\n\n#### 获取特定目标\n\n```javascript\n// 获取舞台\nconst stage = this.runtime.getTargetForStage();\n\n// 遍历所有目标\nconst allTargets = this.runtime.targets;\nfor (const target of allTargets) {\n  if (!target.isStage) {\n    // 这是一个角色\n    console.log(target.getName());\n  }\n}\n```\n\n---\n\n## 操作变量\n\n### 读取变量\n\n可以通过 Target 对象读取和修改变量。变量可以是全局的（舞台）或局部的（角色）。\n\n#### 读写变量示例\n\n```javascript\n(function (Scratch) {\n    \"use strict\";\n    class MyExtension {\n        constructor(runtime) {\n            this.runtime = runtime;\n        }\n\n        getInfo() {\n            return {\n                id: 'myextension',\n                name: '我的扩展',\n                color1: '#FF6680',\n                color2: '#FF4D6A',\n                color3: '#CC3D55',\n                blocks: []\n            };\n        }\n\n        variableOperations() {\n            const target = this.runtime.getEditingTarget();\n\n            // 查找变量（先在局部找，再在全局找）\n            // 参数：变量名，类型（''=普通变量，'list'=列表变量）\n            let variable = target.lookupVariableByNameAndType('我的变量', '');\n\n            // 检查是否是云变量\n            if (variable && variable.isCloud) {\n                // 这是云变量\n            }\n\n            // 读取变量值\n            const value = variable ? variable.value : null;\n\n            // 修改变量值\n            if (variable) {\n                variable.value = 100;\n            }\n\n            // 创建新变量\n            const newVar = target.createVariable('新变量', '变量名', '', false);  // false = 非云变量\n\n            // 获取舞台变量（全局变量）\n            const stage = this.runtime.getTargetForStage();\n            const globalVar = stage.lookupVariableByNameAndType('全局变量', '');\n            if (globalVar) {\n                globalVar.value = '新值';\n            }\n        }\n    }\n\n    Scratch.extensions.register(new MyExtension());\n})(Scratch);\n```\n\n#### 变量类型\n\n变量可以是以下类型：\n\n- 普通变量（空字符串类型）\n- 列表变量（list 类型）\n- 广播消息（broadcast_msg 类型）\n\n---\n\n## 广播消息\n\n### 发送广播\n\n可以通过 runtime 发送广播消息，触发所有\"当接收到消息\"的帽子积木。\n\n#### 发送广播示例\n\n```javascript\n(function (Scratch) {\n    \"use strict\";\n    class MyExtension {\n        constructor(runtime) {\n            this.runtime = runtime;\n        }\n\n        getInfo() {\n            return {\n                id: 'myextension',\n                name: '我的扩展',\n                color1: '#FF6680',\n                color2: '#FF4D6A',\n                color3: '#CC3D55',\n                blocks: [\n                    {\n                        opcode: 'sendBroadcast',\n                        blockType: Scratch.BlockType.COMMAND,\n                        text: '发送广播 [MESSAGE]',\n                        arguments: {\n                            MESSAGE: {\n                                type: Scratch.ArgumentType.STRING,\n                                defaultValue: '我的消息'\n                            }\n                        }\n                    }\n                ]\n            };\n        }\n\n        sendBroadcast(args) {\n            // 方法 1：使用 startHats\n            const stage = this.runtime.getTargetForStage();\n            this.runtime.startHats('event_whenbroadcastreceived', {\n                BROADCAST_OPTION: args.MESSAGE\n            });\n\n            // 方法 2：查找广播变量并发送\n            const broadcastVar = stage.lookupBroadcastMsg(null, args.MESSAGE);\n            if (broadcastVar) {\n                this.runtime.startHats('event_whenbroadcastreceived', {\n                    BROADCAST_OPTION: broadcastVar.name\n                });\n            }\n\n            // 方法 3：创建广播并发送\n            const newBroadcast = stage.createVariable(\n                '新消息',\n                'broadcast_msg'  // 广播消息类型\n            );\n            this.runtime.startHats('event_whenbroadcastreceived', {\n                BROADCAST_OPTION: newBroadcast.name\n            });\n        }\n    }\n\n    Scratch.extensions.register(new MyExtension());\n})(Scratch);\n```\n\n---\n\n## 使用事件（Events）\n\n### Runtime 事件\n\nRuntime 是一个事件发射器，可以触发和监听各种事件。\n\n#### 常用事件\n\n```javascript\n(function (Scratch) {\n    \"use strict\";\n    class MyExtension {\n        constructor(runtime) {\n            this.runtime = runtime;\n        }\n\n        getInfo() {\n            return {\n                id: 'myextension',\n                name: '我的扩展',\n                color1: '#FF6680',\n                color2: '#FF4D6A',\n                color3: '#CC3D55',\n                blocks: []\n            };\n        }\n\n        // 触发事件\n        myMethod() {\n            this.runtime.emit('MY_EVENT', data);\n        }\n\n        // 监听事件\n        setupEventListeners() {\n            this.runtime.on('MY_EVENT', (data) => {\n                console.log('收到事件:', data);\n            });\n        }\n\n        // 移除监听器\n        cleanupEventListeners() {\n            const listener = (data) => { /* ... */ };\n            this.runtime.on('MY_EVENT', listener);\n            // ...\n            this.runtime.removeListener('MY_EVENT', listener);\n\n            // 常用预定义事件\n            this.runtime.emit('PROJECT_START');           // 项目开始\n            this.runtime.emit('PROJECT_RUN_START');       // 运行开始\n            this.runtime.emit('PROJECT_RUN_STOP');        // 运行停止\n            this.runtime.emit('TURBO_MODE_ON');           // 开启加速模式\n            this.runtime.emit('TURBO_MODE_OFF');          // 关闭加速模式\n            this.runtime.emit('MONITORS_UPDATE', data);   // 更新监视器\n        }\n    }\n\n    Scratch.extensions.register(new MyExtension());\n})(Scratch);\n```\n\n---\n\n## 访问 I/O 设备\n\n### 可用的 I/O 设备\n\nRuntime 提供了访问各种输入/输出设备的接口。\n\n#### 常用设备示例\n\n```javascript\n// 访问键盘\nconst keyboard = this.runtime.ioDevices.keyboard;\nconst isPressed = keyboard.getKeyIsDown('space');\n\n// 访问鼠标\nconst mouse = this.runtime.ioDevices.mouse;\nconst x = mouse.getScratchX();      // Scratch 坐标系的 X\nconst y = mouse.getScratchY();      // Scratch 坐标系的 Y\nconst isDown = mouse.getIsDown();   // 鼠标是否按下\n\n// 访问时钟\nconst clock = this.runtime.ioDevices.clock;\nconst timer = clock.projectTimer();  // 项目运行时间（秒）\n\n// 访问视频（摄像头）\nconst video = this.runtime.ioDevices.video;\n// 获取视频帧等\n\n// 访问用户数据\nconst userData = this.runtime.ioDevices.userData;\n// 获取用户名、角色 ID 等\n\n// 访问云变量\nconst cloud = this.runtime.ioDevices.cloud;\nconst hasCloudData = cloud.hasCloudData();  // 是否有云数据连接\n```\n\n---\n\n## 最佳实践\n\n### 命名规范\n\n- **扩展 ID**：使用小写字母和数字，如 `myextension`\n- **类名**：使用大驼峰，如 `MyExtension`\n- **方法名**：使用小驼峰，如 `myMethod`\n- **常量**：使用大写下划线，如 `MAX_VALUE`\n\n### 错误处理\n\n```javascript\n(function (Scratch) {\n    \"use strict\";\n    class MyExtension {\n        constructor(runtime) {\n            this.runtime = runtime;\n        }\n\n        getInfo() {\n            return {\n                id: 'myextension',\n                name: '我的扩展',\n                color1: '#FF6680',\n                color2: '#FF4D6A',\n                color3: '#CC3D55',\n                blocks: []\n            };\n        }\n\n        // 始终检查 null/undefined\n        myMethod(args) {\n            const target = this.runtime.getEditingTarget();\n            if (!target) return;\n\n            // 检查角色是否是舞台\n            if (target.isStage) {\n                // 某些操作只适用于角色\n            }\n\n            // 提供默认值\n            const value = args.VALUE || defaultValue;\n\n            // 捕获错误\n            try {\n                // 可能失败的代码\n            } catch (error) {\n                console.error('扩展错误:', error);\n            }\n        }\n    }\n\n    Scratch.extensions.register(new MyExtension());\n})(Scratch);\n```\n\n### 性能优化\n\n- 避免在循环中创建对象\n- 缓存常用引用\n- 使用事件而不是轮询\n- 限制计算复杂度\n\n---\n\n## 兼容性考虑\n\n### 向后兼容\n\nScratch 设计为完全向后兼容。积木定义和 opcode 永远不应该改变，以免导致之前保存的项目无法加载。\n\n#### 兼容性清单\n\n- 不要更改现有积木的 opcode\n- 不要更改积木的类型\n- 不要移除积木参数\n- 如果需要更改，创建新的积木\n- 保持默认值不变\n\n### 跨平台兼容\n\n- 确保代码在所有浏览器中运行\n- 测试移动设备\n- 考虑不同的屏幕尺寸\n- 处理触摸事件\n\n---\n\n## 消息格式化\n\n### 使用 formatMessage\n\n对于需要国际化的扩展，可以使用 `formatMessage` 函数来格式化消息。\n\n#### 示例\n\n```javascript\n(function (Scratch) {\n    \"use strict\";\n    class MyExtension {\n        constructor(runtime) {\n            this.runtime = runtime;\n        }\n\n        getInfo() {\n            // 引入 formatMessage（仅适用于核心/团队/官方扩展）\n            const formatMessage = require('format-message');\n\n            return {\n                name: formatMessage({\n                    id: 'extensionName',\n                    defaultMessage: 'My Extension',\n                    description: 'The name of the extension'\n                }),\n                blocks: [\n                    {\n                        text: formatMessage({\n                            id: 'blockText',\n                            defaultMessage: 'Hello [NAME]',\n                            description: 'Text for the hello block'\n                        }),\n                        arguments: {\n                            NAME: {\n                                defaultValue: formatMessage({\n                                    id: 'nameDefault',\n                                    defaultMessage: 'World',\n                                    description: 'Default name'\n                                })\n                            }\n                        }\n                    }\n                ]\n            };\n        }\n    }\n\n    Scratch.extensions.register(new MyExtension());\n})(Scratch);\n```\n\n---\n\n## 扩展翻译\n\n### 使用 translation_map\n\n可以在扩展内部定义翻译映射，为不同语言提供翻译。\n\n#### 示例\n\n```javascript\n(function (Scratch) {\n    \"use strict\";\n    class MyExtension {\n        constructor(runtime) {\n            this.runtime = runtime;\n        }\n\n        getInfo() {\n            return {\n                name: 'My Extension',\n                blocks: [],\n                translation_map: {\n                    zh: {  // 中文\n                        'extensionName': '我的扩展',\n                        'blockText': '你好 [NAME]',\n                        'nameDefault': '世界'\n                    },\n                    es: {  // 西班牙语\n                        'extensionName': 'Mi Extensión',\n                        'blockText': 'Hola [NAME]',\n                        'nameDefault': 'Mundo'\n                    }\n                }\n            };\n        }\n    }\n\n    Scratch.extensions.register(new MyExtension());\n})(Scratch);\n```\n\n---\n\n## 沙箱环境\n\n### 沙箱模式\n\n扩展可以在沙箱中运行，此时 runtime 是一个异步代理对象。需要使用 await 来访问异步方法。\n\n#### 兼容性建议\n\n```javascript\n(function (Scratch) {\n    \"use strict\";\n    class MyExtension {\n        constructor(runtime) {\n            this.runtime = runtime;\n        }\n\n        getInfo() {\n            return {\n                id: 'myextension',\n                name: '我的扩展',\n                color1: '#FF6680',\n                color2: '#FF4D6A',\n                color3: '#CC3D55',\n                blocks: []\n            };\n        }\n\n        // 沙箱兼容的代码\n        async myMethod(args) {\n            // 在沙箱中，runtime 方法可能是异步的\n            const target = await this.runtime.getEditingTarget();\n            const stage = this.runtime.getTargetForStage();\n\n            // 使用变量查找方法\n            const variable = target.lookupVariableByNameAndType('变量名', '');\n        }\n\n        // 非沙箱环境会自动处理异步/同步\n    }\n\n    Scratch.extensions.register(new MyExtension());\n})(Scratch);\n```\n\n#### 注意事项\n\n- 核心扩展可以使用 require 引入 VM 代码\n- 非官方扩展必须自包含\n- 需要确保浏览器兼容性（ES5）\n- 使用 async/await 确保沙箱兼容\n");
 // EXTERNAL MODULE: ./node_modules/css-loader/dist/cjs.js!./src/components/ExtensionEditorWizardPanel/extension-editor-wizard-panel.css
 var extension_editor_wizard_panel = __webpack_require__(45476);
 ;// ./src/components/ExtensionEditorWizardPanel/extension-editor-wizard-panel.css
@@ -218020,7 +218140,6 @@ var extension_editor_wizard_panel_update = injectStylesIntoStyleTag_default()(ex
 
 
 
-
 const extension_editor_wizard_panel_messages = defineMessages({
   chapterDefault: {
     defaultMessage: 'Chapter {number}',
@@ -218036,18 +218155,41 @@ const extension_editor_wizard_panel_messages = defineMessages({
 class ExtensionEditorWizardPanel extends (external_commonjs_react_commonjs2_react_amd_react_root_React_default()).Component {
   constructor(props) {
     super(props);
-    const parsed = this.parseTutorials();
+    const tutorialsMarkdown = this.getTutorialsMarkdown();
+    const parsed = this.parseTutorials(tutorialsMarkdown);
     const initialCategory = props.initialCategory || (parsed.categories[0] ? parsed.categories[0].id : null);
+    const firstTutorialInCategory = parsed.tutorials.find(t => t.category === initialCategory);
+    const initialTutorial = props.initialTutorial || (firstTutorialInCategory ? firstTutorialInCategory.id : null);
     this.state = {
+      ...parsed,
       wizardCategory: initialCategory,
-      wizardTutorial: null,
-      wizardChapter: props.initialChapter || 0,
-      ...parsed
+      wizardTutorial: initialTutorial,
+      wizardChapter: props.initialChapter || 0
     };
-    this.selectFirstTutorial(initialCategory);
   }
-  parseTutorials() {
-    const lines = lib_tutorials.split('\n');
+  getTutorialsMarkdown() {
+    // Get language setting from localStorage
+    let language = 'en';
+    try {
+      const languageSetting = localStorage.getItem('tw:language');
+      if (typeof languageSetting === 'string' && languageSetting.toLowerCase().startsWith('zh')) {
+        language = 'zh';
+      }
+    } catch (e) {
+      // ignore
+    }
+
+    // Import the appropriate tutorials file based on language
+    let tutorialsFile;
+    if (language === 'zh') {
+      tutorialsFile = __webpack_require__(93632);
+    } else {
+      tutorialsFile = __webpack_require__(44433);
+    }
+    return tutorialsFile.default || tutorialsFile;
+  }
+  parseTutorials(tutorialsMarkdown) {
+    const lines = tutorialsMarkdown.split('\n');
     const categories = [];
     const tutorials = [];
     let currentCategory = null;
@@ -218121,20 +218263,13 @@ class ExtensionEditorWizardPanel extends (external_commonjs_react_commonjs2_reac
       tutorials
     };
   }
-  selectFirstTutorial(category) {
-    const tutorial = this.state.tutorials.find(t => t.category === category);
-    if (tutorial) {
-      this.setState({
-        wizardTutorial: tutorial.id
-      });
-    }
-  }
   handleCategoryChange = category => {
+    const tutorial = this.state.tutorials.find(t => t.category === category);
     this.setState({
       wizardCategory: category,
+      wizardTutorial: tutorial ? tutorial.id : null,
       wizardChapter: 0
     });
-    this.selectFirstTutorial(category);
     this.props.onCategoryChange?.(category);
   };
   handleTutorialChange = tutorialId => {
