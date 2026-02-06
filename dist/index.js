@@ -199649,24 +199649,6 @@ var extension_editor_settings_content_update = injectStylesIntoStyleTag_default(
 
 
 
-
-const extension_editor_settings_content_messages = defineMessages({
-  editorOptions: {
-    defaultMessage: 'Editor Options',
-    description: 'Title for editor options section',
-    id: 'tw.extensionEditorSettings.editorOptions'
-  },
-  fontSize: {
-    defaultMessage: 'Font size',
-    description: 'Label for font size setting',
-    id: 'tw.extensionEditorSettings.fontSize'
-  },
-  done: {
-    defaultMessage: 'Done',
-    description: 'Button text to close settings',
-    id: 'tw.extensionEditorSettings.done'
-  }
-});
 const defaultIntl = {
   formatMessage: message => message.defaultMessage || ''
 };
@@ -199685,11 +199667,11 @@ class ExtensionEditorSettingsContent extends (external_commonjs_react_commonjs2_
       className: "extension-editor-settings-body"
     }, /*#__PURE__*/external_commonjs_react_commonjs2_react_amd_react_root_React_default().createElement("div", {
       className: "extension-editor-settings-section"
-    }, /*#__PURE__*/external_commonjs_react_commonjs2_react_amd_react_root_React_default().createElement("h3", null, intl.formatMessage(extension_editor_settings_content_messages.editorOptions)), /*#__PURE__*/external_commonjs_react_commonjs2_react_amd_react_root_React_default().createElement("div", {
+    }, /*#__PURE__*/external_commonjs_react_commonjs2_react_amd_react_root_React_default().createElement("h3", null, this.props.FormattedMessage('editorOptions')), /*#__PURE__*/external_commonjs_react_commonjs2_react_amd_react_root_React_default().createElement("div", {
       className: "extension-editor-settings-setting"
     }, /*#__PURE__*/external_commonjs_react_commonjs2_react_amd_react_root_React_default().createElement("label", null, /*#__PURE__*/external_commonjs_react_commonjs2_react_amd_react_root_React_default().createElement("span", {
       className: "extension-editor-settings-label"
-    }, intl.formatMessage(extension_editor_settings_content_messages.fontSize)), /*#__PURE__*/external_commonjs_react_commonjs2_react_amd_react_root_React_default().createElement("span", {
+    }, this.props.FormattedMessage('fontSize')), /*#__PURE__*/external_commonjs_react_commonjs2_react_amd_react_root_React_default().createElement("span", {
       className: "extension-editor-settings-value"
     }, this.props.fontSize, "px")), /*#__PURE__*/external_commonjs_react_commonjs2_react_amd_react_root_React_default().createElement("input", {
       type: "range",
@@ -199703,7 +199685,7 @@ class ExtensionEditorSettingsContent extends (external_commonjs_react_commonjs2_
     }, /*#__PURE__*/external_commonjs_react_commonjs2_react_amd_react_root_React_default().createElement("button", {
       className: "extension-editor-settings-button",
       onClick: this.props.onClose
-    }, intl.formatMessage(extension_editor_settings_content_messages.done)))));
+    }, this.props.FormattedMessage('done')))));
   }
 }
 ExtensionEditorSettingsContent.propTypes = {
@@ -218554,6 +218536,25 @@ class BlockPreview extends (external_commonjs_react_commonjs2_react_amd_react_ro
     this.previewWorkspace = null;
     this.previewFlyout = null;
   }
+  getBlocksMediaPath = () => {
+    const {
+      ScratchBlocks,
+      blocksMediaPath
+    } = this.props;
+    if (blocksMediaPath) return blocksMediaPath;
+    if (!ScratchBlocks) return null;
+    try {
+      const mainWorkspace = ScratchBlocks.getMainWorkspace ? ScratchBlocks.getMainWorkspace() : ScratchBlocks.mainWorkspace;
+      if (mainWorkspace && mainWorkspace.options && mainWorkspace.options.pathToMedia) {
+        return mainWorkspace.options.pathToMedia;
+      }
+    } catch (e) {
+      // ignore
+    }
+
+    // Fallback: prefer a local path over Blockly's default remote media.
+    return '/static/blocks-media/default/';
+  };
   componentDidMount() {
     if (this.props.vm) {
       this.props.vm.addListener('BLOCKSINFO_UPDATE', this.renderBlockPreview);
@@ -218572,7 +218573,7 @@ class BlockPreview extends (external_commonjs_react_commonjs2_react_amd_react_ro
     }
 
     // 监听 props 变化，触发重新渲染
-    if (prevProps.extensionCode !== this.props.extensionCode || prevProps.isLoading !== this.props.isLoading || prevProps.loadError !== this.props.loadError || prevProps.activeTabId !== this.props.activeTabId || prevProps.vm !== this.props.vm || prevProps.ScratchBlocks !== this.props.ScratchBlocks) {
+    if (prevProps.extensionCode !== this.props.extensionCode || prevProps.isLoading !== this.props.isLoading || prevProps.loadError !== this.props.loadError || prevProps.activeTabId !== this.props.activeTabId || prevProps.vm !== this.props.vm || prevProps.ScratchBlocks !== this.props.ScratchBlocks || prevProps.blocksMediaPath !== this.props.blocksMediaPath) {
       this.renderBlockPreview();
     }
   }
@@ -218713,9 +218714,14 @@ class BlockPreview extends (external_commonjs_react_commonjs2_react_amd_react_ro
         iconURI = `iconURI="${extensionInfo.blockIconURI}"`;
       }
       const toolboxXML = `<xml><category name="${extensionInfo.name}" id="${extensionInfo.id}" colour="${extensionInfo.color1}" secondaryColour="${extensionInfo.color2}" ${iconURI}>${extensionBlocksXML}</category></xml>`;
+      const blocksMedia = this.getBlocksMediaPath();
 
       // 创建 Workspace
       const workspace = ScratchBlocks.inject(container, {
+        ...(blocksMedia ? {
+          media: blocksMedia
+        } : null),
+        css: true,
         rtl: false,
         scrollbars: false,
         trashcan: false,
@@ -218774,6 +218780,7 @@ BlockPreview.propTypes = {
   intl: (prop_types_default()).object,
   vm: (prop_types_default()).object,
   ScratchBlocks: (prop_types_default()).object,
+  blocksMediaPath: (prop_types_default()).string,
   extensionCode: (prop_types_default()).string,
   isLoading: (prop_types_default()).bool,
   loadError: (prop_types_default()).string,

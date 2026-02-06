@@ -69,6 +69,24 @@ class BlockPreview extends React.Component {
         this.previewFlyout = null;
     }
 
+    getBlocksMediaPath = () => {
+        const { ScratchBlocks, blocksMediaPath } = this.props;
+        if (blocksMediaPath) return blocksMediaPath;
+        if (!ScratchBlocks) return null;
+
+        try {
+            const mainWorkspace = ScratchBlocks.getMainWorkspace ? ScratchBlocks.getMainWorkspace() : ScratchBlocks.mainWorkspace;
+            if (mainWorkspace && mainWorkspace.options && mainWorkspace.options.pathToMedia) {
+                return mainWorkspace.options.pathToMedia;
+            }
+        } catch (e) {
+            // ignore
+        }
+
+        // Fallback: prefer a local path over Blockly's default remote media.
+        return '/static/blocks-media/default/';
+    };
+
     componentDidMount() {
         if (this.props.vm) {
             this.props.vm.addListener('BLOCKSINFO_UPDATE', this.renderBlockPreview);
@@ -93,7 +111,8 @@ class BlockPreview extends React.Component {
             prevProps.loadError !== this.props.loadError ||
             prevProps.activeTabId !== this.props.activeTabId ||
             prevProps.vm !== this.props.vm ||
-            prevProps.ScratchBlocks !== this.props.ScratchBlocks) {
+            prevProps.ScratchBlocks !== this.props.ScratchBlocks ||
+            prevProps.blocksMediaPath !== this.props.blocksMediaPath) {
             this.renderBlockPreview();
         }
     }
@@ -250,8 +269,12 @@ class BlockPreview extends React.Component {
             }
             const toolboxXML = `<xml><category name="${extensionInfo.name}" id="${extensionInfo.id}" colour="${extensionInfo.color1}" secondaryColour="${extensionInfo.color2}" ${iconURI}>${extensionBlocksXML}</category></xml>`;
 
+            const blocksMedia = this.getBlocksMediaPath();
+
             // 创建 Workspace
             const workspace = ScratchBlocks.inject(container, {
+                ...(blocksMedia ? { media: blocksMedia } : null),
+                css: true,
                 rtl: false,
                 scrollbars: false,
                 trashcan: false,
@@ -314,6 +337,7 @@ BlockPreview.propTypes = {
     intl: PropTypes.object,
     vm: PropTypes.object,
     ScratchBlocks: PropTypes.object,
+    blocksMediaPath: PropTypes.string,
     extensionCode: PropTypes.string,
     isLoading: PropTypes.bool,
     loadError: PropTypes.string,
