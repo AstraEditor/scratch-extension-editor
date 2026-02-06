@@ -1,6 +1,7 @@
 # Dependencies
 node_modules/
-package-lock.json
+# package-lock.json
+# We need this to pass CI
 
 # Build output
 # We need dist
