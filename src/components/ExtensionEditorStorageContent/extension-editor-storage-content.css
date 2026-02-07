@@ -29,7 +29,7 @@
 .extension-editor-storage-empty {
     text-align: center;
     padding: 3rem 2rem;
-    color: var(--ui-secondary);
+    color: var(ui-modal-foreground);;
     font-size: 0.9rem;
 }
 
