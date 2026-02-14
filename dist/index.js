@@ -199253,6 +199253,39 @@ const blocks_namespaceObject = __webpack_require__.p + "57dc6bde9767e6b72597.svg
 
 
 
+const THEME_STORAGE_KEY = 'tw:theme';
+const LOCAL_STORAGE_CHANGE_EVENT = 'scratch-gui:local-storage-change';
+const THEME_CHANGED_EVENT = 'tw:theme-changed';
+let hasInstalledLocalStorageBridge = false;
+const installLocalStorageBridge = () => {
+  if (hasInstalledLocalStorageBridge || typeof window === 'undefined') return;
+  hasInstalledLocalStorageBridge = true;
+  const emitChange = (key, oldValue, newValue) => {
+    window.dispatchEvent(new CustomEvent(LOCAL_STORAGE_CHANGE_EVENT, {
+      detail: {
+        key,
+        oldValue,
+        newValue
+      }
+    }));
+  };
+  try {
+    const nativeSetItem = window.localStorage.setItem.bind(window.localStorage);
+    const nativeRemoveItem = window.localStorage.removeItem.bind(window.localStorage);
+    window.localStorage.setItem = (key, value) => {
+      const oldValue = window.localStorage.getItem(key);
+      nativeSetItem(key, value);
+      if (oldValue !== value) emitChange(key, oldValue, value);
+    };
+    window.localStorage.removeItem = key => {
+      const oldValue = window.localStorage.getItem(key);
+      nativeRemoveItem(key);
+      if (oldValue !== null) emitChange(key, oldValue, null);
+    };
+  } catch (e) {
+    // If localStorage is unavailable/readonly, fall back to standard storage event only.
+  }
+};
 const messages = defineMessages({
   toggleToBlockPreview: {
     defaultMessage: 'Switch to Block Preview',
@@ -199269,14 +199302,21 @@ class ExtensionEditor extends (external_commonjs_react_commonjs2_react_amd_react
   constructor(props) {
     super(props);
     this.state = {
-      code: props.initialCode || getDefaultTemplate(),
       isEditorReady: false,
       fontSize: props.fontSize || 14,
       guiTheme: 'dark'
     };
+    this.currentCode = props.initialCode || getDefaultTemplate();
     this.editorContainer = /*#__PURE__*/external_commonjs_react_commonjs2_react_amd_react_root_React_default().createRef();
     this.editor = null;
     this.lastTheme = null; // 用于存储上一次的主题
+    this.suppressModelChange = false;
+    this.modelChangeDisposable = null;
+    this.handleStorageChange = this.handleStorageChange.bind(this);
+    this.handleLocalStorageChange = this.handleLocalStorageChange.bind(this);
+    this.handleThemeChanged = this.handleThemeChanged.bind(this);
+    this.handleVisibilityChange = this.handleVisibilityChange.bind(this);
+    this.handleWindowFocus = this.handleWindowFocus.bind(this);
   }
   getExtensionEditorPublicPath() {
     if (typeof window === 'undefined') return './';
@@ -199285,6 +199325,8 @@ class ExtensionEditor extends (external_commonjs_react_commonjs2_react_amd_react
     return configured.endsWith('/') ? configured : `${configured}/`;
   }
   componentDidMount() {
+    installLocalStorageBridge();
+
     // 配置 Monaco Editor worker
     if (typeof window !== 'undefined') {
       const publicPath = this.getExtensionEditorPublicPath();
@@ -199325,45 +199367,45 @@ class ExtensionEditor extends (external_commonjs_react_commonjs2_react_amd_react
     this.initEditor();
 
     // 监听 localStorage 的变化（用于跨标签页同步）
-    this.handleStorageChange = this.handleStorageChange.bind(this);
     window.addEventListener('storage', this.handleStorageChange);
+    window.addEventListener(LOCAL_STORAGE_CHANGE_EVENT, this.handleLocalStorageChange);
+    window.addEventListener(THEME_CHANGED_EVENT, this.handleThemeChanged);
+    window.addEventListener('focus', this.handleWindowFocus);
+    document.addEventListener('visibilitychange', this.handleVisibilityChange);
 
-    // 轮询检查主题变化（用于当前标签页）
-    this.lastTheme = this.getEditorTheme();
-    this.setState({
-      guiTheme: this.lastTheme
-    });
-    this.themeCheckInterval = setInterval(() => {
-      const currentTheme = this.getEditorTheme();
-      if (currentTheme !== this.lastTheme) {
-        this.lastTheme = currentTheme;
-        this.updateEditorTheme();
-      }
-    }, 500); // 每500ms检查一次
+    // 初始化主题（当前标签页）
+    this.updateEditorTheme();
   }
   componentDidUpdate(prevProps) {
     // 当initialCode变化时（例如切换标签卡），更新编辑器内容
     if (prevProps.initialCode !== this.props.initialCode) {
       const newCode = this.props.initialCode || getDefaultTemplate();
-      const currentCode = this.editor ? this.editor.getValue() : this.state.code;
+      const currentCode = this.getCurrentCode();
 
       // 只有在内容确实不同时才更新编辑器，避免不必要的重置
       if (currentCode !== newCode) {
-        if (this.editor) {
+        // 避免父组件异步回写旧值导致正在输入时光标跳动
+        const isTyping = Boolean(this.editor && this.editor.hasTextFocus && this.editor.hasTextFocus());
+        if (!isTyping && this.editor) {
           // 保存当前光标位置
           const position = this.editor.getPosition();
 
           // 更新编辑器内容
-          this.editor.setValue(newCode);
+          this.suppressModelChange = true;
+          try {
+            this.editor.setValue(newCode);
+          } finally {
+            this.suppressModelChange = false;
+          }
+          this.currentCode = newCode;
 
           // 恢复光标位置（如果可能）
           if (position) {
             this.editor.setPosition(position);
           }
+        } else if (!this.editor) {
+          this.currentCode = newCode;
         }
-        this.setState({
-          code: newCode
-        });
       }
     }
     if (prevProps.fontSize !== this.props.fontSize && this.editor) {
@@ -199374,11 +199416,24 @@ class ExtensionEditor extends (external_commonjs_react_commonjs2_react_amd_react
         fontSize: this.props.fontSize
       });
     }
+    if (prevProps.themeMode !== this.props.themeMode) {
+      this.updateEditorTheme();
+    }
+  }
+  getThemeFromProps() {
+    if (this.props.themeMode === 'light' || this.props.themeMode === 'dark') {
+      return this.props.themeMode;
+    }
+    return null;
   }
   getEditorTheme() {
+    const themeFromProps = this.getThemeFromProps();
+    if (themeFromProps) {
+      return themeFromProps;
+    }
     let theme = 'dark';
     try {
-      const themeStr = localStorage.getItem('tw:theme');
+      const themeStr = localStorage.getItem(THEME_STORAGE_KEY);
       if (themeStr) {
         const themeData = JSON.parse(themeStr);
         switch (themeData.gui) {
@@ -199401,39 +199456,76 @@ class ExtensionEditor extends (external_commonjs_react_commonjs2_react_amd_react
     }
     return theme;
   }
-  updateEditorTheme() {
+  applyEditorTheme(theme) {
     if (!this.editor) return;
-    const currentTheme = this.getEditorTheme();
-    const monacoTheme = currentTheme === 'light' ? 'vs' : 'vs-dark';
+    const monacoTheme = theme === 'light' ? 'vs' : 'vs-dark';
     editor_api.editor.setTheme(monacoTheme);
-    if (this.state.guiTheme !== currentTheme) {
+    this.lastTheme = theme;
+    if (this.state.guiTheme !== theme) {
       this.setState({
-        guiTheme: currentTheme
+        guiTheme: theme
       });
     }
   }
+  updateEditorTheme() {
+    const currentTheme = this.getEditorTheme();
+    if (!this.editor) {
+      this.lastTheme = currentTheme;
+      if (this.state.guiTheme !== currentTheme) {
+        this.setState({
+          guiTheme: currentTheme
+        });
+      }
+      return;
+    }
+    if (this.lastTheme === currentTheme && this.state.guiTheme === currentTheme) {
+      return;
+    }
+    this.applyEditorTheme(currentTheme);
+  }
   handleStorageChange(e) {
     // 监听 tw:theme 的变化
-    if (e.key === 'tw:theme' && e.newValue !== e.oldValue) {
+    if (e.key === THEME_STORAGE_KEY && e.newValue !== e.oldValue) {
       this.updateEditorTheme();
     }
   }
+  handleLocalStorageChange(e) {
+    const detail = e && e.detail ? e.detail : null;
+    if (detail && detail.key === THEME_STORAGE_KEY && detail.newValue !== detail.oldValue) {
+      this.updateEditorTheme();
+    }
+  }
+  handleThemeChanged() {
+    this.updateEditorTheme();
+  }
+  handleVisibilityChange() {
+    if (!document.hidden) {
+      this.updateEditorTheme();
+    }
+  }
+  handleWindowFocus() {
+    this.updateEditorTheme();
+  }
   componentWillUnmount() {
+    if (this.modelChangeDisposable) {
+      this.modelChangeDisposable.dispose();
+      this.modelChangeDisposable = null;
+    }
     if (this.editor) {
       this.editor.dispose();
     }
     // 移除 localStorage 监听器
     window.removeEventListener('storage', this.handleStorageChange);
-    // 清理主题检查定时器
-    if (this.themeCheckInterval) {
-      clearInterval(this.themeCheckInterval);
-    }
+    window.removeEventListener(LOCAL_STORAGE_CHANGE_EVENT, this.handleLocalStorageChange);
+    window.removeEventListener(THEME_CHANGED_EVENT, this.handleThemeChanged);
+    window.removeEventListener('focus', this.handleWindowFocus);
+    document.removeEventListener('visibilitychange', this.handleVisibilityChange);
   }
   initEditor() {
     if (!this.editorContainer.current) return;
     const monacoTheme = this.getEditorTheme() === 'light' ? 'vs' : 'vs-dark';
     this.editor = editor_api.editor.create(this.editorContainer.current, {
-      value: this.state.code,
+      value: this.currentCode,
       language: 'javascript',
       theme: monacoTheme,
       minimap: {
@@ -199455,14 +199547,11 @@ class ExtensionEditor extends (external_commonjs_react_commonjs2_react_amd_react
     });
 
     // 监听编辑器内容变化
-    this.editor.onDidChangeModelContent(() => {
-      const newCode = this.editor.getValue();
-      this.setState({
-        code: newCode
-      });
-      if (this.props.onCodeChange) {
-        this.props.onCodeChange(newCode);
-      }
+    this.modelChangeDisposable = this.editor.onDidChangeModelContent(() => {
+      if (!this.editor || this.suppressModelChange) return;
+      this.currentCode = this.editor.getValue();
+      this.emitCodeChange(this.currentCode);
+      this.emitAutoRunRequest(this.currentCode);
     });
 
     // 配置 JavaScript 语法高亮和智能提示
@@ -199483,19 +199572,36 @@ class ExtensionEditor extends (external_commonjs_react_commonjs2_react_amd_react
       typeRoots: ['node_modules/@types']
     });
   }
+  getCurrentCode() {
+    if (this.editor) {
+      return this.editor.getValue();
+    }
+    return this.currentCode;
+  }
+  emitCodeChange() {
+    let code = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : this.currentCode;
+    if (!this.props.onCodeChange) return;
+    this.props.onCodeChange(code);
+  }
+  emitAutoRunRequest() {
+    let code = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : this.currentCode;
+    if (!this.props.onAutoRunRequest) return;
+    this.props.onAutoRunRequest(code);
+  }
   handleRun = () => {
     if (this.props.onRun) {
-      this.props.onRun(this.state.code);
+      this.props.onRun(this.getCurrentCode());
     }
   };
   handleReset = () => {
     const newCode = getDefaultTemplate();
-    this.setState({
-      code: newCode
-    });
+    this.currentCode = newCode;
     if (this.editor) {
+      this.suppressModelChange = true;
       this.editor.setValue(newCode);
+      this.suppressModelChange = false;
     }
+    this.emitCodeChange(newCode);
   };
   handleToggleSettings = () => {
     if (this.props.onOpenExtensionEditorSettings) {
@@ -199602,10 +199708,12 @@ ExtensionEditor.propTypes = {
   vm: (prop_types_default()).object,
   initialCode: (prop_types_default()).string,
   onCodeChange: (prop_types_default()).func,
+  onAutoRunRequest: (prop_types_default()).func,
   onRun: (prop_types_default()).func,
   onOpenExtensionEditorSettings: (prop_types_default()).func,
   fontSize: (prop_types_default()).number,
   onFontSizeChange: (prop_types_default()).func,
+  themeMode: prop_types_default().oneOf(['light', 'dark']),
   onToggleWizard: (prop_types_default()).func,
   wizardActive: (prop_types_default()).bool,
   intl: (prop_types_default()).object
@@ -218562,7 +218670,6 @@ class BlockPreview extends (external_commonjs_react_commonjs2_react_amd_react_ro
     this.renderBlockPreview();
   }
   componentDidUpdate(prevProps) {
-    // 当 vm 变化时，重新添加监听器
     if (prevProps.vm !== this.props.vm) {
       if (prevProps.vm) {
         prevProps.vm.removeListener('BLOCKSINFO_UPDATE', this.renderBlockPreview);
@@ -218571,9 +218678,7 @@ class BlockPreview extends (external_commonjs_react_commonjs2_react_amd_react_ro
         this.props.vm.addListener('BLOCKSINFO_UPDATE', this.renderBlockPreview);
       }
     }
-
-    // 监听 props 变化，触发重新渲染
-    if (prevProps.extensionCode !== this.props.extensionCode || prevProps.isLoading !== this.props.isLoading || prevProps.loadError !== this.props.loadError || prevProps.activeTabId !== this.props.activeTabId || prevProps.vm !== this.props.vm || prevProps.ScratchBlocks !== this.props.ScratchBlocks || prevProps.blocksMediaPath !== this.props.blocksMediaPath) {
+    if (prevProps.loadedExtensionId !== this.props.loadedExtensionId || prevProps.previewRevision !== this.props.previewRevision || prevProps.isLoading !== this.props.isLoading || prevProps.loadError !== this.props.loadError || prevProps.activeTabId !== this.props.activeTabId || prevProps.vm !== this.props.vm || prevProps.ScratchBlocks !== this.props.ScratchBlocks || prevProps.blocksMediaPath !== this.props.blocksMediaPath) {
       this.renderBlockPreview();
     }
   }
@@ -218652,20 +218757,27 @@ class BlockPreview extends (external_commonjs_react_commonjs2_react_amd_react_ro
             `;
       return;
     }
-
-    // 从代码中提取扩展ID
     if (!extensionCode) {
       container.innerHTML = '';
       return;
     }
-    const idMatch = extensionCode.match(/id:\s*['"]([^'"]+)['"]/);
-    if (!idMatch) {
-      container.innerHTML = '';
-      return;
+    let extensionId = this.props.loadedExtensionId;
+    if (!extensionId) {
+      const idMatch = extensionCode.match(/id:\s*['"]([^'"]+)['"]/);
+      if (!idMatch) {
+        container.innerHTML = '';
+        return;
+      }
+      extensionId = idMatch[1];
     }
-    const extensionId = idMatch[1];
     const blockInfo = vm.runtime._blockInfo;
-    const extensionInfo = blockInfo.find(b => b.id === extensionId);
+    let extensionInfo = null;
+    for (let i = blockInfo.length - 1; i >= 0; i--) {
+      if (blockInfo[i] && blockInfo[i].id === extensionId) {
+        extensionInfo = blockInfo[i];
+        break;
+      }
+    }
     if (!extensionInfo || !extensionInfo.blocks) {
       const notLoadedText = formatMessage(block_preview_messages.extensionNotLoaded);
       const runButtonHint = formatMessage(block_preview_messages.runExtensionButton);
@@ -218675,13 +218787,10 @@ class BlockPreview extends (external_commonjs_react_commonjs2_react_amd_react_ro
                     <div style="font-size: 12px;">${runButtonHint}</div>
                 </div>
             `;
-      console.warn('[BlockPreview] Extension info not found:', extensionId);
-      console.warn('[BlockPreview] Available extensions:', blockInfo.map(b => b.id));
       return;
     }
     this.disposeFlyout();
     try {
-      // 定义 block json
       const jsonBlocks = extensionInfo.blocks.filter(b => b.json).map(b => b.json);
       if (!jsonBlocks.length) {
         const noBlocksText = formatMessage(block_preview_messages.noBlocksDefined);
@@ -218690,12 +218799,9 @@ class BlockPreview extends (external_commonjs_react_commonjs2_react_amd_react_ro
                         <div style="font-size: 14px;">${noBlocksText}</div>
                     </div>
                 `;
-        console.warn('[BlockPreview] No blocks to define');
         return;
       }
       ScratchBlocks.defineBlocksWithJsonArray(jsonBlocks);
-
-      // 准备 toolbox XML
       const extensionBlocksXML = extensionInfo.blocks.filter(b => b.xml).map(b => b.xml).join('');
       if (!extensionBlocksXML) {
         const noXMLText = formatMessage(block_preview_messages.noBlocksXML);
@@ -218704,19 +218810,14 @@ class BlockPreview extends (external_commonjs_react_commonjs2_react_amd_react_ro
                         <div style="font-size: 14px;">${noXMLText}</div>
                     </div>
                 `;
-        console.warn('[BlockPreview] No blocks XML');
         return;
       }
-
-      // 构建完整的toolbox XML
       let iconURI = '';
       if (extensionInfo.blockIconURI) {
         iconURI = `iconURI="${extensionInfo.blockIconURI}"`;
       }
       const toolboxXML = `<xml><category name="${extensionInfo.name}" id="${extensionInfo.id}" colour="${extensionInfo.color1}" secondaryColour="${extensionInfo.color2}" ${iconURI}>${extensionBlocksXML}</category></xml>`;
       const blocksMedia = this.getBlocksMediaPath();
-
-      // 创建 Workspace
       const workspace = ScratchBlocks.inject(container, {
         ...(blocksMedia ? {
           media: blocksMedia
@@ -218748,9 +218849,6 @@ class BlockPreview extends (external_commonjs_react_commonjs2_react_amd_react_ro
           if (flyout.position) {
             flyout.position();
           }
-          console.log('[BlockPreview] Flyout created successfully, blocks:', extensionBlocksXML);
-        } else {
-          console.warn('[BlockPreview] Flyout not created');
         }
       }
       this.previewWorkspace = workspace;
@@ -218781,6 +218879,8 @@ BlockPreview.propTypes = {
   vm: (prop_types_default()).object,
   ScratchBlocks: (prop_types_default()).object,
   blocksMediaPath: (prop_types_default()).string,
+  loadedExtensionId: (prop_types_default()).string,
+  previewRevision: (prop_types_default()).number,
   extensionCode: (prop_types_default()).string,
   isLoading: (prop_types_default()).bool,
   loadError: (prop_types_default()).string,
@@ -218921,6 +219021,25 @@ class ExtensionEditorStorage {
       };
       request.onerror = () => {
         reject(new Error('Failed to delete extension'));
+      };
+    });
+  }
+
+  /**
+   * Delete all extensions
+   * @returns {Promise<void>}
+   */
+  async clearAllExtensions() {
+    await this.init();
+    return new Promise((resolve, reject) => {
+      const transaction = this.db.transaction([STORE_NAME], 'readwrite');
+      const store = transaction.objectStore(STORE_NAME);
+      const request = store.clear();
+      request.onsuccess = () => {
+        resolve();
+      };
+      request.onerror = () => {
+        reject(new Error('Failed to clear extensions'));
       };
     });
   }

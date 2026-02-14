@@ -7,6 +7,41 @@ import './extension-editor.css';
 import tutorial from './tutorial.png';
 import blocks from './blocks.svg';
 
+const THEME_STORAGE_KEY = 'tw:theme';
+const LOCAL_STORAGE_CHANGE_EVENT = 'scratch-gui:local-storage-change';
+const THEME_CHANGED_EVENT = 'tw:theme-changed';
+
+let hasInstalledLocalStorageBridge = false;
+const installLocalStorageBridge = () => {
+  if (hasInstalledLocalStorageBridge || typeof window === 'undefined') return;
+  hasInstalledLocalStorageBridge = true;
+
+  const emitChange = (key, oldValue, newValue) => {
+    window.dispatchEvent(new CustomEvent(LOCAL_STORAGE_CHANGE_EVENT, {
+      detail: { key, oldValue, newValue }
+    }));
+  };
+
+  try {
+    const nativeSetItem = window.localStorage.setItem.bind(window.localStorage);
+    const nativeRemoveItem = window.localStorage.removeItem.bind(window.localStorage);
+
+    window.localStorage.setItem = (key, value) => {
+      const oldValue = window.localStorage.getItem(key);
+      nativeSetItem(key, value);
+      if (oldValue !== value) emitChange(key, oldValue, value);
+    };
+
+    window.localStorage.removeItem = key => {
+      const oldValue = window.localStorage.getItem(key);
+      nativeRemoveItem(key);
+      if (oldValue !== null) emitChange(key, oldValue, null);
+    };
+  } catch (e) {
+    // If localStorage is unavailable/readonly, fall back to standard storage event only.
+  }
+};
+
 const messages = defineMessages({
     toggleToBlockPreview: {
         defaultMessage: 'Switch to Block Preview',
@@ -24,14 +59,21 @@ class ExtensionEditor extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      code: props.initialCode || getDefaultTemplate(),
       isEditorReady: false,
       fontSize: props.fontSize || 14,
       guiTheme: 'dark'
     };
+    this.currentCode = props.initialCode || getDefaultTemplate();
     this.editorContainer = React.createRef();
     this.editor = null;
     this.lastTheme = null; // 用于存储上一次的主题
+    this.suppressModelChange = false;
+    this.modelChangeDisposable = null;
+    this.handleStorageChange = this.handleStorageChange.bind(this);
+    this.handleLocalStorageChange = this.handleLocalStorageChange.bind(this);
+    this.handleThemeChanged = this.handleThemeChanged.bind(this);
+    this.handleVisibilityChange = this.handleVisibilityChange.bind(this);
+    this.handleWindowFocus = this.handleWindowFocus.bind(this);
   }
 
   getExtensionEditorPublicPath() {
@@ -42,6 +84,8 @@ class ExtensionEditor extends React.Component {
   }
 
   componentDidMount() {
+    installLocalStorageBridge();
+
     // 配置 Monaco Editor worker
     if (typeof window !== 'undefined') {
       const publicPath = this.getExtensionEditorPublicPath();
@@ -82,54 +126,73 @@ class ExtensionEditor extends React.Component {
     this.initEditor();
 
     // 监听 localStorage 的变化（用于跨标签页同步）
-    this.handleStorageChange = this.handleStorageChange.bind(this);
     window.addEventListener('storage', this.handleStorageChange);
+    window.addEventListener(LOCAL_STORAGE_CHANGE_EVENT, this.handleLocalStorageChange);
+    window.addEventListener(THEME_CHANGED_EVENT, this.handleThemeChanged);
+    window.addEventListener('focus', this.handleWindowFocus);
+    document.addEventListener('visibilitychange', this.handleVisibilityChange);
 
-    // 轮询检查主题变化（用于当前标签页）
-    this.lastTheme = this.getEditorTheme();
-    this.setState({ guiTheme: this.lastTheme });
-    this.themeCheckInterval = setInterval(() => {
-      const currentTheme = this.getEditorTheme();
-      if (currentTheme !== this.lastTheme) {
-        this.lastTheme = currentTheme;
-        this.updateEditorTheme();
-      }
-    }, 500); // 每500ms检查一次
+    // 初始化主题（当前标签页）
+    this.updateEditorTheme();
   }
 
   componentDidUpdate(prevProps) {
     // 当initialCode变化时（例如切换标签卡），更新编辑器内容
     if (prevProps.initialCode !== this.props.initialCode) {
       const newCode = this.props.initialCode || getDefaultTemplate();
-      const currentCode = this.editor ? this.editor.getValue() : this.state.code;
+      const currentCode = this.getCurrentCode();
       
       // 只有在内容确实不同时才更新编辑器，避免不必要的重置
       if (currentCode !== newCode) {
-        if (this.editor) {
+        // 避免父组件异步回写旧值导致正在输入时光标跳动
+        const isTyping = Boolean(this.editor && this.editor.hasTextFocus && this.editor.hasTextFocus());
+        if (!isTyping && this.editor) {
           // 保存当前光标位置
           const position = this.editor.getPosition();
           
           // 更新编辑器内容
-          this.editor.setValue(newCode);
+          this.suppressModelChange = true;
+          try {
+            this.editor.setValue(newCode);
+          } finally {
+            this.suppressModelChange = false;
+          }
+          this.currentCode = newCode;
           
           // 恢复光标位置（如果可能）
           if (position) {
             this.editor.setPosition(position);
           }
+        } else if (!this.editor) {
+          this.currentCode = newCode;
         }
-        this.setState({ code: newCode });
       }
     }
     if (prevProps.fontSize !== this.props.fontSize && this.editor) {
       this.setState({ fontSize: this.props.fontSize });
       this.editor.updateOptions({ fontSize: this.props.fontSize });
     }
+    if (prevProps.themeMode !== this.props.themeMode) {
+      this.updateEditorTheme();
+    }
+  }
+
+  getThemeFromProps() {
+    if (this.props.themeMode === 'light' || this.props.themeMode === 'dark') {
+      return this.props.themeMode;
+    }
+    return null;
   }
 
   getEditorTheme() {
+    const themeFromProps = this.getThemeFromProps();
+    if (themeFromProps) {
+      return themeFromProps;
+    }
+
     let theme = 'dark';
     try {
-      const themeStr = localStorage.getItem('tw:theme');
+      const themeStr = localStorage.getItem(THEME_STORAGE_KEY);
       if (themeStr) {
         const themeData = JSON.parse(themeStr);
         switch (themeData.gui) {
@@ -153,40 +216,76 @@ class ExtensionEditor extends React.Component {
     return theme;
   }
 
-  updateEditorTheme() {
+  applyEditorTheme(theme) {
     if (!this.editor) return;
-    const currentTheme = this.getEditorTheme();
-    const monacoTheme = currentTheme === 'light' ? 'vs' : 'vs-dark';
+    const monacoTheme = theme === 'light' ? 'vs' : 'vs-dark';
     monaco.editor.setTheme(monacoTheme);
-    if (this.state.guiTheme !== currentTheme) {
-      this.setState({ guiTheme: currentTheme });
+    this.lastTheme = theme;
+    if (this.state.guiTheme !== theme) {
+      this.setState({ guiTheme: theme });
     }
+  }
+
+  updateEditorTheme() {
+    const currentTheme = this.getEditorTheme();
+    if (!this.editor) {
+      this.lastTheme = currentTheme;
+      if (this.state.guiTheme !== currentTheme) {
+        this.setState({ guiTheme: currentTheme });
+      }
+      return;
+    }
+    if (this.lastTheme === currentTheme && this.state.guiTheme === currentTheme) {
+      return;
+    }
+    this.applyEditorTheme(currentTheme);
   }
 
   handleStorageChange(e) {
     // 监听 tw:theme 的变化
-    if (e.key === 'tw:theme' && e.newValue !== e.oldValue) {
+    if (e.key === THEME_STORAGE_KEY && e.newValue !== e.oldValue) {
       this.updateEditorTheme();
     }
   }
+  handleLocalStorageChange(e) {
+    const detail = e && e.detail ? e.detail : null;
+    if (detail && detail.key === THEME_STORAGE_KEY && detail.newValue !== detail.oldValue) {
+      this.updateEditorTheme();
+    }
+  }
+  handleThemeChanged() {
+    this.updateEditorTheme();
+  }
+  handleVisibilityChange() {
+    if (!document.hidden) {
+      this.updateEditorTheme();
+    }
+  }
+  handleWindowFocus() {
+    this.updateEditorTheme();
+  }
 
   componentWillUnmount() {
+    if (this.modelChangeDisposable) {
+      this.modelChangeDisposable.dispose();
+      this.modelChangeDisposable = null;
+    }
     if (this.editor) {
       this.editor.dispose();
     }
     // 移除 localStorage 监听器
     window.removeEventListener('storage', this.handleStorageChange);
-    // 清理主题检查定时器
-    if (this.themeCheckInterval) {
-      clearInterval(this.themeCheckInterval);
-    }
+    window.removeEventListener(LOCAL_STORAGE_CHANGE_EVENT, this.handleLocalStorageChange);
+    window.removeEventListener(THEME_CHANGED_EVENT, this.handleThemeChanged);
+    window.removeEventListener('focus', this.handleWindowFocus);
+    document.removeEventListener('visibilitychange', this.handleVisibilityChange);
   }
 
   initEditor() {
     if (!this.editorContainer.current) return;
     const monacoTheme = this.getEditorTheme() === 'light' ? 'vs' : 'vs-dark';
     this.editor = monaco.editor.create(this.editorContainer.current, {
-      value: this.state.code,
+      value: this.currentCode,
       language: 'javascript',
       theme: monacoTheme,
       minimap: { enabled: true },
@@ -205,12 +304,11 @@ class ExtensionEditor extends React.Component {
     this.setState({ isEditorReady: true });
 
     // 监听编辑器内容变化
-    this.editor.onDidChangeModelContent(() => {
-      const newCode = this.editor.getValue();
-      this.setState({ code: newCode });
-      if (this.props.onCodeChange) {
-        this.props.onCodeChange(newCode);
-      }
+    this.modelChangeDisposable = this.editor.onDidChangeModelContent(() => {
+      if (!this.editor || this.suppressModelChange) return;
+      this.currentCode = this.editor.getValue();
+      this.emitCodeChange(this.currentCode);
+      this.emitAutoRunRequest(this.currentCode);
     });
 
     // 配置 JavaScript 语法高亮和智能提示
@@ -232,19 +330,36 @@ class ExtensionEditor extends React.Component {
       typeRoots: ['node_modules/@types']
     });
   }
+  getCurrentCode() {
+    if (this.editor) {
+      return this.editor.getValue();
+    }
+    return this.currentCode;
+  }
+  emitCodeChange(code = this.currentCode) {
+    if (!this.props.onCodeChange) return;
+    this.props.onCodeChange(code);
+  }
+  emitAutoRunRequest(code = this.currentCode) {
+    if (!this.props.onAutoRunRequest) return;
+    this.props.onAutoRunRequest(code);
+  }
 
   handleRun = () => {
     if (this.props.onRun) {
-      this.props.onRun(this.state.code);
+      this.props.onRun(this.getCurrentCode());
     }
   };
 
   handleReset = () => {
     const newCode = getDefaultTemplate();
-    this.setState({ code: newCode });
+    this.currentCode = newCode;
     if (this.editor) {
+      this.suppressModelChange = true;
       this.editor.setValue(newCode);
+      this.suppressModelChange = false;
     }
+    this.emitCodeChange(newCode);
   };
 
   handleToggleSettings = () => {
@@ -357,10 +472,12 @@ ExtensionEditor.propTypes = {
   vm: PropTypes.object,
   initialCode: PropTypes.string,
   onCodeChange: PropTypes.func,
+  onAutoRunRequest: PropTypes.func,
   onRun: PropTypes.func,
   onOpenExtensionEditorSettings: PropTypes.func,
   fontSize: PropTypes.number,
   onFontSizeChange: PropTypes.func,
+  themeMode: PropTypes.oneOf(['light', 'dark']),
   onToggleWizard: PropTypes.func,
   wizardActive: PropTypes.bool,
   intl: PropTypes.object

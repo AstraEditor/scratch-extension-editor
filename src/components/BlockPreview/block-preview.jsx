@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import React from 'react';
-import { defineMessages, FormattedMessage } from 'react-intl';
+import { defineMessages } from 'react-intl';
 import './block-preview.css';
 
 const messages = defineMessages({
@@ -95,7 +95,6 @@ class BlockPreview extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        // 当 vm 变化时，重新添加监听器
         if (prevProps.vm !== this.props.vm) {
             if (prevProps.vm) {
                 prevProps.vm.removeListener('BLOCKSINFO_UPDATE', this.renderBlockPreview);
@@ -105,14 +104,16 @@ class BlockPreview extends React.Component {
             }
         }
 
-        // 监听 props 变化，触发重新渲染
-        if (prevProps.extensionCode !== this.props.extensionCode ||
+        if (
+            prevProps.loadedExtensionId !== this.props.loadedExtensionId ||
+            prevProps.previewRevision !== this.props.previewRevision ||
             prevProps.isLoading !== this.props.isLoading ||
             prevProps.loadError !== this.props.loadError ||
             prevProps.activeTabId !== this.props.activeTabId ||
             prevProps.vm !== this.props.vm ||
             prevProps.ScratchBlocks !== this.props.ScratchBlocks ||
-            prevProps.blocksMediaPath !== this.props.blocksMediaPath) {
+            prevProps.blocksMediaPath !== this.props.blocksMediaPath
+        ) {
             this.renderBlockPreview();
         }
     }
@@ -194,21 +195,28 @@ class BlockPreview extends React.Component {
             return;
         }
 
-        // 从代码中提取扩展ID
         if (!extensionCode) {
             container.innerHTML = '';
             return;
         }
 
-        const idMatch = extensionCode.match(/id:\s*['"]([^'"]+)['"]/);
-        if (!idMatch) {
-            container.innerHTML = '';
-            return;
+        let extensionId = this.props.loadedExtensionId;
+        if (!extensionId) {
+            const idMatch = extensionCode.match(/id:\s*['"]([^'"]+)['"]/);
+            if (!idMatch) {
+                container.innerHTML = '';
+                return;
+            }
+            extensionId = idMatch[1];
         }
-
-        const extensionId = idMatch[1];
         const blockInfo = vm.runtime._blockInfo;
-        const extensionInfo = blockInfo.find(b => b.id === extensionId);
+        let extensionInfo = null;
+        for (let i = blockInfo.length - 1; i >= 0; i--) {
+            if (blockInfo[i] && blockInfo[i].id === extensionId) {
+                extensionInfo = blockInfo[i];
+                break;
+            }
+        }
 
         if (!extensionInfo || !extensionInfo.blocks) {
             const notLoadedText = formatMessage(messages.extensionNotLoaded);
@@ -219,15 +227,12 @@ class BlockPreview extends React.Component {
                     <div style="font-size: 12px;">${runButtonHint}</div>
                 </div>
             `;
-            console.warn('[BlockPreview] Extension info not found:', extensionId);
-            console.warn('[BlockPreview] Available extensions:', blockInfo.map(b => b.id));
             return;
         }
 
         this.disposeFlyout();
 
         try {
-            // 定义 block json
             const jsonBlocks = extensionInfo.blocks
                 .filter(b => b.json)
                 .map(b => b.json);
@@ -239,13 +244,11 @@ class BlockPreview extends React.Component {
                         <div style="font-size: 14px;">${noBlocksText}</div>
                     </div>
                 `;
-                console.warn('[BlockPreview] No blocks to define');
                 return;
             }
 
             ScratchBlocks.defineBlocksWithJsonArray(jsonBlocks);
 
-            // 准备 toolbox XML
             const extensionBlocksXML = extensionInfo.blocks
                 .filter(b => b.xml)
                 .map(b => b.xml)
@@ -258,11 +261,9 @@ class BlockPreview extends React.Component {
                         <div style="font-size: 14px;">${noXMLText}</div>
                     </div>
                 `;
-                console.warn('[BlockPreview] No blocks XML');
                 return;
             }
 
-            // 构建完整的toolbox XML
             let iconURI = '';
             if (extensionInfo.blockIconURI) {
                 iconURI = `iconURI="${extensionInfo.blockIconURI}"`;
@@ -271,7 +272,6 @@ class BlockPreview extends React.Component {
 
             const blocksMedia = this.getBlocksMediaPath();
 
-            // 创建 Workspace
             const workspace = ScratchBlocks.inject(container, {
                 ...(blocksMedia ? { media: blocksMedia } : null),
                 css: true,
@@ -302,9 +302,6 @@ class BlockPreview extends React.Component {
                     if (flyout.position) {
                         flyout.position();
                     }
-                    console.log('[BlockPreview] Flyout created successfully, blocks:', extensionBlocksXML);
-                } else {
-                    console.warn('[BlockPreview] Flyout not created');
                 }
             }
             this.previewWorkspace = workspace;
@@ -338,6 +335,8 @@ BlockPreview.propTypes = {
     vm: PropTypes.object,
     ScratchBlocks: PropTypes.object,
     blocksMediaPath: PropTypes.string,
+    loadedExtensionId: PropTypes.string,
+    previewRevision: PropTypes.number,
     extensionCode: PropTypes.string,
     isLoading: PropTypes.bool,
     loadError: PropTypes.string,
