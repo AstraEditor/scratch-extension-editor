@@ -44,6 +44,16 @@ body {
     margin: 0;
 }
 
-.mainPanel {
-    text-align: center;
+
+
+.backButton {
+    position: absolute;
+    width: 30px;
+    height: 30px;
+    background-color: var(--accent-color);
+    border: none;
+    border-radius: 100px;
+    padding: 10px;
+    cursor: pointer;
+    margin: 20px;
 }
