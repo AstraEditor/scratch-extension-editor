@@ -1,0 +1,50 @@
+.extension-editor-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  background-color: #1e1e1e;
+}
+
+.extension-editor-container[data-theme="light"] {
+  background-color: #ffffff;
+}
+
+.extension-editor-wrapper {
+  flex: 1;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.extension-editor-wrapper {
+  max-height: 99%; /*这很奇怪却能解决你知道吗*/
+}
+
+.extension-wizard-toggle {
+    position: absolute;
+    bottom: 0.75rem;
+    left: 0.75rem;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: 100%;
+    background: var(--looks-secondary, #ff6680);
+    color: white;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 0 4px var(--looks-transparent, rgba(255, 102, 128, 0.3));
+    z-index: 1000;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.extension-wizard-toggle:hover {
+    transform: scale(1.1);
+    box-shadow: 0 0 0 6px var(--looks-transparent, rgba(255, 102, 128, 0.3));
+}
+
+.extension-wizard-toggle-icon {
+    width: 1.5rem;
+    height: auto
+}
