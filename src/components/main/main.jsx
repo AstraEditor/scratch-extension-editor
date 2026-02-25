@@ -22,7 +22,9 @@ const Main = () => {
                 </div>
             )}
 
-
+            {activeTab !== 'home' && (
+                <button className={styles.backButton} onClick={() => setActiveTab("home")}>Back to Home</button>
+            )}
             {activeTab === 'manage' && (
                 < StroagePanel />
             )}
