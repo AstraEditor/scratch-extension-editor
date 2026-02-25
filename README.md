@@ -1,147 +1,70 @@
-# Scratch Extension Editor
+# Getting Started with Create React App
 
-一站式 Scratch 扩展开发编辑器，基于 Monaco Editor（VS Code 核心）构建。
+This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
-## 功能特性
+## Available Scripts
 
-- ✨ 基于 Monaco Editor 的强大代码编辑器
-- 🎨 语法高亮和智能提示
-- 📝 内置 Scratch 扩展模板
-- 🚀 一键运行和测试
-- 🌙 支持深色/浅色主题
-- 📦 易于集成到现有项目
+In the project directory, you can run:
 
-## 安装
+### `npm start`
 
-```bash
-npm install scratch-extension-editor
-```
+Runs the app in the development mode.\
+Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
 
-## 使用方法
+The page will reload when you make changes.\
+You may also see any lint errors in the console.
 
-### 基本用法
+### `npm test`
 
-```jsx
-import React from 'react';
-import ExtensionEditor from 'scratch-extension-editor';
+Launches the test runner in the interactive watch mode.\
+See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
 
-function App() {
-  const handleCodeChange = (code) => {
-    console.log('代码已更新:', code);
-  };
-  
-  const handleRun = (code) => {
-    // 运行扩展代码
-    console.log('运行扩展:', code);
-  };
-  
-  return (
-    <ExtensionEditor
-      vm={vm}
-      onCodeChange={handleCodeChange}
-      onRun={handleRun}
-      theme="vs-dark"
-    />
-  );
-}
-```
+### `npm run build`
 
-### Props
+Builds the app for production to the `build` folder.\
+It correctly bundles React in production mode and optimizes the build for the best performance.
 
-| 属性 | 类型 | 必需 | 默认值 | 描述 |
-|------|------|------|--------|------|
-| `vm` | `object` | 否 | `null` | Scratch VM 实例 |
-| `initialCode` | `string` | 否 | 模板代码 | 初始代码 |
-| `onCodeChange` | `function` | 否 | - | 代码变化回调 |
-| `onRun` | `function` | 否 | - | 运行扩展回调 |
-| `theme` | `string` | 否 | `'vs-dark'` | 编辑器主题 |
+The build is minified and the filenames include the hashes.\
+Your app is ready to be deployed!
 
-## 开发
+See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
 
-### 安装依赖
+### `npm run eject`
 
-```bash
-npm install
-```
+**Note: this is a one-way operation. Once you `eject`, you can't go back!**
 
-### 开发模式
+If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
 
-```bash
-npm run dev
-```
+Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
 
-访问 http://localhost:8080/example/index.html 查看示例
+You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
 
-### 构建
+## Learn More
 
-```bash
-npm run build
-```
+You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
 
-## 集成到 Scratch GUI
+To learn React, check out the [React documentation](https://reactjs.org/).
 
-### 1. 安装依赖
+### Code Splitting
 
-在 `scratch-gui` 项目中：
+This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
 
-```bash
-npm install scratch-extension-editor
-```
+### Analyzing the Bundle Size
 
-### 2. 添加新的 Tab
+This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
 
-在 `src/reducers/editor-tab.js` 中：
+### Making a Progressive Web App
 
-```javascript
-const EXTENSION_EDITOR_TAB_INDEX = 3;
+This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
 
-export {
-  EXTENSION_EDITOR_TAB_INDEX
-};
-```
+### Advanced Configuration
 
-### 3. 在 GUI 中集成
+This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
 
-在 `src/components/gui/gui.jsx` 中：
+### Deployment
 
-```jsx
-import ExtensionEditor from 'scratch-extension-editor';
+This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
 
-// 在 TabList 中添加
-<Tab>
-  <FormattedMessage
-    defaultMessage="Extension Editor"
-    id="gui.gui.extensionEditorTab"
-  />
-</Tab>
+### `npm run build` fails to minify
 
-// 在 TabPanel 中添加
-<TabPanel className={tabClassNames.tabPanel}>
-  <ExtensionEditor
-    vm={vm}
-    onCodeChange={handleCodeChange}
-    onRun={handleRunExtension}
-  />
-</TabPanel>
-```
-
-## 扩展模板
-
-编辑器内置了完整的 Scratch 扩展模板，包括：
-
-- 基本扩展结构
-- `getInfo()` 方法配置
-- 积木定义示例
-- 参数处理示例
-
-## 许可证
-
-GPL-3.0
-
-## 作者
-
-KOSHINO
-
-## 贡献
-
-欢迎提交 Issue 和 Pull Request！
+This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
