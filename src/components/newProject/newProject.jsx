@@ -23,6 +23,7 @@ export default function NewProject(props) {
     const [nowID, setID] = useState("");
     const [nowDesc, setDesc] = useState("");
     const [nowAuthor, setAuthor] = useState("");
+    const reg = new RegExp("^[a-z0-9_-]+$");
     const [nowLicense, setLicense] = useState("MPL-2.0");
 
     const [nowCustomLicence, setCustomLicencse] = useState('Custom');
@@ -48,8 +49,10 @@ export default function NewProject(props) {
     };
 
     const setNameAndID = (Name) => {
-        setName(Name)
-        setID(spawnExtID(Name))
+        if (Name === "" || reg.test(Name)) {
+            setName(Name);
+            setID(Name ? spawnExtID(Name) : "");
+        }
     }
     useEffect(() => {
         init() //扩展初始化
@@ -77,6 +80,7 @@ export default function NewProject(props) {
                 nowValue={nowName}
                 placeholder="Name"
             />
+            {reg.test(nowName) ? null : <span className={styles.warning}>Invalid extension name!</span>}
             <span className={styles.id}>Extension id: {nowID}</span>
             <Input
                 setName={value => setDesc(value)}
