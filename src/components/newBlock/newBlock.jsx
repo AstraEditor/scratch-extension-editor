@@ -14,8 +14,39 @@ function moveUp(array, index, pos = 1) {
     [newArray[index - pos], newArray[index]] = [newArray[index], newArray[index - pos]];
     return newArray;
 }
+const NewInput = props => {
+    const [nowInput, setInput] = useState({ inputType: InputType.TEXT_NUMBER, value: "Text and Number Input" })
+    const [nowSvgBlock, setSvgBlock] = useState({
+        type: BlockType.ROUND,
+        colors: {
+            primary: returnValue("comments").color[0],
+            secondary: returnValue("comments").color[1],
+            tertiary: returnValue("comments").color[2],
+        },
+        parts: [
+            nowInput
+        ]
+    });
 
+    const svgHTML = renderBlockToHTML(nowSvgBlock);
+
+    return (
+        <div className={styles.inputTab}>
+            <h2>Add input</h2>
+            Input Preview:
+            <div className={styles.inputSvgView}>
+                <div dangerouslySetInnerHTML={{ __html: svgHTML }} />
+            </div>
+            <div>
+                <button onClick={() => props.back()}>Back</button>
+                <button onClick={() => props.done(nowInput)}>Done</button>
+            </div>
+        </div>
+    )
+}
 const NewBlock = props => {
+    const [activeTab, setActiveTab] = useState("create")
+
     const [nowSvgBlock, setSvgBlock] = useState({});
     const [blockType, setBlocktype] = useState(BlockType.STACK);
     const [blockPart, setBlockPart] = useState([]);
@@ -55,82 +86,100 @@ const NewBlock = props => {
                 height="75%"
                 width="75%"
             >
-                <div className={styles.newBlock}>
-                    <div className={styles.blockArea}>
-                        Block Preview:
-                        <div className={styles.svgView}>
-                            <div dangerouslySetInnerHTML={{ __html: svgHTML }} />
+                {activeTab === 'create' && (
+                    <div className={styles.newBlock}>
+                        <div className={styles.blockArea}>
+                            Block Preview:
+                            <div className={styles.svgView}>
+                                <div dangerouslySetInnerHTML={{ __html: svgHTML }} />
+                            </div>
+
+
+                            Block Type:
+                            <select
+                                value={blockType}
+                                onChange={e => {
+                                    setBlocktype(e.target.value);
+                                }}
+                            >
+                                <option value={BlockType.STACK}>stack</option>
+                                <option value={BlockType.HAT}>hat</option>
+                                <option value={BlockType.ROUND}>round</option>
+                                <option value={BlockType.BOOLEAN}>boolean</option>
+                                <option value={BlockType.C_BLOCK}>C block</option>
+                            </select>
+                            {blockType !== BlockType.C_BLOCK && (
+                                <div>
+                                    <button onClick={() => {
+                                        setBlockPart(
+                                            [
+                                                ...blockPart,
+                                                "Text"
+                                            ]
+                                        )
+                                    }}>
+                                        Add Text
+                                    </button>
+                                    <button onClick={() => {
+                                        setActiveTab("add_input")
+                                    }}>
+                                        Add Input
+                                    </button>
+                                </div>
+                            )}
                         </div>
-
-
-                        Block Type:
-                        <select
-                            value={blockType}
-                            onChange={e => {
-                                setBlocktype(e.target.value);
-                            }}
-                        >
-                            <option value={BlockType.STACK}>stack</option>
-                            <option value={BlockType.HAT}>hat</option>
-                            <option value={BlockType.ROUND}>round</option>
-                            <option value={BlockType.BOOLEAN}>boolean</option>
-                            <option value={BlockType.C_BLOCK}>C block</option>
-                        </select>
-                        {blockType !== BlockType.C_BLOCK && (
-                            <div>
-                                <button onClick={() => {
-                                    setBlockPart(
-                                        [
-                                            ...blockPart,
-                                            "TEXT"
-                                        ]
-                                    )
-                                }}>
-                                    Add Text
-                                </button>
-                                <button onClick={() => {
-                                    setBlockPart(
-                                        [
-                                            ...blockPart,
-                                            { inputType: InputType.TEXT_NUMBER, value: "Text and Number Input"}
-                                        ]
-                                    )
-                                }}>
-                                    Add Input
-                                </button>
-                            </div>
-                        )}
+                        <div className={styles.domView}>
+                            {blockPart.map((item, index) => (
+                                <div>
+                                    {
+                                        typeof item === "object" ?
+                                            <code>Input: {item.value}</code>
+                                            : <input type="text" value={item} onChange={e => {
+                                                let newPart = [...blockPart]
+                                                newPart[index] = e.target.value
+                                                setBlockPart(newPart)
+                                            }} />
+                                    }
+                                    <button onClick={() => {
+                                        setBlockPart(moveUp(blockPart, index))
+                                    }}>up</button>
+                                    <button onClick={() => {
+                                        setBlockPart(moveUp(blockPart, index, -1))
+                                    }}>down</button>
+                                    <button onClick={() => {
+                                        setBlockPart(moveUp(blockPart, index, index))
+                                    }}>make first</button>
+                                    <button onClick={() => {
+                                        let newPart = [...blockPart]
+                                        newPart.splice(index, 1);
+                                        setBlockPart(newPart)
+                                    }}>Remove</button>
+                                </div>
+                            ))}
+                        </div>
                     </div>
-                    <div className={styles.domView}>
-                        {blockPart.map((item, index) => (
-                            <div>
-                                {
-                                    typeof item === "object" ?
-                                        <code>Input: {item.value}</code>
-                                        : <input type="text" value={item} onChange={e => {
-                                            let newPart = [...blockPart]
-                                            newPart[index] = e.target.value
-                                            setBlockPart(newPart)
-                                        }} />
-                                }
-                                <button onClick={() => {
-                                    setBlockPart(moveUp(blockPart, index))
-                                }}>up</button>
-                                <button onClick={() => {
-                                    setBlockPart(moveUp(blockPart, index, -1))
-                                }}>down</button>
-                                <button onClick={() => {
-                                    setBlockPart(moveUp(blockPart, index, index))
-                                }}>make first</button>
-                                <button onClick={() => {
-                                    let newPart = [...blockPart]
-                                    newPart.splice(index, 1);
-                                    setBlockPart(newPart)
-                                }}>Remove</button>
-                            </div>
-                        ))}
-                    </div>
-                </div>
+                )}
+                {activeTab === 'add_input' && (
+                    <NewInput
+                        back={() => setActiveTab("create")}
+                        done={(input) => {
+                            setBlockPart(
+                                [
+                                    ...blockPart,
+                                    input
+                                ]
+                            )
+                            setActiveTab("create")
+                        }}
+                    />
+                    // setBlockPart(
+                    //     [
+                    //         ...blockPart,
+                    //         { inputType: InputType.TEXT_NUMBER, value: "Text and Number Input" }
+                    //     ]
+                    // )
+                )}
+
             </Modal>
         </div>
     )
