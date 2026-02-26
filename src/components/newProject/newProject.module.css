@@ -3,3 +3,27 @@
     flex-direction: column;
     align-items: center;
 }
+
+.input {
+    margin-bottom: 10px;
+    height: 30px;
+    padding: 0 5px;
+    width: 300px;
+    background-color: var(--frontground-color);
+    border: 0;
+    outline: 0;
+    color: var(--font-color);
+}
+
+.id{
+    font-size: small;
+    margin-bottom: 10px;
+}
+
+.colorInput{
+        background-color: var(--frontground-color);
+    border: 0;
+    outline: 0;
+    color: var(--font-color);
+    
+}
