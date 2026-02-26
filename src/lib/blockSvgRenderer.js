@@ -64,6 +64,7 @@ const NOTCH_PATH_RIGHT = (
 const START_HAT_PATH = 'c 25,-22 71,-22 96,0';
 // 至少需要的最小宽度，保证曲线不会超出块宽
 const HAT_MIN_WIDTH = 108 + CORNER_RADIUS;  // 曲线末端再加上一个角半径
+const ROUND_MIN_WIDTH = 32 + CORNER_RADIUS;  // 曲线末端再加上一个角半径
 
 // 角落路径
 const TOP_LEFT_CORNER_START = `m 0,${CORNER_RADIUS}`;
@@ -663,7 +664,7 @@ function renderBlock(blockData, options = {}) {
       blockHeight = hasJaggedTeeth ? MIN_BLOCK_Y + JAGGED_TEETH_HEIGHT : MIN_BLOCK_Y;
       break;
     case BlockType.ROUND:
-      blockWidth = Math.max(FIELD_WIDTH, contentWidth + padding);
+      blockWidth = Math.max(FIELD_WIDTH, contentWidth + padding, ROUND_MIN_WIDTH);
       blockHeight = MIN_BLOCK_Y_SINGLE_FIELD_OUTPUT;
       break;
     case BlockType.BOOLEAN:
