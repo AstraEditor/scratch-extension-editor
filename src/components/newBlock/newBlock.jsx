@@ -1,18 +1,133 @@
-import styles from './newBlock.module.css'
-
+import { useEffect, useState } from "react";
+import { renderBlockToHTML } from "../../lib/blockSvgRenderer.js";
 import Modal from '../modal/modal'
+import styles from './newBlock.module.css'
+import { renderBlock, svgToString, BlockType, InputType, MIN_BLOCK_Y } from "../../lib/blockSvgRenderer.js";
+import { returnValue } from '../../extension/storage.js';
+
+
+function moveUp(array, index, pos=1) {
+    if (index <= 0) return array; // 第一项不能上移
+    
+    const newArray = [...array];
+    [newArray[index - pos], newArray[index]] = [newArray[index], newArray[index - pos]];
+    return newArray;
+}
 
 const NewBlock = props => {
+    const [nowSvgBlock, setSvgBlock] = useState({});
+    const [blockType, setBlocktype] = useState(BlockType.STACK)
+    const [blockPart, setBlockPart] = useState([])
+
+    const svgHTML = renderBlockToHTML(nowSvgBlock);
+
+    const updateSVG = (type) => {
+        const newBlock = {
+            type: type,
+            colors: {
+                primary: returnValue("comments").color[0],
+                secondary: returnValue("comments").color[1],
+                tertiary: returnValue("comments").color[2],
+            },
+            parts: blockPart
+        };
+        setSvgBlock(newBlock);
+    };
+
+    useEffect(() => {
+        updateSVG(blockType);
+    }, []);
+
+    useEffect(() => {
+        updateSVG(blockType);
+    }, [blockType]);
+    useEffect(() => {
+        updateSVG(blockPart);
+    }, [blockPart]);
+
     return (
         <div>
-            <Modal close={() => props.close()}
+            <Modal
+                close={() => props.close()}
                 title="New Block"
-            
+                height="75%"
             >
-                <h1>123</h1>
+                <div className={styles.newBlock}>
+                    <div className={styles.blockArea}>
+                        Block Preview:
+                        <div className={styles.svgView}>
+                            <div dangerouslySetInnerHTML={{ __html: svgHTML }} />
+                        </div>
+
+
+                        Block Type:
+                        <select
+                            value={blockType}
+                            onChange={e => {
+                                setBlocktype(e.target.value);
+                            }}
+                        >
+                            <option value={BlockType.STACK}>stack</option>
+                            <option value={BlockType.HAT}>hat</option>
+                            <option value={BlockType.ROUND}>round</option>
+                            <option value={BlockType.BOOLEAN}>boolean</option>
+                            <option value={BlockType.C_BLOCK}>C block</option>
+                        </select>
+                        {blockType !== BlockType.C_BLOCK && (
+                            <div>
+                                <button onClick={() => {
+                                    setBlockPart(
+                                        [
+                                            ...blockPart,
+                                            "TEXT"
+                                        ]
+                                    )
+                                }}>
+                                    Add Text
+                                </button>
+                                <button onClick={() => {
+                                    setBlockPart(
+                                        [
+                                            ...blockPart,
+                                            { inputType: InputType.TEXT_NUMBER, value: "INPUT" }
+                                        ]
+                                    )
+                                }}>
+                                    Add Input
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                    <div className={styles.domView}>
+                        {blockPart.map((item, index) => (
+                            <div>
+                                {
+                                    typeof item === "object" ?
+                                        item.value
+                                        : <input type="text" value={item} onChange={e => {
+                                            let newPart = [...blockPart]
+                                            newPart[index] = e.target.value
+                                            setBlockPart(newPart)
+                                        }} />
+                                }
+                                <button onClick={() => {
+                                    setBlockPart(moveUp(blockPart, index))
+                                }}>up</button>
+                                <button onClick={() => {
+                                    setBlockPart(moveUp(blockPart, index, index))
+                                }}>make first</button>
+                                <button onClick={() => {
+                                    let newPart = [...blockPart]
+                                    newPart.splice(index, 1);
+                                    setBlockPart(newPart)
+                                }}>Remove</button>
+                            </div>
+                        ))}
+                    </div>
+                </div>
             </Modal>
         </div>
     )
 }
 
-export default NewBlock
+export default NewBlock;
