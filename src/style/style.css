@@ -1,7 +1,15 @@
 :root{
     --background-color: #111;
+    --background-color-transparent: #111111aa;
     --frontground-color: #222;
     --background-button-color: #333;
+    --modal-background: #2a2a2a;
+    --modal-border: #3a3a3a;
+    --modal-title: #3c3c3c;
+    --modal-close: #4c4c4c;
     --text-color: #eee;
     --accent-color: #0099ff;
+
+    --modal-background-index: 10;
+    --modal-window-index: 11;
 }
