@@ -22,10 +22,9 @@ const NewBlock = props => {
 
     const svgHTML = renderBlockToHTML(nowSvgBlock);
 
-    const updateSVG = (type) => {
-        console.log(blockPart)
+    const updateSVG = () => {
         const newBlock = {
-            type: type,
+            type: blockType,
             colors: {
                 primary: returnValue("comments").color[0],
                 secondary: returnValue("comments").color[1],
@@ -37,15 +36,8 @@ const NewBlock = props => {
     };
 
     useEffect(() => {
-        updateSVG(blockType);
-    }, []);
-
-    useEffect(() => {
-        updateSVG(blockType);
-    }, [blockType]);
-    useEffect(() => {
-        updateSVG(blockPart);
-    }, [blockPart]);
+        updateSVG();
+    }, [blockType, blockPart]);
 
     return (
         <div>
