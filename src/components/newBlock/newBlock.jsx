@@ -6,9 +6,10 @@ import { renderBlock, svgToString, BlockType, InputType, MIN_BLOCK_Y } from "../
 import { returnValue } from '../../extension/storage.js';
 
 
-function moveUp(array, index, pos=1) {
-    if (index <= 0) return array; // 第一项不能上移
-    
+function moveUp(array, index, pos = 1) {
+    if (index <= 0 && pos > 0) return array;
+    if (index == array.length - 1 && pos < 0) return array;
+
     const newArray = [...array];
     [newArray[index - pos], newArray[index]] = [newArray[index], newArray[index - pos]];
     return newArray;
@@ -16,12 +17,13 @@ function moveUp(array, index, pos=1) {
 
 const NewBlock = props => {
     const [nowSvgBlock, setSvgBlock] = useState({});
-    const [blockType, setBlocktype] = useState(BlockType.STACK)
-    const [blockPart, setBlockPart] = useState([])
+    const [blockType, setBlocktype] = useState(BlockType.STACK);
+    const [blockPart, setBlockPart] = useState([]);
 
     const svgHTML = renderBlockToHTML(nowSvgBlock);
 
     const updateSVG = (type) => {
+        console.log(blockPart)
         const newBlock = {
             type: type,
             colors: {
@@ -51,6 +53,7 @@ const NewBlock = props => {
                 close={() => props.close()}
                 title="New Block"
                 height="75%"
+                width="75%"
             >
                 <div className={styles.newBlock}>
                     <div className={styles.blockArea}>
@@ -89,7 +92,7 @@ const NewBlock = props => {
                                     setBlockPart(
                                         [
                                             ...blockPart,
-                                            { inputType: InputType.TEXT_NUMBER, value: "INPUT" }
+                                            { inputType: InputType.TEXT_NUMBER, value: "Text and Number Input"}
                                         ]
                                     )
                                 }}>
@@ -103,7 +106,7 @@ const NewBlock = props => {
                             <div>
                                 {
                                     typeof item === "object" ?
-                                        item.value
+                                        <code>Input: {item.value}</code>
                                         : <input type="text" value={item} onChange={e => {
                                             let newPart = [...blockPart]
                                             newPart[index] = e.target.value
@@ -113,6 +116,9 @@ const NewBlock = props => {
                                 <button onClick={() => {
                                     setBlockPart(moveUp(blockPart, index))
                                 }}>up</button>
+                                <button onClick={() => {
+                                    setBlockPart(moveUp(blockPart, index, -1))
+                                }}>down</button>
                                 <button onClick={() => {
                                     setBlockPart(moveUp(blockPart, index, index))
                                 }}>make first</button>
