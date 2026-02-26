@@ -47,36 +47,45 @@ const NewInput = props => {
 const NewBlock = props => {
     const [activeTab, setActiveTab] = useState("create")
 
+    // props.onSave(blockData)
+    // props.initialBlock (optional) - existing block to edit
     const [nowSvgBlock, setSvgBlock] = useState({});
     const [blockType, setBlocktype] = useState(BlockType.STACK);
     const [blockPart, setBlockPart] = useState([]);
+    const [colors, setColors] = useState({
+        primary: returnValue("comments").color[0],
+        secondary: returnValue("comments").color[1],
+        tertiary: returnValue("comments").color[2],
+    });
 
     const svgHTML = renderBlockToHTML(nowSvgBlock);
 
-    const updateSVG = (type) => {
-        console.log(blockPart)
+    const updateSVG = () => {
         const newBlock = {
-            type: type,
-            colors: {
-                primary: returnValue("comments").color[0],
-                secondary: returnValue("comments").color[1],
-                tertiary: returnValue("comments").color[2],
-            },
+            type: blockType,
+            colors,
             parts: blockPart
         };
         setSvgBlock(newBlock);
     };
 
+    // respond to type/parts changes
     useEffect(() => {
-        updateSVG(blockType);
-    }, []);
+        updateSVG();
+    }, [blockType, blockPart]);
 
+    // when editing an existing block, populate fields
     useEffect(() => {
-        updateSVG(blockType);
-    }, [blockType]);
-    useEffect(() => {
-        updateSVG(blockPart);
-    }, [blockPart]);
+        if (props.initialBlock) {
+            setBlocktype(props.initialBlock.type || BlockType.STACK);
+            setBlockPart(props.initialBlock.parts || []);
+            if (props.initialBlock.colors) {
+                setColors(props.initialBlock.colors);
+            }
+            // immediately update svg block to match colors
+            setSvgBlock(props.initialBlock);
+        }
+    }, [props.initialBlock]);
 
     return (
         <div>
@@ -125,7 +134,16 @@ const NewBlock = props => {
                                     }}>
                                         Add Input
                                     </button>
-                                </div>
+                                    <button onClick={() => {
+                                    // 保存当前积木并关闭弹窗
+                                    if (props.onSave) {
+                                        props.onSave(nowSvgBlock);
+                                    }
+                                    props.close();
+                                }}>
+                                    Save Block
+                                </button>
+                            </div>
                             )}
                         </div>
                         <div className={styles.domView}>
