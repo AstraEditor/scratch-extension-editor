@@ -8,12 +8,13 @@
 /* SVG 预览区域 */
 .svgView {
     display: flex;
-    justify-content: left;
-    align-items: center;
+    justify-content: center;
+    align-items: flex-start;
     width: 90%;
     height: 300px;
     overflow: auto;
     background-color: var(--background-color-transparent);
+    flex-direction: column;
 }
 
 .inputSvgView {

@@ -15,20 +15,110 @@ function moveUp(array, index, pos = 1) {
     return newArray;
 }
 const NewInput = props => {
-    const [nowInput, setInput] = useState({ inputType: InputType.TEXT_NUMBER, value: "Text and Number Input" })
-    const [nowSvgBlock, setSvgBlock] = useState({
+    const [inputType, setInputType] = useState(InputType.TEXT_NUMBER)
+    const [inputValue, setInputValue] = useState(
+        { TEXT_NUMBER: "Text and number", DROPDOWN: ["Option 1"] }
+    )
+
+    const [inputTypeREADONLY, setInputTypeREADONLY] = useState(false);
+
+    /**
+     * 用在推测类型，输入一个类型，返回一个类型，会确认DropDown类型
+     * */
+    const getRealInputType = input => {
+        if (input === "DropDown") {
+            if (inputTypeREADONLY) {
+                return InputType.DROPDOWN_READONLY
+            } else {
+                return InputType.DROPDOWN
+            }
+        }
+        return input
+    }
+
+    /**
+     * 返回完整的值
+     * */
+    const getInputValue = inputType => {
+        switch (getRealInputType(inputType)) {
+            case InputType.TEXT_NUMBER:
+                return inputValue.TEXT_NUMBER
+            case InputType.DROPDOWN:
+            case InputType.DROPDOWN_READONLY:
+                return inputValue.DROPDOWN
+            case InputType.BOOLEAN:
+                return "" //布尔没有储存值
+            default:
+                console.error(`Can't find "${inputType}".`)
+                return inputValue.TEXT_NUMBER
+        }
+    }
+
+    /**
+     * 返回显示的值，其中Dropdown会返回第一项
+     * */
+    const getDisplayInputValue = inputType => {
+        switch (getRealInputType(inputType)) {
+            case InputType.TEXT_NUMBER:
+                return inputValue.TEXT_NUMBER
+            case InputType.DROPDOWN:
+            case InputType.DROPDOWN_READONLY:
+                return inputValue.DROPDOWN[0] || ""
+            case InputType.BOOLEAN:
+                return "" //布尔没有储存值
+            default:
+                console.error(`Can't find "${inputType}".`)
+                return inputValue.TEXT_NUMBER
+        }
+    }
+
+    // 构建当前输入框对象
+    const currentInput = {
+        inputType: getRealInputType(inputType),
+        value: getInputValue(inputType)
+    };
+
+    // 用于 SVG 预览显示的输入框（value 用显示值）
+    const displayInput = {
+        inputType: getRealInputType(inputType),
+        value: getDisplayInputValue(inputType)
+    };
+
+    const svgBlock = {
         type: BlockType.ROUND,
         colors: {
             primary: returnValue("comments").color[0],
             secondary: returnValue("comments").color[1],
             tertiary: returnValue("comments").color[2],
         },
-        parts: [
-            nowInput
-        ]
-    });
+        parts: [displayInput]
+    };
 
-    const svgHTML = renderBlockToHTML(nowSvgBlock);
+    const svgHTML = renderBlockToHTML(svgBlock);
+
+    // 添加下拉选项
+    const addDropdownOption = () => {
+        setInputValue(prev => ({
+            ...prev,
+            DROPDOWN: [...prev.DROPDOWN, `Option ${prev.DROPDOWN.length + 1}`]
+        }));
+    };
+
+    // 删除下拉选项
+    const removeDropdownOption = (index) => {
+        setInputValue(prev => ({
+            ...prev,
+            DROPDOWN: prev.DROPDOWN.filter((_, i) => i !== index)
+        }));
+    };
+
+    // 修改下拉选项
+    const updateDropdownOption = (index, newValue) => {
+        setInputValue(prev => ({
+            ...prev,
+            DROPDOWN: prev.DROPDOWN.map((opt, i) => i === index ? newValue : opt)
+        }));
+    };
 
     return (
         <div className={styles.inputTab}>
@@ -37,9 +127,50 @@ const NewInput = props => {
             <div className={styles.inputSvgView}>
                 <div dangerouslySetInnerHTML={{ __html: svgHTML }} />
             </div>
+            Mode: <select
+                value={inputType}
+                onChange={e => {
+                    setInputType(e.target.value);
+                }}
+            >
+                <option value={InputType.TEXT_NUMBER}>Text and Number</option>
+                <option value="DropDown">DropDown</option>
+                <option value={InputType.BOOLEAN}>Boolean</option>
+            </select>
+            {inputType === InputType.TEXT_NUMBER && (
+                <div>
+                    <h2>Text and Number</h2>
+                    {returnValue("comments").translate ? "Default Input Translate ID" : "Default Input"}: <input value={inputValue.TEXT_NUMBER} onChange={e => {
+                        setInputValue({ ...inputValue, TEXT_NUMBER: e.target.value })
+                    }} />
+                </div>
+            )}
+            {inputType === "DropDown" && (
+                <div>
+                    <h2>DropDown</h2>
+                    read only: <input type="checkbox" checked={inputTypeREADONLY} onChange={e => {
+                        setInputTypeREADONLY(e.target.checked)
+                    }} />
+                    <div style={{ marginTop: '10px' }}>
+                        <h3>Options:</h3>
+                        {inputValue.DROPDOWN.map((opt, idx) => (
+                            <div key={idx} style={{ marginBottom: '5px' }}>
+                                <input
+                                    value={opt}
+                                    onChange={e => updateDropdownOption(idx, e.target.value)}
+                                />
+                                <button onClick={() => removeDropdownOption(idx)} disabled={inputValue.DROPDOWN.length <= 1}>
+                                    X
+                                </button>
+                            </div>
+                        ))}
+                        <button onClick={addDropdownOption}>+</button>
+                    </div>
+                </div>
+            )}
             <div>
                 <button onClick={() => props.back()}>Back</button>
-                <button onClick={() => props.done(nowInput)}>Done</button>
+                <button onClick={() => props.done(currentInput)}>Done</button>
             </div>
         </div>
     )
@@ -47,45 +178,62 @@ const NewInput = props => {
 const NewBlock = props => {
     const [activeTab, setActiveTab] = useState("create")
 
-    // props.onSave(blockData)
+    // props.onSave(blockName, blockData)
     // props.initialBlock (optional) - existing block to edit
+    // props.initialBlockName (optional) - existing block name to edit
     const [nowSvgBlock, setSvgBlock] = useState({});
     const [blockType, setBlocktype] = useState(BlockType.STACK);
     const [blockPart, setBlockPart] = useState([]);
-    const [colors, setColors] = useState({
+    const [blockName, setBlockName] = useState("");
+
+    // 从 storage 获取颜色
+    const getColors = () => ({
         primary: returnValue("comments").color[0],
         secondary: returnValue("comments").color[1],
         tertiary: returnValue("comments").color[2],
     });
+
+    // 预处理 parts，用于显示（数组类型的 value 取第一项）
+    const preparePartsForDisplay = (parts) => {
+        if (!parts) return parts;
+        return parts.map(part => {
+            if (part && typeof part === 'object' && Array.isArray(part.value)) {
+                return { ...part, value: part.value[0] || '' };
+            }
+            return part;
+        });
+    };
 
     const svgHTML = renderBlockToHTML(nowSvgBlock);
 
     const updateSVG = () => {
         const newBlock = {
             type: blockType,
-            colors,
-            parts: blockPart
+            colors: getColors(),
+            parts: preparePartsForDisplay(blockPart)
         };
         setSvgBlock(newBlock);
     };
 
-    // respond to type/parts changes
     useEffect(() => {
+        console.log(blockPart)
         updateSVG();
     }, [blockType, blockPart]);
 
-    // when editing an existing block, populate fields
     useEffect(() => {
         if (props.initialBlock) {
             setBlocktype(props.initialBlock.type || BlockType.STACK);
             setBlockPart(props.initialBlock.parts || []);
-            if (props.initialBlock.colors) {
-                setColors(props.initialBlock.colors);
-            }
-            // immediately update svg block to match colors
-            setSvgBlock(props.initialBlock);
+            // 立即更新 svg block
+            setSvgBlock({
+                ...props.initialBlock,
+                colors: getColors()
+            });
         }
-    }, [props.initialBlock]);
+        if (props.initialBlockName) {
+            setBlockName(props.initialBlockName);
+        }
+    }, [props.initialBlock, props.initialBlockName]);
 
     return (
         <div>
@@ -100,9 +248,21 @@ const NewBlock = props => {
                         <div className={styles.blockArea}>
                             Block Preview:
                             <div className={styles.svgView}>
+                                <div style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>{blockName}</div>
                                 <div dangerouslySetInnerHTML={{ __html: svgHTML }} />
                             </div>
 
+                            Opcode (ID):
+                            <input
+                                type="text"
+                                value={blockName}
+                                onChange={e => {
+                                    // 只允许 a-z A-Z 字符
+                                    const value = e.target.value.replace(/[^a-zA-Z]/g, '');
+                                    setBlockName(value);
+                                }}
+                                placeholder="Enter opcode (a-z, A-Z only)"
+                            />
 
                             Block Type:
                             <select
@@ -127,7 +287,7 @@ const NewBlock = props => {
                                             ]
                                         )
                                     }}>
-                                        Add Text
+                                        {returnValue("comments").translate ? "Add Text Translate ID" : "Add Text"}
                                     </button>
                                     <button onClick={() => {
                                         setActiveTab("add_input")
@@ -135,15 +295,17 @@ const NewBlock = props => {
                                         Add Input
                                     </button>
                                     <button onClick={() => {
-                                    // 保存当前积木并关闭弹窗
-                                    if (props.onSave) {
-                                        props.onSave(nowSvgBlock);
-                                    }
-                                    props.close();
-                                }}>
-                                    Save Block
-                                </button>
-                            </div>
+                                        if (props.onSave && blockName.trim()) {
+                                            props.onSave(blockName.trim(), {
+                                                type: blockType,
+                                                parts: blockPart
+                                            });
+                                        }
+                                        props.close();
+                                    }}>
+                                        Save Block
+                                    </button>
+                                </div>
                             )}
                         </div>
                         <div className={styles.domView}>
@@ -151,7 +313,7 @@ const NewBlock = props => {
                                 <div>
                                     {
                                         typeof item === "object" ?
-                                            <code>Input: {item.value}</code>
+                                            <code>Input: {Array.isArray(item.value) ? item.value[0] + '...' : item.value}</code>
                                             : <input type="text" value={item} onChange={e => {
                                                 let newPart = [...blockPart]
                                                 newPart[index] = e.target.value
@@ -160,13 +322,13 @@ const NewBlock = props => {
                                     }
                                     <button onClick={() => {
                                         setBlockPart(moveUp(blockPart, index))
-                                    }}>up</button>
+                                    }}>↑</button>
                                     <button onClick={() => {
                                         setBlockPart(moveUp(blockPart, index, -1))
-                                    }}>down</button>
+                                    }}>↓</button>
                                     <button onClick={() => {
                                         setBlockPart(moveUp(blockPart, index, index))
-                                    }}>make first</button>
+                                    }}>move to top</button>
                                     <button onClick={() => {
                                         let newPart = [...blockPart]
                                         newPart.splice(index, 1);

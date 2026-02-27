@@ -7,10 +7,12 @@ let commands;
 export function init() {
     comments = {
         "name": "",
+        "id": "",
         "description": "",
         "color": ["#0099ff", "#0066ff", "#0033ff"],
         "author": "",
-        "license": "MPL-2.0"
+        "license": "MPL-2.0",
+        "translate": false
     };
     blocks = {};
     publicJS = {};
@@ -58,11 +60,11 @@ export function setValueTo(item, value) {
 }
 
 export function getAllValue() {
-    return [
+    return {
         comments,
         blocks,
         publicJS,
         translate,
         commands
-    ]
+    }
 }

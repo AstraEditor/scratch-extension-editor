@@ -23,8 +23,8 @@ export default function NewProject(props) {
     const [nowID, setID] = useState("");
     const [nowDesc, setDesc] = useState("");
     const [nowAuthor, setAuthor] = useState("");
-    const reg = new RegExp("^[a-z0-9_-]+$");
     const [nowLicense, setLicense] = useState("MPL-2.0");
+    const [nowEnableTranslate, setEnableTranslate] = useState(false);
 
     const [nowCustomLicence, setCustomLicencse] = useState('Custom');
     const [nowColor, setColor] = useState(["#0099ff", "#0066ff", "#0033ff"]);
@@ -49,10 +49,8 @@ export default function NewProject(props) {
     };
 
     const setNameAndID = (Name) => {
-        if (Name === "" || reg.test(Name)) {
-            setName(Name);
-            setID(Name ? spawnExtID(Name) : "");
-        }
+        setName(Name);
+        setID(Name ? spawnExtID(Name) : "");
     }
     useEffect(() => {
         init() //扩展初始化
@@ -65,10 +63,12 @@ export default function NewProject(props) {
             return;
         }
         newComment.name = nowName || "";
+        newComment.id = nowID || "extension";
         newComment.description = nowDesc || "";
         newComment.author = nowAuthor || "";
         newComment.license = nowLicense || "MPL-2.0";
         newComment.color = nowColor || ["#0099ff", "#0066ff", "#0033ff"];
+        newComment.translate = nowEnableTranslate || false;
         setValueTo("comments", newComment);
         props.Done()
     }
@@ -80,7 +80,6 @@ export default function NewProject(props) {
                 nowValue={nowName}
                 placeholder="Name"
             />
-            {reg.test(nowName) ? null : <span className={styles.warning}>Invalid extension name!</span>}
             <span className={styles.id}>Extension id: {nowID}</span>
             <Input
                 setName={value => setDesc(value)}
@@ -117,6 +116,10 @@ export default function NewProject(props) {
                 Custom color: <input type='checkbox'
                     checked={!isDisabledCustomColor}
                     onChange={(e) => setDisabledCustomColor(!e.target.checked)}
+                /><br />
+                Enable Translate: <input type='checkbox'
+                    checked={nowEnableTranslate}
+                    onChange={(e) => setEnableTranslate(e.target.checked)}
                 />
             </div>
             <div>
