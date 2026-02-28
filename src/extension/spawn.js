@@ -40,7 +40,7 @@ export async function spawnExtension() {
                         argument["type"] = "Scratch.ArgumentType.STRING";
                         argument["menu"] = inputID
                         menu = [];
-                        data.value.forEach((data, index) => {
+                        data.value.forEach(data => {
                             menu.push({
                                 text: data,
                                 value: data
@@ -52,7 +52,7 @@ export async function spawnExtension() {
                         argument["type"] = "Scratch.ArgumentType.STRING";
                         argument["menu"] = inputID
                         menu = [];
-                        data.value.forEach((data, index) => {
+                        data.value.forEach(data => {
                             menu.push({
                                 text: data,
                                 value: data
@@ -104,6 +104,7 @@ export async function spawnExtension() {
                 color2: "${Extension.comments.color[1]}",
                 color3: "${Extension.comments.color[2]}",
                 blocks: ${JSON.stringify(spawnExtensionBlocks())
+                            //替换掉字符串类型为正确的类名，因为生成的值都带字符串
                             .replaceAll("\"Scratch.ArgumentType.STRING\"", "Scratch.ArgumentType.STRING")
                             .replaceAll("\"Scratch.ArgumentType.BOOLEAN\"","Scratch.ArgumentType.BOOLEAN")
                             },
@@ -128,7 +129,7 @@ export async function spawnExtension() {
     let result = ExtensionText;
     try {
         result = await prettier.format(ExtensionText, options);
-        console.log(result); // 展示给用户
+        console.log(result);
     } catch (error) {
         console.error('格式化失败:', error);
     }

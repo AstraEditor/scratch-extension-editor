@@ -468,11 +468,11 @@ function generateInputPath(inputType, width) {
     }
 
     case InputType.DROPDOWN:
-      // 可填入积木的下拉框 - 大圆角，背景色为tertiary
+      // 可填入积木的下拉框 - 大圆角，背景色为secondary
       return `m ${r},0 h ${width - 2 * r} a ${r} ${r} 0 0 1 0 ${h} H ${r} a ${r} ${r} 0 0 1 0 -${h} z`;
 
     case InputType.DROPDOWN_READONLY:
-      // 不可填入积木的下拉框 - 小圆角，背景色为secondary
+      // 不可填入积木的下拉框 - 小圆角，背景色为primary
       return `m 0,${smallR} a ${smallR} ${smallR} 0 0 1 ${smallR},-${smallR} h ${width - 2 * smallR} a ${smallR} ${smallR} 0 0 1 ${smallR} ${smallR} v ${h - 2 * smallR} a ${smallR} ${smallR} 0 0 1 -${smallR} ${smallR} H ${smallR} a ${smallR} ${smallR} 0 0 1 -${smallR} -${smallR} z`;
 
     case InputType.VARIABLE:
@@ -506,17 +506,19 @@ function getInputMinWidth(inputType) {
 /**
  * 获取输入框背景色
  * @param {string} inputType - 输入框类型
+ * @param {string} primary - 主色
  * @param {string} secondary - 次色
  * @param {string} tertiary - 边框色
  * @returns {string} 背景色
  */
-function getInputBgColor(inputType, secondary, tertiary) {
+function getInputBgColor(inputType, primary, secondary, tertiary) {
   switch (inputType) {
     case InputType.TEXT_NUMBER:
       return "#FFFFFF";
     case InputType.DROPDOWN:
-      return tertiary;  // 可填入积木的下拉框使用tertiary
+      return secondary;  // 可填入积木的下拉框使用tertiary
     case InputType.DROPDOWN_READONLY:
+      return primary
     case InputType.VARIABLE:
     case InputType.BOOLEAN:
     default:
@@ -824,7 +826,7 @@ function renderBlock(blockData, options = {}) {
           const inputBg = createSvgElement("path", {
             class: "blocklyBlockBackground",
             d: inputPath,
-            fill: getInputBgColor(inputType, secondary, tertiary),
+            fill: getInputBgColor(inputType, primary, secondary, tertiary),
             stroke: tertiary,
             "stroke-width": 1,
           });
@@ -905,7 +907,7 @@ function renderBlock(blockData, options = {}) {
       const inputPath = generateInputPath(comp.inputType, comp.width);
 
       // 输入框颜色
-      const bgColor = getInputBgColor(comp.inputType, secondary, tertiary);
+      const bgColor = getInputBgColor(comp.inputType, primary, secondary, tertiary);
       const textColor = getInputTextColor(comp.inputType);
 
       // 创建输入框背景
