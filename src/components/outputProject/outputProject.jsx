@@ -1,9 +1,19 @@
+import { useState, useEffect } from 'react'
 import Modal from '../modal/modal.jsx'
 import styles from './outputProject.module.css'
 
 import { spawnExtension } from '../../extension/spawn.js'
 
 const OutputProject = props => {
+    const [code, setCode] = useState("Loading...")
+
+    useEffect(() => {
+        spawnExtension().then(result => {
+            setCode(result)
+        }).catch(error => {
+            setCode("Error: " + error.message)
+        })
+    }, [])
 
     return (
         <div>
@@ -13,9 +23,7 @@ const OutputProject = props => {
                 height="75%"
                 width="75%"
             >
-                <textarea className={styles.ouput} readOnly>
-                    {spawnExtension()}
-                </textarea>
+                <textarea className={styles.ouput} readOnly value={code} />
             </Modal>
         </div>
     )

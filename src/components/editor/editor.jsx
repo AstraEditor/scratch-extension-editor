@@ -107,6 +107,7 @@ const Editor = props => {
                     setSaveBlock(true)
                 }}>Output</button>
                 <div>
+                    <h3>Flyout:</h3>
                     {Object.entries(getAllValue().blocks || {}).map(([name, blk]) => (
                         <div
                             key={name}
