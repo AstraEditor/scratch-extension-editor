@@ -27,6 +27,18 @@ const prepareBlockForDisplay = (blockData) => {
     };
 };
 
+const saveProject = () => {
+    const project = getAllValue();
+    const download = document.createElement('a'); //创建下载
+    const blob = new Blob([JSON.stringify(project, null, 2)], { type: 'application/json' });
+    download.href = URL.createObjectURL(blob);
+    download.download = (project[0 /* Comments */]?.name || "project") + ".ab";
+    document.body.appendChild(download);
+    download.click();
+    document.body.removeChild(download);
+    URL.revokeObjectURL(download.href);
+
+}
 const Editor = props => {
     const [leftWidth, setLeftWidth] = useState(50);
     const isDragging = useRef(false);
@@ -106,6 +118,9 @@ const Editor = props => {
                 <button onClick={() => {
                     setSaveBlock(true)
                 }}>Output</button>
+                <button onClick={() => {
+                    saveProject()
+                }}>Save</button>
                 <div>
                     <h3>Flyout:</h3>
                     {Object.entries(getAllValue().blocks || {}).map(([name, blk]) => (

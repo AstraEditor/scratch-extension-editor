@@ -3,6 +3,33 @@ import * as prettier from "prettier/standalone";
 import * as parserBabel from "prettier/plugins/babel";
 import * as parserEstree from "prettier/plugins/estree";
 
+import { BlockType } from "../lib/blockSvgRenderer.js";
+
+const Type = {
+    Blocks: {
+        Command: "Scratch.BlockType.COMMAND",
+        Hat: "Scratch.BlockType.HAT",
+        Boolean: "Scratch.BlockType.BOOLEAN",
+        Report: "Scratch.BlockType.REPORT",
+        Event: "Scratch.BlockType.EVENT"
+    },
+
+    Arguments: {
+        String: "Scratch.ArgumentType.STRING",
+        Boolean: "Scratch.ArgumentType.BOOLEAN"
+    }
+
+}
+const replaceClass = Ext => {
+    let returnExt = Ext;
+    Object.values(Type.Blocks).forEach(value => {
+        returnExt = returnExt.replaceAll(`"${value}"`, value);
+    });
+    Object.values(Type.Arguments).forEach(value => {
+        returnExt = returnExt.replaceAll(`"${value}"`, value);
+    });
+    return returnExt;
+}
 
 export async function spawnExtension() {
     const Extension = getAllValue();
@@ -12,11 +39,23 @@ export async function spawnExtension() {
     const spawnBlock = (id, data) => {
         let blockType;
         switch (data.type) {
-            case "stack":
-                blockType = "command";
+            case BlockType.STACK:
+                blockType = Type.Blocks.Command;
+                break
+            case BlockType.HAT:
+                blockType = Type.Blocks.Hat;
+                break
+            case BlockType.BOOLEAN:
+                blockType = Type.Blocks.Boolean;
+                break
+            case BlockType.ROUND:
+                blockType = Type.Blocks.Report;
+                break
+            case BlockType.C_BLOCK:
+                blockType = Type.Blocks.Event;
                 break
             default:
-                blockType = "command";
+                blockType = Type.Blocks.Command;
                 break
         }
 
@@ -33,11 +72,11 @@ export async function spawnExtension() {
                 let menu;
                 switch (data.inputType) {
                     case "textNumber":
-                        argument["type"] = "Scratch.ArgumentType.STRING";
+                        argument["type"] = Type.Arguments.String;
                         argument["defaultValue"] = data.value;
                         break
                     case "dropdown":
-                        argument["type"] = "Scratch.ArgumentType.STRING";
+                        argument["type"] = Type.Arguments.String;
                         argument["menu"] = inputID
                         menu = [];
                         data.value.forEach(data => {
@@ -49,7 +88,7 @@ export async function spawnExtension() {
                         menus[inputID] = { acceptReporters: true, items: menu }
                         break
                     case "dropdownReadOnly":
-                        argument["type"] = "Scratch.ArgumentType.STRING";
+                        argument["type"] = Type.Arguments.String;
                         argument["menu"] = inputID
                         menu = [];
                         data.value.forEach(data => {
@@ -61,7 +100,10 @@ export async function spawnExtension() {
                         menus[inputID] = { acceptReporters: false, items: menu } // 只需修改 acceptReporters
                         break
                     case "boolean":
-                        argument["type"] = "Scratch.ArgumentType.BOOLEAN";
+                        argument["type"] = Type.Arguments.Boolean;
+                        break
+                    default:
+                        argument["type"] = Type.Arguments.String;
                         break
 
                 }
@@ -103,11 +145,7 @@ export async function spawnExtension() {
                 color1: "${Extension.comments.color[0]}",
                 color2: "${Extension.comments.color[1]}",
                 color3: "${Extension.comments.color[2]}",
-                blocks: ${JSON.stringify(spawnExtensionBlocks())
-                            //替换掉字符串类型为正确的类名，因为生成的值都带字符串
-                            .replaceAll("\"Scratch.ArgumentType.STRING\"", "Scratch.ArgumentType.STRING")
-                            .replaceAll("\"Scratch.ArgumentType.BOOLEAN\"","Scratch.ArgumentType.BOOLEAN")
-                            },
+                blocks: ${replaceClass(JSON.stringify(spawnExtensionBlocks()))},
                 menus: ${JSON.stringify(menus)}
             }
         }

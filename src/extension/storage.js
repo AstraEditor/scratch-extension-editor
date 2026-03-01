@@ -68,3 +68,11 @@ export function getAllValue() {
         commands
     }
 }
+
+export function setAllValue(data) {
+    if (data.comments) comments = data.comments;
+    if (data.blocks) blocks = data.blocks;
+    if (data.publicJS) publicJS = data.publicJS;
+    if (data.translate) translate = data.translate;
+    if (data.commands) commands = data.commands;
+}

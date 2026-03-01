@@ -18,7 +18,8 @@ const Main = () => {
 
             {activeTab === 'home' && (
                 <Home
-                    newProject = {() => setActiveTab("new")}
+                    newProject={() => setActiveTab("new")}
+                    Loaded = {() => setActiveTab("editor")}
                 />
             )}
             {activeTab === 'new' && (

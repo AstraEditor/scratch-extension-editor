@@ -508,7 +508,7 @@ function getInputMinWidth(inputType) {
  * @param {string} inputType - 输入框类型
  * @param {string} primary - 主色
  * @param {string} secondary - 次色
- * @param {string} tertiary - 边框色
+ * @param {string} tertiary - 第三色
  * @returns {string} 背景色
  */
 function getInputBgColor(inputType, primary, secondary, tertiary) {
@@ -516,7 +516,7 @@ function getInputBgColor(inputType, primary, secondary, tertiary) {
     case InputType.TEXT_NUMBER:
       return "#FFFFFF";
     case InputType.DROPDOWN:
-      return secondary;  // 可填入积木的下拉框使用tertiary
+      return secondary;  // 可填入积木的下拉框使用secondary
     case InputType.DROPDOWN_READONLY:
       return primary
     case InputType.VARIABLE:
@@ -729,7 +729,7 @@ function renderBlock(blockData, options = {}) {
     class: "blocklyPath",
     d: bgPath,
     fill: primary,
-    stroke: tertiary,
+    stroke: secondary,
     "stroke-width": 1,
   });
   container.appendChild(background);
@@ -827,7 +827,7 @@ function renderBlock(blockData, options = {}) {
             class: "blocklyBlockBackground",
             d: inputPath,
             fill: getInputBgColor(inputType, primary, secondary, tertiary),
-            stroke: tertiary,
+            stroke: secondary,
             "stroke-width": 1,
           });
           inputBg.setAttribute("transform", `translate(${currentBranchX}, ${inputY})`);
@@ -914,7 +914,7 @@ function renderBlock(blockData, options = {}) {
       const inputBg = createSvgElement("path", {
         d: inputPath,
         fill: bgColor,
-        stroke: tertiary,
+        stroke: secondary,
         "stroke-width": 1,
         transform: `translate(${currentX}, ${inputY})`,
       });
