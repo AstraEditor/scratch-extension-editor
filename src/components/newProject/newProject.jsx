@@ -6,6 +6,7 @@ import {
     getAllValue
 } from '../../extension/storage';
 import { spawnExtID } from '../../extension/check';
+import { useTranslation } from '../../i18n';
 
 import styles from './newProject.module.css';
 
@@ -18,6 +19,7 @@ const Input = props => (
     />
 )
 export default function NewProject(props) {
+    const { t } = useTranslation();
 
     const [nowName, setName] = useState("");
     const [nowID, setID] = useState("");
@@ -25,6 +27,7 @@ export default function NewProject(props) {
     const [nowAuthor, setAuthor] = useState("");
     const [nowLicense, setLicense] = useState("MPL-2.0");
     const [nowEnableTranslate, setEnableTranslate] = useState(false);
+    const [useCustomID, setUseCustomID] = useState(false);
 
     const [nowCustomLicence, setCustomLicencse] = useState('Custom');
     const [nowColor, setColor] = useState(["#0099ff", "#0066ff", "#0033ff"]);
@@ -50,7 +53,7 @@ export default function NewProject(props) {
 
     const setNameAndID = (Name) => {
         setName(Name);
-        setID(Name ? spawnExtID(Name) : "");
+        if (!useCustomID) setID(Name ? spawnExtID(Name) : "");
     }
     useEffect(() => {
         init() //扩展初始化
@@ -59,7 +62,11 @@ export default function NewProject(props) {
     const setComment = () => {
         const newComment = returnValue("comments");
         if (!(nowName && nowName.trim().length > 0)) {
-            alert("Invaild extension name!");
+            alert(t('newProject.invalidName'));
+            return;
+        }
+        if (!(nowID && nowID.trim().length > 0)) {
+            alert(t('newProject.invalidID'));
             return;
         }
         newComment.name = nowName || "";
@@ -74,22 +81,30 @@ export default function NewProject(props) {
     }
     return (
         <div className={styles.main}>
-            <h1>Create extension</h1>
+            <h1>{t('newProject.title')}</h1>
             <Input
                 setName={value => setNameAndID(value)}
                 nowValue={nowName}
-                placeholder="Name"
+                placeholder={t('newProject.name')}
             />
-            <span className={styles.id}>Extension id: {nowID}</span>
+            <div>
+                <input type="checkbox" checked={useCustomID} onChange={e => {
+                    setUseCustomID(e.target.checked)
+                }} />
+                {t('newProject.customID')}
+            </div>
+            <div>{t('newProject.extensionID')}: {useCustomID ? (<input value={nowID} onChange={e => {
+                setID(e.target.value)
+            }} />) : (<span>{nowID}</span>)}</div>
             <Input
                 setName={value => setDesc(value)}
                 nowValue={nowDesc}
-                placeholder="Description"
+                placeholder={t('newProject.description')}
             />
             <Input
                 setName={value => setAuthor(value)}
                 nowValue={nowAuthor}
-                placeholder="Author"
+                placeholder={t('newProject.author')}
             />
             <select
                 onChange={(e) => {
@@ -101,7 +116,7 @@ export default function NewProject(props) {
                     }
                 }}
                 value={nowLicense}
-                placeholder="License"
+                placeholder={t('newProject.license')}
                 className={styles.input}
             >
                 <option value="MPL-2.0">MPL-2.0</option>
@@ -110,14 +125,14 @@ export default function NewProject(props) {
                 <option value="Apache-2.0">Apache-2.0</option>
                 <option value="CC-BY-SA-4.0">CC-BY-SA-4.0</option>
                 <hr />
-                <option value="Custom">Custom({nowCustomLicence})</option>
+                <option value="Custom">{t('newProject.customLicense')}({nowCustomLicence})</option>
             </select>
             <div>
-                Custom color: <input type='checkbox'
+                {t('newProject.customColor')}: <input type='checkbox'
                     checked={!isDisabledCustomColor}
                     onChange={(e) => setDisabledCustomColor(!e.target.checked)}
                 /><br />
-                Enable Translate: <input type='checkbox'
+                {t('newProject.enableTranslate')}: <input type='checkbox'
                     checked={nowEnableTranslate}
                     onChange={(e) => setEnableTranslate(e.target.checked)}
                 />
@@ -163,7 +178,7 @@ export default function NewProject(props) {
                 />
 
             </div>
-            <button onClick={() => setComment()}>Done</button>
+            <button onClick={() => setComment()}>{t('newProject.done')}</button>
         </div>
     )
 }

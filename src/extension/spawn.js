@@ -33,6 +33,8 @@ const replaceClass = Ext => {
 
 export async function spawnExtension() {
     const Extension = getAllValue();
+    console.log("Ready to Spawn Extension:")
+    console.log(Extension)
 
     let menus = {};
 
@@ -110,7 +112,6 @@ export async function spawnExtension() {
                 blockValue[inputID] = argument;
             }
         })
-        console.log(data)
         return { opcode: id, blockType, text: blockText, arguments: blockValue }
     }
 

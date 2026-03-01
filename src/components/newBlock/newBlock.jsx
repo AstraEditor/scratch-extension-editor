@@ -4,6 +4,7 @@ import Modal from '../modal/modal'
 import styles from './newBlock.module.css'
 import { renderBlock, svgToString, BlockType, InputType, MIN_BLOCK_Y } from "../../lib/blockSvgRenderer.js";
 import { returnValue } from '../../extension/storage.js';
+import { useTranslation } from '../../i18n';
 
 
 function moveUp(array, index, pos = 1) {
@@ -15,6 +16,7 @@ function moveUp(array, index, pos = 1) {
     return newArray;
 }
 const NewInput = props => {
+    const { t } = useTranslation();
     const [inputType, setInputType] = useState(InputType.TEXT_NUMBER)
     const [inputValue, setInputValue] = useState(
         { TEXT_NUMBER: "Text and number", DROPDOWN: ["Option 1"] }
@@ -122,37 +124,37 @@ const NewInput = props => {
 
     return (
         <div className={styles.inputTab}>
-            <h2>Add input</h2>
-            Input Preview:
+            <h2>{t('newInput.title')}</h2>
+            {t('newInput.preview')}:
             <div className={styles.inputSvgView}>
                 <div dangerouslySetInnerHTML={{ __html: svgHTML }} />
             </div>
-            Mode: <select
+            {t('newInput.mode')}: <select
                 value={inputType}
                 onChange={e => {
                     setInputType(e.target.value);
                 }}
             >
-                <option value={InputType.TEXT_NUMBER}>Text and Number</option>
-                <option value="DropDown">DropDown</option>
-                <option value={InputType.BOOLEAN}>Boolean</option>
+                <option value={InputType.TEXT_NUMBER}>{t('newInput.textAndNumber')}</option>
+                <option value="DropDown">{t('newInput.dropdown')}</option>
+                <option value={InputType.BOOLEAN}>{t('newInput.boolean')}</option>
             </select>
             {inputType === InputType.TEXT_NUMBER && (
                 <div>
-                    <h2>Text and Number</h2>
-                    {returnValue("comments").translate ? "Default Input Translate ID" : "Default Input"}: <input value={inputValue.TEXT_NUMBER} onChange={e => {
+                    <h2>{t('newInput.textAndNumber')}</h2>
+                    {returnValue("comments").translate ? "Default Input Translate ID" : t('newInput.defaultInput')}: <input value={inputValue.TEXT_NUMBER} onChange={e => {
                         setInputValue({ ...inputValue, TEXT_NUMBER: e.target.value })
                     }} />
                 </div>
             )}
             {inputType === "DropDown" && (
                 <div>
-                    <h2>DropDown</h2>
-                    read only: <input type="checkbox" checked={inputTypeREADONLY} onChange={e => {
+                    <h2>{t('newInput.dropdown')}</h2>
+                    {t('newInput.readonly')}: <input type="checkbox" checked={inputTypeREADONLY} onChange={e => {
                         setInputTypeREADONLY(e.target.checked)
                     }} />
                     <div style={{ marginTop: '10px' }}>
-                        <h3>Options:</h3>
+                        <h3>{t('newInput.options')}:</h3>
                         {inputValue.DROPDOWN.map((opt, idx) => (
                             <div key={idx} style={{ marginBottom: '5px' }}>
                                 <input
@@ -169,13 +171,14 @@ const NewInput = props => {
                 </div>
             )}
             <div>
-                <button onClick={() => props.back()}>Back</button>
-                <button onClick={() => props.done(currentInput)}>Done</button>
+                <button onClick={() => props.back()}>{t('newInput.back')}</button>
+                <button onClick={() => props.done(currentInput)}>{t('newInput.done')}</button>
             </div>
         </div>
     )
 }
 const NewBlock = props => {
+    const { t } = useTranslation();
     const [activeTab, setActiveTab] = useState("create")
 
     // props.onSave(blockName, blockData)
@@ -239,20 +242,20 @@ const NewBlock = props => {
         <div>
             <Modal
                 close={() => props.close()}
-                title="New Block"
+                title={t('newBlock.title')}
                 height="75%"
                 width="75%"
             >
                 {activeTab === 'create' && (
                     <div className={styles.newBlock}>
                         <div className={styles.blockArea}>
-                            Block Preview:
+                            {t('newBlock.blockPreview')}:
                             <div className={styles.svgView}>
                                 <div style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>{blockName}</div>
                                 <div dangerouslySetInnerHTML={{ __html: svgHTML }} />
                             </div>
 
-                            Opcode (ID):
+                            {t('newBlock.opcode')}:
                             <input
                                 type="text"
                                 value={blockName}
@@ -261,21 +264,21 @@ const NewBlock = props => {
                                     const value = e.target.value.replace(/[^a-zA-Z]/g, '');
                                     setBlockName(value);
                                 }}
-                                placeholder="Enter opcode (a-z, A-Z only)"
+                                placeholder={t('newBlock.opcodePlaceholder')}
                             />
 
-                            Block Type:
+                            {t('newBlock.blockType')}:
                             <select
                                 value={blockType}
                                 onChange={e => {
                                     setBlocktype(e.target.value);
                                 }}
                             >
-                                <option value={BlockType.STACK}>stack</option>
-                                <option value={BlockType.HAT}>hat</option>
-                                <option value={BlockType.ROUND}>round</option>
-                                <option value={BlockType.BOOLEAN}>boolean</option>
-                                <option value={BlockType.C_BLOCK}>C block</option>
+                                <option value={BlockType.STACK}>{t('blockType.stack')}</option>
+                                <option value={BlockType.HAT}>{t('blockType.hat')}</option>
+                                <option value={BlockType.ROUND}>{t('blockType.round')}</option>
+                                <option value={BlockType.BOOLEAN}>{t('blockType.boolean')}</option>
+                                <option value={BlockType.C_BLOCK}>{t('blockType.cblock')}</option>
                             </select>
                             {blockType !== BlockType.C_BLOCK && (
                                 <div>
@@ -287,12 +290,12 @@ const NewBlock = props => {
                                             ]
                                         )
                                     }}>
-                                        {returnValue("comments").translate ? "Add Text Translate ID" : "Add Text"}
+                                        {returnValue("comments").translate ? "Add Text Translate ID" : t('newBlock.addText')}
                                     </button>
                                     <button onClick={() => {
                                         setActiveTab("add_input")
                                     }}>
-                                        Add Input
+                                        {t('newBlock.addInput')}
                                     </button>
                                     <button onClick={() => {
                                         if (props.onSave && blockName.trim()) {
@@ -300,10 +303,13 @@ const NewBlock = props => {
                                                 type: blockType,
                                                 parts: blockPart
                                             });
+                                            props.close();
+                                        } else {
+                                            alert(t('newBlock.invalidName'))
                                         }
-                                        props.close();
+                                        
                                     }}>
-                                        Save Block
+                                        {t('newBlock.saveBlock')}
                                     </button>
                                 </div>
                             )}
@@ -328,12 +334,12 @@ const NewBlock = props => {
                                     }}>↓</button>
                                     <button onClick={() => {
                                         setBlockPart(moveUp(blockPart, index, index))
-                                    }}>move to top</button>
+                                    }}>{t('common.moveToTop')}</button>
                                     <button onClick={() => {
                                         let newPart = [...blockPart]
                                         newPart.splice(index, 1);
                                         setBlockPart(newPart)
-                                    }}>Remove</button>
+                                    }}>{t('common.remove')}</button>
                                 </div>
                             ))}
                         </div>

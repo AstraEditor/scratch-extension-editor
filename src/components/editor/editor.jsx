@@ -1,11 +1,11 @@
 import { useState, useRef, useEffect } from 'react';
 import styles from './editor.module.css'
-
+import MonacoEditor from '@monaco-editor/react';
 import NewBlock from '../newBlock/newBlock';
 import OutputProject from '../outputProject/outputProject.jsx';
-
 import { renderBlockToHTML } from '../../lib/blockSvgRenderer.js';
 import { getAllValue, setValueTo, returnValue } from '../../extension/storage.js';
+import { useTranslation } from '../../i18n';
 
 // 预处理积木数据，用于显示（数组类型的 value 取第一项，颜色从 storage 获取）
 const prepareBlockForDisplay = (blockData) => {
@@ -40,6 +40,7 @@ const saveProject = () => {
 
 }
 const Editor = props => {
+    const { t } = useTranslation();
     const [leftWidth, setLeftWidth] = useState(50);
     const isDragging = useRef(false);
     const containerRef = useRef(null);
@@ -110,31 +111,31 @@ const Editor = props => {
             )}
             <div className={styles.blocks} style={{ width: `${leftWidth}%` }}>
                 {/* 积木区 */}
-                <h1>Blocks</h1>
+                <h1>{t('editor.blocks')}</h1>
                 <button onClick={() => {
                     setEditingIndex(null);
                     setCreatBlock(true)
-                }}>Create new Block</button>
+                }}>{t('editor.createBlock')}</button>
                 <button onClick={() => {
                     setSaveBlock(true)
-                }}>Output</button>
+                }}>{t('editor.output')}</button>
                 <button onClick={() => {
                     saveProject()
-                }}>Save</button>
+                }}>{t('editor.save')}</button>
                 <div>
-                    <h3>Flyout:</h3>
+                    <h3>{t('editor.flyout')}:</h3>
                     {Object.entries(getAllValue().blocks || {}).map(([name, blk]) => (
                         <div
                             key={name}
                             className={styles.blockPreview}
                             style={{ marginBottom: '24px', cursor: 'pointer' }}
-                            onClick={() => {
-                                setEditingIndex(name);
-                                setCreatBlock(true);
-                            }}
                         >
                             <div style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>{name}</div>
-                            <div dangerouslySetInnerHTML={{ __html: renderBlockToHTML(prepareBlockForDisplay(blk)) }} />
+                            <button onClick={() => {
+                                setEditingIndex(name);
+                                setCreatBlock(true);
+                            }} >{t('editor.setting')}</button>
+                            <div className={styles.OnceBlockPreview} dangerouslySetInnerHTML={{ __html: renderBlockToHTML(prepareBlockForDisplay(blk)) }} />
                         </div>
                     ))}
                 </div>
@@ -145,7 +146,19 @@ const Editor = props => {
             />
             <div className={styles.code} style={{ width: `${100 - leftWidth}%` }}>
                 {/* 代码区 */}
-                <h1>Code</h1>
+                <h1>{t('editor.code')}</h1>
+                <MonacoEditor
+                    height="100%"
+                    defaultLanguage="javascript"
+                    theme="vs-dark"
+                    loading={<div style={{ color: '#888', padding: '20px' }}>{t('editor.loading')}</div>}
+                    options={{
+                        minimap: { enabled: true },
+                        fontSize: 14,
+                        scrollBeyondLastLine: false,
+                        mouseWheelZoom: true
+                    }}
+                />
             </div>
         </div>
     )

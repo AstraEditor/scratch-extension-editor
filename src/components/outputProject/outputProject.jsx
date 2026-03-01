@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react'
 import Modal from '../modal/modal.jsx'
 import styles from './outputProject.module.css'
+import { useTranslation } from '../../i18n'
 
 import { spawnExtension } from '../../extension/spawn.js'
 
 const OutputProject = props => {
-    const [code, setCode] = useState("Loading...")
+    const { t } = useTranslation();
+    const [code, setCode] = useState(t('output.loading'))
 
     useEffect(() => {
         spawnExtension().then(result => {
@@ -19,7 +21,7 @@ const OutputProject = props => {
         <div>
             <Modal
                 close={() => props.close()}
-                title="Output Project"
+                title={t('output.title')}
                 height="75%"
                 width="75%"
             >

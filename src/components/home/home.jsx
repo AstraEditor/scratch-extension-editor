@@ -1,7 +1,10 @@
 import styles from "./home.module.css";
 import { setAllValue } from '../../extension/storage.js';
+import { setLanguage, SUPPORTED_LANGUAGES, useTranslation } from "../../i18n";
 
 const Home = props => {
+    const { t, language } = useTranslation();
+
     const loadProject = (e) => {
         const file = e.target.files[0];
         if (!file) return;
@@ -13,7 +16,7 @@ const Home = props => {
                 setAllValue(data);
                 props.Loaded();
             } catch (err) {
-                alert('Failed to load project: ' + err.message);
+                alert(t('home.loadFailed') + err.message);
             }
         };
         reader.readAsText(file);
@@ -22,10 +25,17 @@ const Home = props => {
     return (
         <div>
             <div className={styles.mainPanel}>
-                <h1>Welcome to Astras Blocktory</h1>
-                <p>What would you like to do?</p>
-                <button className={styles.actionButton} onClick={props.newProject}>Create New Extension</button>
-                <button className={styles.actionButton} onClick={() => document.getElementById('file-input').click()}>Load Extension (.ab)</button>
+                <select onChange={e => {
+                    setLanguage(e.target.value);
+                }} value={language}>
+                    {SUPPORTED_LANGUAGES.map(lang => (
+                        <option key={lang.code} value={lang.code}>{lang.name}</option>
+                    ))}
+                </select>
+                <h1>{t('home.title')}</h1>
+                <p>{t('home.whatToDo')}</p>
+                <button className={styles.actionButton} onClick={props.newProject}>{t('home.newExtension')}</button>
+                <button className={styles.actionButton} onClick={() => document.getElementById('file-input').click()}>{t('home.loadExtension')}</button>
                 <input id="file-input" type="file" accept=".ab,.json" style={{ display: 'none' }} onChange={loadProject} />
             </div>
         </div>

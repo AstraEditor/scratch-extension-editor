@@ -4,6 +4,24 @@ import './index.css';
 import Main from './components/main/main';
 import reportWebVitals from './reportWebVitals';
 
+// 忽略 ResizeObserver 循环警告 （世上最铸币警告）
+const debounce = (fn, delay) => {
+    let timer;
+    return function(...args) {
+        clearTimeout(timer);
+        timer = setTimeout(() => fn.apply(this, args), delay);
+    };
+};
+
+const _ResizeObserver = window.ResizeObserver;
+window.ResizeObserver = class ResizeObserver extends _ResizeObserver {
+    constructor(callback) {
+        callback = debounce(callback, 16);
+        super(callback);
+    }
+};
+
+
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
