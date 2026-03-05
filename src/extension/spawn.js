@@ -10,12 +10,13 @@ const Type = {
         Command: "Scratch.BlockType.COMMAND",
         Hat: "Scratch.BlockType.HAT",
         Boolean: "Scratch.BlockType.BOOLEAN",
-        Report: "Scratch.BlockType.REPORT",
-        Event: "Scratch.BlockType.EVENT"
+        Report: "Scratch.BlockType.REPORTER",
+        Branches: "Scratch.BlockType.CONDITIONAL"
     },
 
     Arguments: {
         String: "Scratch.ArgumentType.STRING",
+        Number: "Scratch.ArgumentType.NUMBER",
         Boolean: "Scratch.ArgumentType.BOOLEAN"
     }
 
@@ -37,6 +38,7 @@ export async function spawnExtension() {
     console.log(Extension)
 
     let menus = {};
+    let isCondition = false
 
     const spawnBlock = (id, data) => {
         let blockType;
@@ -54,7 +56,8 @@ export async function spawnExtension() {
                 blockType = Type.Blocks.Report;
                 break
             case BlockType.C_BLOCK:
-                blockType = Type.Blocks.Event;
+                blockType = Type.Blocks.Branches;
+                isCondition = true;
                 break
             default:
                 blockType = Type.Blocks.Command;
@@ -73,9 +76,17 @@ export async function spawnExtension() {
                 let argument = {};
                 let menu;
                 switch (data.inputType) {
+                    case "text":
                     case "textNumber":
                         argument["type"] = Type.Arguments.String;
-                        argument["defaultValue"] = data.value;
+                        argument["defaultValue"] = `Scratch.translate("${data.value}")`
+                        break
+                    case "number":
+                        {
+                            const numericValue = Number(data.value);
+                            argument["type"] = Type.Arguments.Number;
+                            argument["defaultValue"] = Number.isFinite(numericValue) ? numericValue : 0;
+                        }
                         break
                     case "dropdown":
                         argument["type"] = Type.Arguments.String;
@@ -83,7 +94,7 @@ export async function spawnExtension() {
                         menu = [];
                         data.value.forEach(data => {
                             menu.push({
-                                text: data,
+                                text: `Scratch.translate("${data}")`,
                                 value: data
                             })
                         })
@@ -95,7 +106,7 @@ export async function spawnExtension() {
                         menu = [];
                         data.value.forEach(data => {
                             menu.push({
-                                text: data,
+                                text: `Scratch.translate("${data}")`,
                                 value: data
                             })
                         })
@@ -112,7 +123,12 @@ export async function spawnExtension() {
                 blockValue[inputID] = argument;
             }
         })
-        return { opcode: id, blockType, text: blockText, arguments: blockValue }
+        if (isCondition) { //是否是分支
+            console.log(data.type)
+            return { opcode: id, blockType, text: blockText, arguments: blockValue }
+        } else {
+            return { opcode: id, blockType, text: blockText, arguments: blockValue }
+        }
     }
 
     const spawnExtensionBlocks = () => {

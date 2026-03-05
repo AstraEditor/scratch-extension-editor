@@ -1,0 +1,101 @@
+.container {
+    width: 100%;
+    height: calc(100% - 30px);
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    padding: 10px;
+    gap: 10px;
+}
+
+.tabs {
+    display: flex;
+    gap: 8px;
+}
+
+.tabButton,
+.tabButtonActive{
+    background-color: var(--background-button-color);
+    width: 50px;
+    height: 50px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 100px;
+}
+.content {
+    flex: 1;
+    overflow: auto;
+    background-color: #00000020;
+    border: 1px solid #ffffff1a;
+    border-radius: 8px;
+    padding: 10px;
+    box-sizing: border-box;
+}
+
+.content h3 {
+    margin: 6px 0 10px;
+    font-size: 16px;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: minmax(180px, 220px) 1fr;
+    gap: 10px 14px;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.grid input[type='text'],
+.grid input[type='number'],
+.grid select {
+    width: 100%;
+    box-sizing: border-box;
+    height: 32px;
+    border-radius: 4px;
+    border: 1px solid #ffffff33;
+    background: #111;
+    color: var(--text-color);
+    padding: 4px 8px;
+}
+
+.grid input[type='checkbox'] {
+    justify-self: start;
+    width: 18px;
+    height: 18px;
+}
+
+.advancedHint {
+    margin-bottom: 8px;
+    color: #bbbbbb;
+}
+
+.jsonInput {
+    width: 100%;
+    height: calc(100% - 24px);
+    box-sizing: border-box;
+    resize: none;
+    border-radius: 8px;
+    border: 1px solid #ffffff33;
+    background: #111;
+    color: #ddd;
+    padding: 10px;
+    font-family: 'Cascadia Mono', 'JetBrains Mono', Menlo, Monaco, Consolas, monospace;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.error {
+    color: #ff8f8f;
+    background: #40000033;
+    border: 1px solid #ff8f8f44;
+    border-radius: 6px;
+    padding: 6px 8px;
+}
+
+.footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    flex-wrap: wrap;
+}

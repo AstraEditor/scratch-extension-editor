@@ -2,9 +2,11 @@ import { useEffect, useState } from "react";
 import { renderBlockToHTML } from "../../lib/blockSvgRenderer.js";
 import Modal from '../modal/modal'
 import styles from './newBlock.module.css'
-import { renderBlock, svgToString, BlockType, InputType, MIN_BLOCK_Y } from "../../lib/blockSvgRenderer.js";
+import { BlockType, InputType } from "../../lib/blockSvgRenderer.js";
 import { returnValue } from '../../extension/storage.js';
 import { useTranslation } from '../../i18n';
+
+import { VscChevronUp, VscChevronDown, VscClose, VscWarning } from "react-icons/vsc";
 
 
 function moveUp(array, index, pos = 1) {
@@ -15,14 +17,44 @@ function moveUp(array, index, pos = 1) {
     [newArray[index - pos], newArray[index]] = [newArray[index], newArray[index - pos]];
     return newArray;
 }
+
+const Tip = props => {
+    return (
+        <div class={styles.Tip}>
+            <VscWarning />
+            <span>{props.title}</span>
+        </div>
+    )
+}
+
 const NewInput = props => {
     const { t } = useTranslation();
-    const [inputType, setInputType] = useState(InputType.TEXT_NUMBER)
+    const [inputType, setInputType] = useState(InputType.TEXT)
     const [inputValue, setInputValue] = useState(
-        { TEXT_NUMBER: "Text and number", DROPDOWN: ["Option 1"] }
+        { TEXT: "Text", NUMBER: "0", DROPDOWN: ["Option 1"] }
     )
 
     const [inputTypeREADONLY, setInputTypeREADONLY] = useState(false);
+    useEffect(() => {
+        if (props.isEditingBlock) {
+            console.log(props.isEditingBlock)
+            console.log(props.blockPart)
+            setInputType(props.blockPart.inputType); //这里是固定文本，但定义它的类型是从InputType读取的，所以直接读
+            switch (props.blockPart.inputType) {
+                //我们没有找到更好的方法来添加...
+                case InputType.DROPDOWN:
+                case InputType.DROPDOWN_READONLY:
+                    setInputType("DropDown");
+                    setInputValue({
+                        ...inputType,
+                        DROPDOWN: props.blockPart.value
+                    })
+            }
+        }
+    }, [])
+
+
+
 
     /**
      * 用在推测类型，输入一个类型，返回一个类型，会确认DropDown类型
@@ -43,8 +75,12 @@ const NewInput = props => {
      * */
     const getInputValue = inputType => {
         switch (getRealInputType(inputType)) {
-            case InputType.TEXT_NUMBER:
-                return inputValue.TEXT_NUMBER
+            case "textNumber":
+                return "textNumber" //兼容
+            case InputType.TEXT:
+                return inputValue.TEXT
+            case InputType.NUMBER:
+                return inputValue.NUMBER
             case InputType.DROPDOWN:
             case InputType.DROPDOWN_READONLY:
                 return inputValue.DROPDOWN
@@ -52,7 +88,7 @@ const NewInput = props => {
                 return "" //布尔没有储存值
             default:
                 console.error(`Can't find "${inputType}".`)
-                return inputValue.TEXT_NUMBER
+                return inputValue.TEXT
         }
     }
 
@@ -61,8 +97,12 @@ const NewInput = props => {
      * */
     const getDisplayInputValue = inputType => {
         switch (getRealInputType(inputType)) {
-            case InputType.TEXT_NUMBER:
-                return inputValue.TEXT_NUMBER
+            case "textNumber":
+                return "textNumber" //兼容
+            case InputType.TEXT:
+                return inputValue.TEXT
+            case InputType.NUMBER:
+                return inputValue.NUMBER
             case InputType.DROPDOWN:
             case InputType.DROPDOWN_READONLY:
                 return inputValue.DROPDOWN[0] || ""
@@ -70,7 +110,7 @@ const NewInput = props => {
                 return "" //布尔没有储存值
             default:
                 console.error(`Can't find "${inputType}".`)
-                return inputValue.TEXT_NUMBER
+                return inputValue.TEXT
         }
     }
 
@@ -123,58 +163,107 @@ const NewInput = props => {
     };
 
     return (
-        <div className={styles.inputTab}>
-            <h2>{t('newInput.title')}</h2>
-            {t('newInput.preview')}:
-            <div className={styles.inputSvgView}>
-                <div dangerouslySetInnerHTML={{ __html: svgHTML }} />
+        <div className={styles.inputTab} style={{
+            maxHeight: "95%"
+        }}>
+            <div className={styles.inputHeader}>
+                <h2>{t('Add input')}</h2>
             </div>
-            {t('newInput.mode')}: <select
-                value={inputType}
-                onChange={e => {
-                    setInputType(e.target.value);
-                }}
-            >
-                <option value={InputType.TEXT_NUMBER}>{t('newInput.textAndNumber')}</option>
-                <option value="DropDown">{t('newInput.dropdown')}</option>
-                <option value={InputType.BOOLEAN}>{t('newInput.boolean')}</option>
-            </select>
-            {inputType === InputType.TEXT_NUMBER && (
-                <div>
-                    <h2>{t('newInput.textAndNumber')}</h2>
-                    {returnValue("comments").translate ? "Default Input Translate ID" : t('newInput.defaultInput')}: <input value={inputValue.TEXT_NUMBER} onChange={e => {
-                        setInputValue({ ...inputValue, TEXT_NUMBER: e.target.value })
-                    }} />
-                </div>
-            )}
-            {inputType === "DropDown" && (
-                <div>
-                    <h2>{t('newInput.dropdown')}</h2>
-                    {t('newInput.readonly')}: <input type="checkbox" checked={inputTypeREADONLY} onChange={e => {
-                        setInputTypeREADONLY(e.target.checked)
-                    }} />
-                    <div style={{ marginTop: '10px' }}>
-                        <h3>{t('newInput.options')}:</h3>
-                        {inputValue.DROPDOWN.map((opt, idx) => (
-                            <div key={idx} style={{ marginBottom: '5px' }}>
+
+            <div className={styles.inputLayout}>
+                <div className={styles.inputPanel}>
+                    <div className={styles.formRow}>
+                        <label className={styles.formLabel}>{t('Mode')}</label>
+                        <select
+                            value={inputType}
+                            onChange={e => {
+                                setInputType(e.target.value);
+                            }}
+                        >
+                            <option value={InputType.TEXT}>{t('Text')}</option>
+                            <option value={InputType.NUMBER}>{t('Number')}</option>
+                            <option value="DropDown">{t('Dropdown')}</option>
+                            <option value={InputType.BOOLEAN}>{t('Boolean')}</option>
+                        </select>
+                    </div>
+                    {inputType === "textNumber" && (
+                        <Tip
+                            title={t("Unknown Mode")}
+                        />
+                    )}
+                    {(inputType === InputType.TEXT || inputType === InputType.NUMBER) && (
+                        <div className={styles.formRow}>
+                            <label className={styles.formLabel}>
+                                {returnValue("comments").translate ? "Default Input Translate ID" : t('Default Input')}
+                            </label>
+                            <input
+                                value={inputType === InputType.NUMBER ? inputValue.NUMBER : inputValue.TEXT}
+                                onChange={e => {
+                                    if (inputType === InputType.NUMBER) {
+                                        setInputValue({ ...inputValue, NUMBER: e.target.value })
+                                        return;
+                                    }
+                                    setInputValue({ ...inputValue, TEXT: e.target.value })
+                                }}
+                            />
+
+                            {/*提示文字 */}
+                            <Tip
+                                title={t("If the Addon is not enabled, the background of text and numbers will be consistent in AstraEditor.")}
+                            />
+                        </div>
+                    )}
+
+                    {inputType === "DropDown" && (
+                        <div className={styles.formRow}>
+                            <label className={styles.formLabel}>
+                                <span>{t('read only')}</span>
                                 <input
-                                    value={opt}
-                                    onChange={e => updateDropdownOption(idx, e.target.value)}
+                                    type="checkbox"
+                                    checked={inputTypeREADONLY}
+                                    onChange={e => {
+                                        setInputTypeREADONLY(e.target.checked)
+                                    }}
                                 />
-                                <button onClick={() => removeDropdownOption(idx)} disabled={inputValue.DROPDOWN.length <= 1}>
-                                    X
-                                </button>
+                            </label>
+                            <div className={styles.optionList}>
+                                {inputValue.DROPDOWN.map((opt, idx) => (
+                                    <div key={idx} className={styles.optionRow}>
+                                        {idx === 0 && (<span className={styles.formLabel} style={{
+                                            whiteSpace:"nowrap"
+                                        }}>
+                                            {t("Default Option")}
+                                        </span>)}
+                                        <input
+                                            value={opt}
+                                            onChange={e => updateDropdownOption(idx, e.target.value)}
+                                        />
+                                        <button onClick={() => removeDropdownOption(idx)} disabled={inputValue.DROPDOWN.length <= 1}>
+                                            <VscClose />
+                                        </button>
+                                    </div>
+                                ))}
                             </div>
-                        ))}
-                        <button onClick={addDropdownOption}>+</button>
+                            <button onClick={addDropdownOption}>+</button>
+                        </div>
+                    )}
+                </div>
+
+                <div className={styles.sectionCard} style={{
+                    maxWidth: "50%"
+                }}>
+                    <div className={styles.sectionTitle}>{t('Input Preview')}</div>
+                    <div className={styles.inputSvgView}>
+                        <div dangerouslySetInnerHTML={{ __html: svgHTML }} />
                     </div>
                 </div>
-            )}
-            <div>
-                <button onClick={() => props.back()}>{t('newInput.back')}</button>
-                <button onClick={() => props.done(currentInput)}>{t('newInput.done')}</button>
             </div>
-        </div>
+
+            <div className={styles.inputFooter}>
+                <button onClick={() => props.back()}>{t('Back')}</button>
+                <button onClick={() => props.done(currentInput)}>{t('Done')}</button>
+            </div>
+        </div >
     )
 }
 const NewBlock = props => {
@@ -188,6 +277,10 @@ const NewBlock = props => {
     const [blockType, setBlocktype] = useState(BlockType.STACK);
     const [blockPart, setBlockPart] = useState([]);
     const [blockName, setBlockName] = useState("");
+
+    const [EditBlockIndex, setEditBlockIndex] = useState(0);
+    const [isEditingBlock, setEditingBlock] = useState(false);
+    const canEditParts = true;
 
     // 从 storage 获取颜色
     const getColors = () => ({
@@ -219,7 +312,6 @@ const NewBlock = props => {
     };
 
     useEffect(() => {
-        console.log(blockPart)
         updateSVG();
     }, [blockType, blockPart]);
 
@@ -238,132 +330,209 @@ const NewBlock = props => {
         }
     }, [props.initialBlock, props.initialBlockName]);
 
+    const saveBlock = () => {
+        if (props.onSave && blockName.trim()) {
+            props.onSave(blockName.trim(), {
+                type: blockType,
+                parts: blockPart
+            });
+            props.close();
+        } else {
+            alert(t('Invalid Block ID!'))
+        }
+    };
+
+    const removePart = (index) => {
+        const newPart = [...blockPart];
+        newPart.splice(index, 1);
+        setBlockPart(newPart);
+    };
+
+    const updateTextPart = (index, value) => {
+        const newPart = [...blockPart];
+        newPart[index] = value;
+        setBlockPart(newPart);
+    };
+
+    const getTypeName = value => {
+        switch (value) {
+            case "textNumber":
+                return t("Text or Number")
+            case "text":
+                return t("Text")
+            case "number":
+                return t("Number")
+            case "dropdown":
+                return t("Dropdown")
+            case "dropdownReadOnly":
+                return t("Read Only Dropdown")
+            case "boolean":
+                return t("Boolean")
+            default:
+                return value
+        }
+    }
+
     return (
         <div>
             <Modal
                 close={() => props.close()}
-                title={t('newBlock.title')}
+                title={t('New Block')}
                 height="75%"
                 width="75%"
             >
                 {activeTab === 'create' && (
                     <div className={styles.newBlock}>
                         <div className={styles.blockArea}>
-                            {t('newBlock.blockPreview')}:
-                            <div className={styles.svgView}>
-                                <div style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>{blockName}</div>
-                                <div dangerouslySetInnerHTML={{ __html: svgHTML }} />
+                            <div className={styles.sectionCard}>
+                                <div className={styles.sectionTitle}>{t('Block Preview')}</div>
+                                <div className={styles.svgView}>
+                                    <div className={styles.previewOpcode}>{blockName}</div>
+                                    <div dangerouslySetInnerHTML={{ __html: svgHTML }} />
+                                </div>
                             </div>
 
-                            {t('newBlock.opcode')}:
-                            <input
-                                type="text"
-                                value={blockName}
-                                onChange={e => {
-                                    // 只允许 a-z A-Z 字符
-                                    const value = e.target.value.replace(/[^a-zA-Z]/g, '');
-                                    setBlockName(value);
-                                }}
-                                placeholder={t('newBlock.opcodePlaceholder')}
-                            />
+                            <div className={styles.sectionCard}>
+                                <div className={styles.formRow}>
+                                    <label className={styles.formLabel}>{t('ID')}</label>
+                                    <input
+                                        type="text"
+                                        value={blockName}
+                                        onChange={e => {
+                                            // 只允许 a-z A-Z 字符
+                                            const value = e.target.value.replace(/[^a-zA-Z]/g, '');
+                                            setBlockName(value);
+                                        }}
+                                        placeholder={t('Enter ID (a-z, A-Z only)')}
+                                    />
+                                </div>
 
-                            {t('newBlock.blockType')}:
-                            <select
-                                value={blockType}
-                                onChange={e => {
-                                    setBlocktype(e.target.value);
-                                }}
-                            >
-                                <option value={BlockType.STACK}>{t('blockType.stack')}</option>
-                                <option value={BlockType.HAT}>{t('blockType.hat')}</option>
-                                <option value={BlockType.ROUND}>{t('blockType.round')}</option>
-                                <option value={BlockType.BOOLEAN}>{t('blockType.boolean')}</option>
-                                <option value={BlockType.C_BLOCK}>{t('blockType.cblock')}</option>
-                            </select>
-                            {blockType !== BlockType.C_BLOCK && (
-                                <div>
+                                <div className={styles.formRow}>
+                                    <label className={styles.formLabel}>{t('Block Type')}</label>
+                                    <select
+                                        value={blockType}
+                                        onChange={e => {
+                                            setBlocktype(e.target.value);
+                                        }}
+                                    >
+                                        <option value={BlockType.STACK}>{t('stack')}</option>
+                                        <option value={BlockType.HAT}>{t('hat')}</option>
+                                        <option value={BlockType.ROUND}>{t('repoter')}</option>
+                                        <option value={BlockType.BOOLEAN}>{t('boolean')}</option>
+                                        <option value={BlockType.C_BLOCK}>{t('C block')}</option>
+                                    </select>
+                                </div>
+
+                                <div className={styles.actionsRow}>
+                                    {canEditParts && (
+                                        <>
+                                            <button onClick={() => {
+                                                setBlockPart(
+                                                    [
+                                                        ...blockPart,
+                                                        "Text"
+                                                    ]
+                                                )
+                                            }}>
+                                                {returnValue("comments").translate ? "Add Text Translate ID" : t('Add Text')}
+                                            </button>
+                                            <button onClick={() => {
+                                                setEditingBlock(false);
+                                                setActiveTab("add_input")
+                                            }}>
+                                                {t('Add Input')}
+                                            </button>
+                                        </>
+                                    )}
                                     <button onClick={() => {
-                                        setBlockPart(
-                                            [
-                                                ...blockPart,
-                                                "Text"
-                                            ]
-                                        )
+                                        saveBlock()
                                     }}>
-                                        {returnValue("comments").translate ? "Add Text Translate ID" : t('newBlock.addText')}
-                                    </button>
-                                    <button onClick={() => {
-                                        setActiveTab("add_input")
-                                    }}>
-                                        {t('newBlock.addInput')}
-                                    </button>
-                                    <button onClick={() => {
-                                        if (props.onSave && blockName.trim()) {
-                                            props.onSave(blockName.trim(), {
-                                                type: blockType,
-                                                parts: blockPart
-                                            });
-                                            props.close();
-                                        } else {
-                                            alert(t('newBlock.invalidName'))
-                                        }
-                                        
-                                    }}>
-                                        {t('newBlock.saveBlock')}
+                                        {t('Save Block')}
                                     </button>
                                 </div>
-                            )}
+                            </div>
                         </div>
                         <div className={styles.domView}>
-                            {blockPart.map((item, index) => (
-                                <div>
-                                    {
-                                        typeof item === "object" ?
-                                            <code>Input: {Array.isArray(item.value) ? item.value[0] + '...' : item.value}</code>
-                                            : <input type="text" value={item} onChange={e => {
-                                                let newPart = [...blockPart]
-                                                newPart[index] = e.target.value
-                                                setBlockPart(newPart)
-                                            }} />
-                                    }
-                                    <button onClick={() => {
-                                        setBlockPart(moveUp(blockPart, index))
-                                    }}>↑</button>
-                                    <button onClick={() => {
-                                        setBlockPart(moveUp(blockPart, index, -1))
-                                    }}>↓</button>
-                                    <button onClick={() => {
-                                        setBlockPart(moveUp(blockPart, index, index))
-                                    }}>{t('common.moveToTop')}</button>
-                                    <button onClick={() => {
-                                        let newPart = [...blockPart]
-                                        newPart.splice(index, 1);
-                                        setBlockPart(newPart)
-                                    }}>{t('common.remove')}</button>
-                                </div>
-                            ))}
+                            <div className={styles.sectionCard}>
+                                <div className={styles.sectionTitle}>{t('Block Parts')}</div>
+                                {blockPart.length === 0 ? (
+                                    <div className={styles.emptyParts}>{t('No parts yet. Add text or input to start building.')}</div>
+                                ) : (
+                                    <div className={styles.partsList}>
+                                        {blockPart.map((item, index) => (
+                                            <div className={styles.partRow} key={`${typeof item}-${index}`}>
+                                                <div className={styles.partIndex}>#{index + 1}</div>
+                                                <div className={styles.partContent}>
+                                                    {typeof item === "object" ? (
+                                                        <code className={styles.partCode}>
+                                                            {getTypeName(item.inputType)}{item.inputType !== BlockType.BOOLEAN && ":"} {Array.isArray(item.value) ? (item.value[0] + '...') : item.value}
+                                                        </code>
+                                                    ) : (
+                                                        <input
+                                                            type="text"
+                                                            value={item}
+                                                            onChange={e => {
+                                                                updateTextPart(index, e.target.value)
+                                                            }}
+                                                        />
+                                                    )}
+                                                </div>
+                                                <div className={styles.partActions}>
+                                                    <button onClick={() => {
+                                                        setBlockPart(moveUp(blockPart, index))
+                                                    }}><VscChevronUp /></button>
+                                                    <button onClick={() => {
+                                                        setBlockPart(moveUp(blockPart, index, -1))
+                                                    }}><VscChevronDown /></button>
+                                                    <button onClick={() => {
+                                                        setBlockPart(moveUp(blockPart, index, index))
+                                                    }}>{t('move to top')}</button>
+                                                    <button onClick={() => {
+                                                        removePart(index)
+                                                    }}>{t('Remove')}</button>
+                                                    <button onClick={() => {
+                                                        setEditingBlock(true)
+                                                        setEditBlockIndex(index);
+                                                        setActiveTab("add_input")
+                                                    }}>{t('Modify')}</button>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </div>
                 )}
                 {activeTab === 'add_input' && (
                     <NewInput
-                        back={() => setActiveTab("create")}
-                        done={(input) => {
-                            setBlockPart(
-                                [
-                                    ...blockPart,
-                                    input
-                                ]
-                            )
-                            setActiveTab("create")
+                        back={() => {
+                            setEditBlockIndex(0);
+                            setEditingBlock(false);
+                            setActiveTab("create");
+                            updateSVG()
                         }}
+                        done={(input) => {
+                            if (isEditingBlock) {
+                                const BlockPart = blockPart;
+                                blockPart[EditBlockIndex] = input;
+                                setBlockPart(BlockPart)
+                            } else {
+                                setBlockPart(
+                                    [
+                                        ...blockPart,
+                                        input
+                                    ]
+                                )
+                            }
+                            setEditBlockIndex(0);
+                            setEditingBlock(false);
+                            setActiveTab("create");
+                            updateSVG()
+                        }}
+                        isEditingBlock={isEditingBlock}
+                        blockPart={blockPart[EditBlockIndex]}
                     />
-                    // setBlockPart(
-                    //     [
-                    //         ...blockPart,
-                    //         { inputType: InputType.TEXT_NUMBER, value: "Text and Number Input" }
-                    //     ]
-                    // )
                 )}
 
             </Modal>

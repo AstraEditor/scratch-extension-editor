@@ -4,6 +4,22 @@ import './index.css';
 import Main from './components/main/main';
 import reportWebVitals from './reportWebVitals';
 
+// 配置 Monaco 编辑器加载器（使用本地静态资源，避免 CDN 导致加载失败）
+import { loader } from '@monaco-editor/react';
+
+const monacoBasePath = new URL('./vs', window.location.href).toString();
+loader.config({
+    paths: {
+        vs: monacoBasePath
+    },
+    'vs/nls': {
+        availableLanguages: {
+            // 与 monaco-editor@0.55.x 的 nls 模块名保持一致，避免初始化卡住
+            '*': 'zh-cn.js'
+        }
+    }
+});
+
 // 忽略 ResizeObserver 循环警告 （世上最铸币警告）
 const debounce = (fn, delay) => {
     let timer;

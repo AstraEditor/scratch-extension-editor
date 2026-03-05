@@ -180,12 +180,24 @@ const BlockType = {
 };
 
 const InputType = {
-  TEXT_NUMBER: "textNumber",
+  TEXT: "text",
+  NUMBER: "number",
+  TEXT_NUMBER: "textNumber", // 兼容历史数据
   BOOLEAN: "boolean",
   DROPDOWN: "dropdown",           // 可填入积木的下拉框
   DROPDOWN_READONLY: "dropdownReadOnly",  // 不可填入积木的下拉框
   VARIABLE: "variable",
 };
+
+function normalizeInputType(inputType) {
+  if (!inputType) {
+    return InputType.TEXT;
+  }
+  if (inputType === InputType.TEXT_NUMBER) {
+    return InputType.NUMBER;
+  }
+  return inputType;
+}
 
 // ============== 默认颜色 ==============
 const DefaultColors = {
@@ -457,11 +469,12 @@ function generateCBlockPath(width, branchCount, branchHeight, hasExternalNotchAt
  * 生成可变宽度的输入框路径
  */
 function generateInputPath(inputType, width) {
+  const normalizedInputType = normalizeInputType(inputType);
   const h = INPUT_SHAPE_HEIGHT;  // 32
   const r = h / 2;  // 16 for round (大圆角，用于可填入积木的输入框)
   const smallR = CORNER_RADIUS;  // 4 (小圆角，用于不可填入积木的下拉框)
 
-  switch (inputType) {
+  switch (normalizedInputType) {
     case InputType.BOOLEAN: {
       const pointWidth = h / 2;
       return `m ${pointWidth},0 h ${width - 2 * pointWidth} l ${pointWidth} ${pointWidth} l -${pointWidth} ${pointWidth} H ${pointWidth} l -${pointWidth} -${pointWidth} l ${pointWidth} -${pointWidth} z`;
@@ -479,9 +492,12 @@ function generateInputPath(inputType, width) {
       // 变量框 - 大圆角，背景色为secondary
       return `m ${r},0 h ${width - 2 * r} a ${r} ${r} 0 0 1 0 ${h} H ${r} a ${r} ${r} 0 0 1 0 -${h} z`;
 
-    case InputType.TEXT_NUMBER:
+    case InputType.TEXT:
+      // 文本输入框 - 小圆角矩形
+      return `m 0,${smallR} a ${smallR} ${smallR} 0 0 1 ${smallR},-${smallR} h ${width - 2 * smallR} a ${smallR} ${smallR} 0 0 1 ${smallR} ${smallR} v ${h - 2 * smallR} a ${smallR} ${smallR} 0 0 1 -${smallR} ${smallR} H ${smallR} a ${smallR} ${smallR} 0 0 1 -${smallR} -${smallR} z`;
+    case InputType.NUMBER:
     default:
-      // 圆角数字/文本框
+      // 数字输入框 - 大圆角
       return `m ${r},0 h ${width - 2 * r} a ${r} ${r} 0 0 1 0 ${h} H ${r} a ${r} ${r} 0 0 1 0 -${h} z`;
   }
 }
@@ -490,14 +506,18 @@ function generateInputPath(inputType, width) {
  * 获取输入框最小宽度
  */
 function getInputMinWidth(inputType) {
-  switch (inputType) {
+  const normalizedInputType = normalizeInputType(inputType);
+
+  switch (normalizedInputType) {
     case InputType.BOOLEAN:
       return INPUT_SHAPE_HEXAGONAL_WIDTH;
     case InputType.DROPDOWN:
     case InputType.DROPDOWN_READONLY:
     case InputType.VARIABLE:
       return INPUT_SHAPE_SQUARE_WIDTH;
-    case InputType.TEXT_NUMBER:
+    case InputType.TEXT:
+      return INPUT_SHAPE_SQUARE_WIDTH;
+    case InputType.NUMBER:
     default:
       return INPUT_SHAPE_ROUND_WIDTH;
   }
@@ -512,8 +532,12 @@ function getInputMinWidth(inputType) {
  * @returns {string} 背景色
  */
 function getInputBgColor(inputType, primary, secondary, tertiary) {
-  switch (inputType) {
-    case InputType.TEXT_NUMBER:
+  const normalizedInputType = normalizeInputType(inputType);
+
+  switch (normalizedInputType) {
+    case InputType.TEXT:
+      return "#FFFFFF";
+    case InputType.NUMBER:
       return "#FFFFFF";
     case InputType.DROPDOWN:
       return secondary;  // 可填入积木的下拉框使用secondary
@@ -532,8 +556,12 @@ function getInputBgColor(inputType, primary, secondary, tertiary) {
  * @returns {string} 文字颜色
  */
 function getInputTextColor(inputType) {
-  switch (inputType) {
-    case InputType.TEXT_NUMBER:
+  const normalizedInputType = normalizeInputType(inputType);
+
+  switch (normalizedInputType) {
+    case InputType.TEXT:
+      return "#575E75";
+    case InputType.NUMBER:
       return "#575E75";
     default:
       return "#FFFFFF";
@@ -587,7 +615,7 @@ function renderBlock(blockData, options = {}) {
       cursorX += textWidth + SEP_SPACE_X;
     } else {
       // 输入框组件
-      const inputType = part.inputType || InputType.TEXT_NUMBER;
+      const inputType = normalizeInputType(part.inputType);
       const value = part.value || '';
       const textWidth = getTextWidth(value);
 
@@ -815,7 +843,7 @@ function renderBlock(blockData, options = {}) {
           currentBranchX += textWidth + SEP_SPACE_X;
         } else if (part && typeof part === 'object') {
           // 输入框
-          const inputType = part.inputType || InputType.TEXT_NUMBER;
+          const inputType = normalizeInputType(part.inputType);
           const value = part.value || "";
           const textWidth = getTextWidth(value);
           const inputWidth = Math.max(getInputMinWidth(inputType), textWidth + BOX_FIELD_PADDING * 2);
@@ -975,7 +1003,7 @@ function renderBlock(blockData, options = {}) {
         });
 
         // 使用 data URI 内嵌 SVG
-        const arrowData = comp.inputType === InputType.TEXT_NUMBER
+        const arrowData = comp.inputType === InputType.DROPDOWN_READONLY
           ? DROPDOWN_ARROW_DARK_SVG
           : DROPDOWN_ARROW_SVG;
         const dataUri = 'data:image/svg+xml;base64,' + btoa(arrowData);

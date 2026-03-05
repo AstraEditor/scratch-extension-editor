@@ -16,7 +16,7 @@ const Home = props => {
                 setAllValue(data);
                 props.Loaded();
             } catch (err) {
-                alert(t('home.loadFailed') + err.message);
+                alert(t('Failed to load project: ') + err.message);
             }
         };
         reader.readAsText(file);
@@ -25,18 +25,20 @@ const Home = props => {
     return (
         <div>
             <div className={styles.mainPanel}>
-                <select onChange={e => {
-                    setLanguage(e.target.value);
-                }} value={language}>
-                    {SUPPORTED_LANGUAGES.map(lang => (
-                        <option key={lang.code} value={lang.code}>{lang.name}</option>
-                    ))}
-                </select>
-                <h1>{t('home.title')}</h1>
-                <p>{t('home.whatToDo')}</p>
-                <button className={styles.actionButton} onClick={props.newProject}>{t('home.newExtension')}</button>
-                <button className={styles.actionButton} onClick={() => document.getElementById('file-input').click()}>{t('home.loadExtension')}</button>
+                <h1>{t('Welcome to Astras Blocktory')}</h1>
+                <p>{t('What would you like to do?')}</p>
+                <button className={styles.actionButton} onClick={props.newProject}>{t('Create New Extension')}</button>
+                <button className={styles.actionButton} onClick={() => document.getElementById('file-input').click()}>{t('Load Extension (.ab)')}</button>
                 <input id="file-input" type="file" accept=".ab,.json" style={{ display: 'none' }} onChange={loadProject} />
+                <div className={styles.footer}>
+                    <select onChange={e => {
+                        setLanguage(e.target.value);
+                    }} value={language}>
+                        {SUPPORTED_LANGUAGES.map(lang => (
+                            <option key={lang.code} value={lang.code}>{lang.name}</option>
+                        ))}
+                    </select>
+                </div>
             </div>
         </div>
     )

@@ -1,3 +1,14 @@
 .mainPanel {
     text-align: center;
 }
+
+.footer {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    padding: 10px;
+}

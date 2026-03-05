@@ -7,7 +7,7 @@ import { spawnExtension } from '../../extension/spawn.js'
 
 const OutputProject = props => {
     const { t } = useTranslation();
-    const [code, setCode] = useState(t('output.loading'))
+    const [code, setCode] = useState(t('Loading...'))
 
     useEffect(() => {
         spawnExtension().then(result => {
@@ -21,7 +21,7 @@ const OutputProject = props => {
         <div>
             <Modal
                 close={() => props.close()}
-                title={t('output.title')}
+                title={t('Output Project')}
                 height="75%"
                 width="75%"
             >

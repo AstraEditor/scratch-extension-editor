@@ -12,151 +12,140 @@ export const SUPPORTED_LANGUAGES = [
     { code: 'zh', name: '中文' },
 ];
 
-// 语言包
+// 语言包 - 使用英文文本作为键，只需要翻译非英文语言
 const translations = {
-    en: {
-        // Home
-        'home.title': 'Welcome to Astras Blocktory',
-        'home.whatToDo': 'What would you like to do?',
-        'home.newExtension': 'Create New Extension',
-        'home.loadExtension': 'Load Extension (.ab)',
-        'home.loadFailed': 'Failed to load project: ',
-
-        // NewProject
-        'newProject.title': 'Create extension',
-        'newProject.name': 'Name',
-        'newProject.description': 'Description',
-        'newProject.author': 'Author',
-        'newProject.license': 'License',
-        'newProject.customID': 'Custom ID?',
-        'newProject.extensionID': 'Extension id',
-        'newProject.customColor': 'Custom color',
-        'newProject.enableTranslate': 'Enable Translate',
-        'newProject.done': 'Done',
-        'newProject.invalidName': 'Invalid extension name!',
-        'newProject.invalidID': 'Invalid extension ID!',
-        'newProject.customLicense': 'Custom',
-
-        // Editor
-        'editor.blocks': 'Blocks',
-        'editor.code': 'Code',
-        'editor.createBlock': 'Create new Block',
-        'editor.output': 'Output',
-        'editor.save': 'Save',
-        'editor.setting': 'Setting',
-        'editor.loading': 'Loading editor...',
-        'editor.flyout': 'Flyout',
-
-        // NewBlock
-        'newBlock.title': 'New Block',
-        'newBlock.blockPreview': 'Block Preview',
-        'newBlock.opcode': 'Opcode (ID)',
-        'newBlock.opcodePlaceholder': 'Enter opcode (a-z, A-Z only)',
-        'newBlock.blockType': 'Block Type',
-        'newBlock.addText': 'Add Text',
-        'newBlock.addInput': 'Add Input',
-        'newBlock.saveBlock': 'Save Block',
-        'newBlock.invalidName': 'Invalid Block Name!',
-
-        // NewInput
-        'newInput.title': 'Add input',
-        'newInput.preview': 'Input Preview',
-        'newInput.mode': 'Mode',
-        'newInput.textAndNumber': 'Text and Number',
-        'newInput.dropdown': 'DropDown',
-        'newInput.boolean': 'Boolean',
-        'newInput.defaultInput': 'Default Input',
-        'newInput.readonly': 'read only',
-        'newInput.options': 'Options',
-        'newInput.back': 'Back',
-        'newInput.done': 'Done',
-
-        // Output Project
-        'output.title': 'Output Project',
-        'output.loading': 'Loading...',
-
-        // Block Types
-        'blockType.stack': 'stack',
-        'blockType.hat': 'hat',
-        'blockType.round': 'repoter',
-        'blockType.boolean': 'boolean',
-        'blockType.cblock': 'C block',
-
-        // Common
-        'common.remove': 'Remove',
-        'common.moveToTop': 'move to top',
-    },
     zh: {
         // Home
-        'home.title': '欢迎使用 Astras Blocktory',
-        'home.whatToDo': '您想要做什么？',
-        'home.newExtension': '创建新扩展',
-        'home.loadExtension': '加载扩展 (.ab)',
-        'home.loadFailed': '加载项目失败: ',
+        'Welcome to Astras Blocktory': '欢迎使用 Astras Blocktory',
+        'What would you like to do?': '您想要做什么？',
+        'Create New Extension': '创建新扩展',
+        'Load Extension (.ab)': '加载扩展 (.ab)',
+        'Failed to load project: ': '加载项目失败: ',
 
         // NewProject
-        'newProject.title': '创建扩展',
-        'newProject.name': '名称',
-        'newProject.description': '描述',
-        'newProject.author': '作者',
-        'newProject.license': '许可证',
-        'newProject.customID': '自定义ID?',
-        'newProject.extensionID': '扩展ID',
-        'newProject.customColor': '自定义颜色',
-        'newProject.enableTranslate': '启用翻译',
-        'newProject.done': '完成',
-        'newProject.invalidName': '扩展名称无效!',
-        'newProject.invalidID': '扩展ID无效!',
-        'newProject.customLicense': '自定义',
+        'Create extension': '创建扩展',
+        'Name': '名称',
+        'Description': '描述',
+        'Author': '作者',
+        'License': '许可证',
+        'Custom ID?': '自定义ID?',
+        'Extension id': '扩展ID',
+        'Custom color': '自定义颜色',
+        'Enable Translate': '启用翻译',
+        'Done': '完成',
+        'Invalid extension name!': '扩展名称无效!',
+        'Invalid extension ID!': '扩展ID无效!',
+        'Custom': '自定义',
 
         // Editor
-        'editor.blocks': '积木',
-        'editor.code': '代码',
-        'editor.createBlock': '创建新积木',
-        'editor.output': '输出',
-        'editor.save': '保存',
-        'editor.setting': '设置',
-        'editor.loading': '加载编辑器中...',
-        'editor.flyout': '列表',
+        'Blocks': '积木',
+        'Code': '代码',
+        'Create new Block': '创建新积木',
+        'Output': '输出',
+        'Save': '保存',
+        'Setting': '设置',
+        'Loading editor...': '加载编辑器中...',
+        'Flyout': '列表',
+        'Back': '返回',
+        'Editor Settings': '编辑器设置',
+        'Monaco Settings': 'Monaco 设置',
+        'Basic': '基础',
+        'Advanced JSON': '高级 JSON',
+        'Appearance': '外观',
+        'Editor Behavior': '编辑行为',
+        'JavaScript / TypeScript': 'JavaScript / TypeScript',
+        'Theme': '主题',
+        'Font Size': '字体大小',
+        'Line Height': '行高',
+        'Font Family': '字体族',
+        'Minimap': '缩略图',
+        'Enable Cursor Smooth Animation': '平滑光标',
+        'Word Wrap': '自动换行',
+        'Off': '关闭',
+        'On': '开启',
+        'Word Wrap Column': '按列换行',
+        'Bounded': '受限换行',
+        'Render Whitespace': '空白字符显示',
+        'None': '不显示',
+        'Boundary': '边界',
+        'Selection': '选区',
+        'Trailing': '行尾',
+        'All': '全部',
+        'Cursor Blinking': '光标闪烁',
+        'Tab Size': 'Tab 宽度',
+        'Insert Spaces': '使用空格缩进',
+        'Smooth Scrolling': '平滑滚动',
+        'Mouse Wheel Zoom': '滚轮缩放',
+        'Format On Type': '输入时格式化',
+        'Format On Paste': '粘贴时格式化',
+        'Bracket Pair Colorization': '括号对着色',
+        'Indentation Guides': '缩进引导线',
+        'Bracket Pair Guides': '括号对引导线',
+        'Suggest On Trigger Characters': '触发字符提示',
+        'Quick Suggestions': '快速建议',
+        'Check JS': '检查 JS',
+        'Strict Mode': '严格模式',
+        'Script Target': '脚本目标',
+        'Advanced mode supports full Monaco config via JSON!': '高级模式可通过 JSON 配置完整 Monaco 选项!',
+        'Invalid JSON. Please check syntax.': 'JSON 格式错误，请检查语法。',
+        'Cancel': '取消',
+        'Reset Defaults': '恢复默认',
+        'Format JSON': '格式化 JSON',
+        'Apply': '应用',
 
         // NewBlock
-        'newBlock.title': '新建积木',
-        'newBlock.blockPreview': '积木预览',
-        'newBlock.opcode': 'opcode (ID)',
-        'newBlock.opcodePlaceholder': '输入Opcode (仅 a-z, A-Z)',
-        'newBlock.blockType': '积木类型',
-        'newBlock.addText': '添加文本',
-        'newBlock.addInput': '添加输入',
-        'newBlock.saveBlock': '保存积木',
-        'newBlock.invalidName': '积木名称无效!',
+        'New Block': '新建积木',
+        'Block Preview': '积木预览',
+        'ID': 'ID',
+        'Enter ID (a-z, A-Z only)': '输入ID (仅 a-z, A-Z)',
+        'Block Type': '积木类型',
+        'Add Text': '添加文本',
+        'Add Input': '添加输入',
+        'Save Block': '保存积木',
+        'Invalid Block ID!': '积木ID无效!',
+        'Block Parts': '积木内容',
+        'No parts yet. Add text or input to start building.': '还没有内容，先添加文本或输入。',
+        'If the Addon is not enabled, the background of text and numbers will be consistent in AstraEditor.':"如果没有启用插件，文字和数字的背景在 AstraEditor 是一样的",
 
         // NewInput
-        'newInput.title': '添加输入',
-        'newInput.preview': '输入预览',
-        'newInput.mode': '模式',
-        'newInput.textAndNumber': '文本和数字',
-        'newInput.dropdown': '下拉菜单',
-        'newInput.boolean': '布尔值',
-        'newInput.defaultInput': '默认输入',
-        'newInput.readonly': '只读',
-        'newInput.options': '选项',
-        'newInput.back': '返回',
-        'newInput.done': '完成',
+        'Add input': '添加输入',
+        'Input Preview': '输入预览',
+        'Mode': '模式',
+        'Text': '文本',
+        'Number': '数字',
+        'Text and Number': '文本和数字',
+        'Dropdown': '下拉菜单',
+        'Boolean': '布尔值',
+        'Default Input': '默认输入',
+        'read only': '只读',
+        'Options': '选项',
+        'Default Option':"默认选项",
 
         // Output Project
-        'output.title': '输出项目',
-        'output.loading': '加载中...',
+        'Output Project': '输出项目',
+        'Loading...': '加载中...',
 
         // Block Types
-        'blockType.stack': '命令积木',
-        'blockType.hat': '帽子积木',
-        'blockType.round': '返回值积木',
-        'blockType.boolean': '布尔积木',
-        'blockType.cblock': 'C型积木',
+        'stack': '命令积木',
+        'hat': '帽子积木',
+        'repoter': '返回值积木',
+        'boolean': '布尔积木',
+        'C block': 'C型积木',
+
+        // NewBlock additional
+        'Text or Number': '文字或数字',
+        'Read Only Dropdown': '只读下拉菜单',
 
         // Common
-        'common.remove': '删除',
-        'common.moveToTop': '移至顶部',
+        'Remove': '删除',
+        'move to top': '移至顶部',
+        'Modify': '修改',
+
+        //Edit Block
+        'Edit Block': "编辑积木",
+        'Type: ': '类型：',
+        'Found ': "找到了 ",
+        " Input(s).":" 个输入项"
     },
 };
 
@@ -167,7 +156,7 @@ export const getCurrentLanguage = () => {
 
 // 设置语言
 export const setLanguage = (lang) => {
-    if (translations[lang]) {
+    if (lang === 'en' || translations[lang]) {
         localStorage.setItem(STORAGE_KEY, lang);
         window.dispatchEvent(new CustomEvent('languageChange', { detail: lang }));
         return true;
@@ -175,10 +164,13 @@ export const setLanguage = (lang) => {
     return false;
 };
 
-// 获取翻译文本
-export const t = (id) => {
+// 获取翻译文本 - 直接使用英文文本作为键
+export const t = (text) => {
     const lang = getCurrentLanguage();
-    return translations[lang]?.[id] || translations[DEFAULT_LANGUAGE]?.[id] || id;
+    if (lang === 'en') {
+        return text; // 英文直接返回原文
+    }
+    return translations[lang]?.[text] || text;
 };
 
 // React Hook - 自动响应语言变化
@@ -193,8 +185,11 @@ export const useTranslation = () => {
         return () => window.removeEventListener('languageChange', handleLanguageChange);
     }, []);
 
-    const translate = useCallback((id) => {
-        return translations[language]?.[id] || translations[DEFAULT_LANGUAGE]?.[id] || id;
+    const translate = useCallback((text) => {
+        if (language === 'en') {
+            return text; // 英文直接返回原文
+        }
+        return translations[language]?.[text] || text;
     }, [language]);
 
     return { t: translate, language };
@@ -203,7 +198,8 @@ export const useTranslation = () => {
 // 导出所有翻译（用于调试）
 export const getAllTranslations = () => {
     const lang = getCurrentLanguage();
-    return translations[lang] || translations[DEFAULT_LANGUAGE];
+    if (lang === 'en') return {};
+    return translations[lang] || {};
 };
 
 export default { t, getCurrentLanguage, setLanguage, SUPPORTED_LANGUAGES, useTranslation };

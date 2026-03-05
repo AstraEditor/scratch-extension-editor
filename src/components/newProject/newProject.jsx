@@ -62,11 +62,11 @@ export default function NewProject(props) {
     const setComment = () => {
         const newComment = returnValue("comments");
         if (!(nowName && nowName.trim().length > 0)) {
-            alert(t('newProject.invalidName'));
+            alert(t('Invalid extension name!'));
             return;
         }
         if (!(nowID && nowID.trim().length > 0)) {
-            alert(t('newProject.invalidID'));
+            alert(t('Invalid extension ID!'));
             return;
         }
         newComment.name = nowName || "";
@@ -81,30 +81,30 @@ export default function NewProject(props) {
     }
     return (
         <div className={styles.main}>
-            <h1>{t('newProject.title')}</h1>
+            <h1>{t('Create extension')}</h1>
             <Input
                 setName={value => setNameAndID(value)}
                 nowValue={nowName}
-                placeholder={t('newProject.name')}
+                placeholder={t('Name')}
             />
             <div>
                 <input type="checkbox" checked={useCustomID} onChange={e => {
                     setUseCustomID(e.target.checked)
                 }} />
-                {t('newProject.customID')}
+                {t('Custom ID?')}
             </div>
-            <div>{t('newProject.extensionID')}: {useCustomID ? (<input value={nowID} onChange={e => {
+            <div>{t('Extension id')}: {useCustomID ? (<input value={nowID} onChange={e => {
                 setID(e.target.value)
             }} />) : (<span>{nowID}</span>)}</div>
             <Input
                 setName={value => setDesc(value)}
                 nowValue={nowDesc}
-                placeholder={t('newProject.description')}
+                placeholder={t('Description')}
             />
             <Input
                 setName={value => setAuthor(value)}
                 nowValue={nowAuthor}
-                placeholder={t('newProject.author')}
+                placeholder={t('Author')}
             />
             <select
                 onChange={(e) => {
@@ -116,7 +116,7 @@ export default function NewProject(props) {
                     }
                 }}
                 value={nowLicense}
-                placeholder={t('newProject.license')}
+                placeholder={t('License')}
                 className={styles.input}
             >
                 <option value="MPL-2.0">MPL-2.0</option>
@@ -125,14 +125,14 @@ export default function NewProject(props) {
                 <option value="Apache-2.0">Apache-2.0</option>
                 <option value="CC-BY-SA-4.0">CC-BY-SA-4.0</option>
                 <hr />
-                <option value="Custom">{t('newProject.customLicense')}({nowCustomLicence})</option>
+                <option value="Custom">{t('Custom')}({nowCustomLicence})</option>
             </select>
             <div>
-                {t('newProject.customColor')}: <input type='checkbox'
+                {t('Custom color')}: <input type='checkbox'
                     checked={!isDisabledCustomColor}
                     onChange={(e) => setDisabledCustomColor(!e.target.checked)}
                 /><br />
-                {t('newProject.enableTranslate')}: <input type='checkbox'
+                {t('Enable Translate')}: <input type='checkbox'
                     checked={nowEnableTranslate}
                     onChange={(e) => setEnableTranslate(e.target.checked)}
                 />
@@ -178,7 +178,7 @@ export default function NewProject(props) {
                 />
 
             </div>
-            <button onClick={() => setComment()}>{t('newProject.done')}</button>
+            <button onClick={() => setComment()}>{t('Done')}</button>
         </div>
     )
 }
