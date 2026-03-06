@@ -86,25 +86,23 @@
     padding-right: 0;
     margin-top: 8px;
     flex-shrink: 0;
-
 }
 
 .Block {
     display: flex;
     align-content: flex-start;
-    justify-content: space-between;
     align-items: center;
     gap: 10px;
     padding-right: 0;
     width: 100%;
 }
 
-.Tabs{
+.Tabs {
     display: flex;
     justify-content: center;
 }
 
-.Button{
+.Button {
     width: 100%;
     margin: 0;
     border-radius: 0;
@@ -113,17 +111,17 @@
     transition: box-shadow 0.2s ease;
 }
 
-.Button:hover{
+.Button:hover {
     box-shadow: 0 5px 0 #0099ff;
 }
 
-.editBlock{
+.editBlock {
     display: flex;
     flex-direction: column;
     padding: 10px;
 }
 
-.FonudTip{
+.FonudTip {
     font-size: large;
     font-weight: bold;
     margin-bottom: 10px;
@@ -135,4 +133,66 @@
     border-radius: 8px;
     padding: 10px;
     margin-bottom: 10px;
+}
+
+.TitleOfMain {
+    margin: 0 20px;
+}
+
+.valuePart {
+    background-color: #00000026;
+    border: 1px solid #ffffff1f;
+    border-radius: 8px;
+    padding: 10px;
+    margin-bottom: 10px;
+}
+
+.valuePartTitle{
+    background-color: none;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.valuePartIndex {
+    opacity: 0.5;
+    margin-right: 10px;
+    font-size: small;
+}
+
+.valuePartButtons {
+    padding: 10px;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s ease;
+}
+
+.valuePartButtons:hover {
+    background-color: var(--modal-close);
+}
+
+.valuePartSettings {
+    display: flex;
+}
+
+.expandableContent {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.3s ease;
+}
+
+.expandableContent.expanded {
+    grid-template-rows: 1fr;
+}
+
+.expandableInner {
+    overflow: hidden;
+    padding-top: 10px;
+}
+
+.hr{
+    opacity: 0.2;
 }

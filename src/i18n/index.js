@@ -12,6 +12,15 @@ export const SUPPORTED_LANGUAGES = [
     { code: 'zh', name: '中文' },
 ];
 
+export const BLOCK_TYPE_ID = {
+    "textNumber": "Text and Number",
+    "dropdown": "Dropdown",
+    "dropdownReadOnly": "Dropdown Readonly",
+    "boolean": "Boolean",
+    "text": "Text",
+    "number":"Number"
+}
+
 // 语言包 - 使用英文文本作为键，只需要翻译非英文语言
 const translations = {
     zh: {
@@ -114,12 +123,13 @@ const translations = {
         'Text': '文本',
         'Number': '数字',
         'Text and Number': '文本和数字',
-        'Dropdown': '下拉菜单',
+        'Dropdown': '下拉框',
         'Boolean': '布尔值',
         'Default Input': '默认输入',
-        'read only': '只读',
+        'read only': '接受子积木',
         'Options': '选项',
-        'Default Option':"默认选项",
+        'Default Option': "默认选项",
+        "Dropdown Readonly":"接受子积木的下拉框",
 
         // Output Project
         'Output Project': '输出项目',
@@ -134,7 +144,7 @@ const translations = {
 
         // NewBlock additional
         'Text or Number': '文字或数字',
-        'Read Only Dropdown': '只读下拉菜单',
+        'Read Only Dropdown': '接受子积木的下拉框',
 
         // Common
         'Remove': '删除',
@@ -145,7 +155,7 @@ const translations = {
         'Edit Block': "编辑积木",
         'Type: ': '类型：',
         'Found ': "找到了 ",
-        " Input(s).":" 个输入项"
+        " Input(s).": " 个输入项",
     },
 };
 
@@ -202,4 +212,4 @@ export const getAllTranslations = () => {
     return translations[lang] || {};
 };
 
-export default { t, getCurrentLanguage, setLanguage, SUPPORTED_LANGUAGES, useTranslation };
+export default { t, getCurrentLanguage, setLanguage, SUPPORTED_LANGUAGES, useTranslation, BLOCK_TYPE_ID };

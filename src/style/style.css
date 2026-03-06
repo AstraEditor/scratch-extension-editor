@@ -10,8 +10,8 @@
     --text-color: #eee;
     --accent-color: #0099ff;
 
-    --modal-background-index: 10;
-    --modal-window-index: 11;
+    --modal-background-index: 100;
+    --modal-window-index: 110;
 }
 
 ::-webkit-scrollbar {

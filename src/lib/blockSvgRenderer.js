@@ -596,6 +596,9 @@ function renderBlock(blockData, options = {}) {
   const container = createSvgElement("g");
   container.classList.add("scratch-block");
 
+  // 输入框索引用于高亮功能
+  let inputIndex = 0;
+
   // 计算内容布局
   let cursorX = 0;
   const components = [];
@@ -852,11 +855,12 @@ function renderBlock(blockData, options = {}) {
           const inputPath = generateInputPath(inputType, inputWidth);
 
           const inputBg = createSvgElement("path", {
-            class: "blocklyBlockBackground",
+            class: "blocklyInput",
             d: inputPath,
             fill: getInputBgColor(inputType, primary, secondary, tertiary),
             stroke: secondary,
             "stroke-width": 1,
+            "data-input-index": inputIndex++,
           });
           inputBg.setAttribute("transform", `translate(${currentBranchX}, ${inputY})`);
           container.appendChild(inputBg);
@@ -940,11 +944,13 @@ function renderBlock(blockData, options = {}) {
 
       // 创建输入框背景
       const inputBg = createSvgElement("path", {
+        class: "blocklyInput",
         d: inputPath,
         fill: bgColor,
         stroke: secondary,
         "stroke-width": 1,
         transform: `translate(${currentX}, ${inputY})`,
+        "data-input-index": inputIndex++,
       });
       container.appendChild(inputBg);
 

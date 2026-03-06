@@ -6,9 +6,8 @@ import OutputProject from '../outputProject/outputProject.jsx';
 import MonacoSettingsModal from './monacoSettingsModal.jsx';
 import { renderBlockToHTML } from '../../lib/blockSvgRenderer.js';
 import { getAllValue, setValueTo, returnValue } from '../../extension/storage.js';
-import { useTranslation } from '../../i18n';
-import { VscSettingsGear } from "react-icons/vsc";
-import { SiTiddlywiki } from 'react-icons/si';
+import { useTranslation, BLOCK_TYPE_ID } from '../../i18n';
+import { VscSettingsGear, VscEdit, VscEye, VscChevronUp, VscClose } from "react-icons/vsc";
 
 const VSCODE_DARK_PLUS = {
     base: 'vs-dark',
@@ -167,6 +166,63 @@ const saveProject = () => {
     URL.revokeObjectURL(download.href);
 
 }
+
+const InputPart = props => {
+    const { t } = useTranslation();
+    const { part, index, onHighlight, onClearHighlight, isHideIndex, setHide } = props;
+    return (
+        <div className={styles.part}>
+            {typeof part === 'object' && (
+                <div className={styles.valuePart}>
+                    <div className={styles.valuePartTitle}>
+                        <div>
+                            <span className={styles.valuePartIndex}>#{index + 1}</span>
+                            {t(BLOCK_TYPE_ID[part.inputType])}
+                        </div>
+                        <div className={styles.valuePartSettings}>
+                            <div
+                                onMouseEnter={onHighlight}
+                                onMouseLeave={onClearHighlight}
+                                style={{ cursor: 'pointer' }}
+                                title={t("Seek")}
+                                className={styles.valuePartButtons}
+                            >
+                                <VscEye />
+                            </div>
+                            <div
+                                onClick={() => setHide(index)}
+                                style={{
+                                    cursor: 'pointer',
+
+                                }}
+                                title={t("Setting")}
+                                className={styles.valuePartButtons}
+                            >
+                                <div style={{
+                                    transform: isHideIndex === index && "rotate(180deg)",
+                                    transition: 'transform 0.2s ease'
+                                }}>
+                                    <VscChevronUp />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div
+                        className={`${styles.expandableContent} ${isHideIndex === index ? styles.expanded : ''}`}
+                    >
+                        <div className={styles.expandableInner}>
+                            <hr className={styles.hr} />
+                            <h1>TESTING</h1>
+                        </div>
+                    </div>
+
+                </div>
+
+            )}
+        </div>
+    )
+}
+
 const Editor = props => {
     const { t } = useTranslation();
     const [leftWidth, setLeftWidth] = useState(50);
@@ -176,6 +232,10 @@ const Editor = props => {
     const [isMonacoSettingsOpen, setMonacoSettingsOpen] = useState(false);
     const [monacoConfig, setMonacoConfig] = useState(() => loadMonacoConfig());
     const monacoOptions = monacoConfig.options;
+
+    // 输入框高亮状态
+    const [highlightedInput, setHighlightedInput] = useState(null);
+    const previewRef = useRef(null);
 
     useEffect(() => {
         localStorage.setItem(MONACO_SETTINGS_KEY, JSON.stringify(monacoConfig));
@@ -232,8 +292,28 @@ const Editor = props => {
     const [isCreatingBlock, setCreatBlock] = useState(false)
     const [isSaveBlock, setSaveBlock] = useState(false)
     const [editingIndex, setEditingIndex] = useState(null);
+    const [blockVersion, setBlockVersion] = useState(0); // 用于触发 UI 刷新
 
     const [isEditingBlock, setEditingBlock] = useState(null); //保存Block对象
+
+    // 高亮输入框效果
+    useEffect(() => {
+        if (!previewRef.current) return;
+
+        const inputs = previewRef.current.querySelectorAll('[data-input-index]');
+        inputs.forEach(input => {
+            const idx = parseInt(input.getAttribute('data-input-index'));
+            if (idx === highlightedInput) {
+                input.style.filter = 'brightness(1.3)';
+                input.style.stroke = '#ff0';
+                input.style.strokeWidth = '5';
+            } else {
+                input.style.filter = '';
+                input.style.stroke = '';
+                input.style.strokeWidth = '';
+            }
+        });
+    }, [highlightedInput, isEditingBlock]);
 
     const handleSaveBlock = (blockName, blockData) => {
         console.log(blockName, blockData);
@@ -242,6 +322,10 @@ const Editor = props => {
         setEditingIndex(null);
     };
 
+    const [isHideIndex, setHideIndex] = useState(null);
+    useEffect(() => {
+        console.log(isHideIndex)
+    }, [isHideIndex]);
     return (
         <div className={styles.editor} ref={containerRef}>
             {isCreatingBlock && (
@@ -288,11 +372,20 @@ const Editor = props => {
                         <button className={styles.Button} onClick={() => {
                             saveProject()
                         }}>{t('Save')}</button>
+                        <button
+                            className={styles.Button}
+                            onClick={() => {
+                                setMonacoSettingsOpen(true);
+                            }}
+                        >
+                            <span>{t('Editor Settings')}</span>
+                        </button>
                     </div>
-                    <h1>{t('Blocks')}</h1>
-                    <div>
-
+                    <div className={styles.TitleOfMain}>
+                        <h1>{t('Blocks')}</h1>
                         <h3>{t('Flyout')}:</h3>
+                    </div>
+                    <div>
                         {Object.entries(getAllValue().blocks || {}).map(([name, blk]) => (
                             <div
                                 key={name}
@@ -301,13 +394,26 @@ const Editor = props => {
                             >
                                 <div style={{ fontSize: '22px', color: '#666' }}>opcode: "{name}"</div>
                                 <div className={styles.Block}>
-                                    <div onClick={() => {
-                                        setEditingBlock(blk)
-                                    }} className={styles.OnceBlockPreview} dangerouslySetInnerHTML={{ __html: renderBlockToHTML(prepareBlockForDisplay(blk)) }} />
-                                    <div className={styles.Settings} onClick={() => {
-                                        setEditingIndex(name);
-                                        setCreatBlock(true);
-                                    }} ><VscSettingsGear /></div>
+                                    <div>
+                                        <div className={styles.Settings} onClick={() => {
+                                            const sure = window.confirm(t("Are you sure to remove this block?"));
+                                            if (!sure) return;
+                                            const blocks = returnValue("blocks");
+                                            delete blocks[name];
+                                            setValueTo("blocks", blocks);
+                                            setBlockVersion(v => v + 1);
+                                        }} title={t("Remove")}><VscClose /></div>
+                                        <div className={styles.Settings} onClick={() => {
+                                            setEditingBlock(blk)
+                                        }} title={t("Write program")}><VscEdit /></div>
+                                        <div className={styles.Settings} onClick={() => {
+                                            setEditingIndex(name);
+                                            setCreatBlock(true);
+                                        }} title={t("Edit Block")}><VscSettingsGear /></div>
+                                    </div>
+                                    <div className={styles.OnceBlockPreview} dangerouslySetInnerHTML={{ __html: renderBlockToHTML(prepareBlockForDisplay(blk)) }} />
+
+
                                 </div>
                             </div>
 
@@ -318,8 +424,8 @@ const Editor = props => {
                 </>
                 ) : (
                     <div className={styles.editBlock}>
-                        <h1>{t('Edit Block')}</h1>
-                        <div className={styles.OnceBlockPreview} dangerouslySetInnerHTML={{ __html: renderBlockToHTML(prepareBlockForDisplay(isEditingBlock)) }} />
+                        <h1>{t('Code')}</h1>
+                        <div ref={previewRef} className={styles.OnceBlockPreview} dangerouslySetInnerHTML={{ __html: renderBlockToHTML(prepareBlockForDisplay(isEditingBlock)) }} />
                         <span className={styles.FonudTip}>{
                             t("Type: ") +
                             t(isEditingBlock.type) //给出类型
@@ -327,11 +433,23 @@ const Editor = props => {
                         <span className={styles.FonudTip}>{t('Found ') + isEditingBlock.parts.filter(item => typeof item === 'object' && item !== null).length.toString() + t(" Input(s).")}</span>
                         <div className={styles.sectionCard}>
                             {
-                                isEditingBlock.parts.map((part, index) => (
-                                    <div className={styles.part}>
-                                        {t(part.inputType)}
-                                    </div>
-                                ))
+                                (() => {
+                                    let inputIdx = 0;
+                                    return isEditingBlock.parts.map((part, index) => {
+                                        if (typeof part !== 'object') return null;
+                                        const currentInputIdx = inputIdx++;
+                                        return (
+                                            <InputPart
+                                                part={part}
+                                                index={currentInputIdx}
+                                                onHighlight={() => setHighlightedInput(currentInputIdx)}
+                                                onClearHighlight={() => setHighlightedInput(null)}
+                                                isHideIndex={isHideIndex}
+                                                setHide={(index) => setHideIndex(index)}
+                                            />
+                                        );
+                                    });
+                                })()
                             }
                         </div>
                         <button onClick={() => {
@@ -340,40 +458,30 @@ const Editor = props => {
                     </div>
                 )}
             </div>
-            {isEditingBlock && (<>
-                <div
-                    className={styles.resizer}
-                    onMouseDown={handleMouseDown}
-                />
-                <div className={styles.code} style={{ width: `${100 - leftWidth}%` }}>
-                    {/* 代码区 */}
-                    <div className={styles.codeHeader}>
-                        <h1>{t('Code')}</h1>
-                        <button
-                            className={styles.editorSettingsButton}
-                            onClick={() => {
-                                setMonacoSettingsOpen(true);
-                            }}
-                        >
-                            <VscSettingsGear />
-                            <span>{t('Editor Settings')}</span>
-                        </button>
+            {
+                isEditingBlock && (<>
+                    <div
+                        className={styles.resizer}
+                        onMouseDown={handleMouseDown}
+                    />
+                    <div className={styles.code} style={{ width: `${100 - leftWidth}%` }}>
+                        {/* 代码区 */}
+                        <div className={styles.editorHost}>
+                            <MonacoEditor
+                                height="100%"
+                                defaultLanguage="javascript"
+                                theme={monacoConfig.theme || 'vscode-dark-plus'}
+                                beforeMount={handleMonacoBeforeMount}
+                                onMount={handleMonacoMount}
+                                loading={<div style={{ color: '#888', padding: '20px' }}>{t('Loading editor...')}</div>}
+                                options={monacoOptions}
+                            />
+                        </div>
                     </div>
-                    <div className={styles.editorHost}>
-                        <MonacoEditor
-                            height="100%"
-                            defaultLanguage="javascript"
-                            theme={monacoConfig.theme || 'vscode-dark-plus'}
-                            beforeMount={handleMonacoBeforeMount}
-                            onMount={handleMonacoMount}
-                            loading={<div style={{ color: '#888', padding: '20px' }}>{t('Loading editor...')}</div>}
-                            options={monacoOptions}
-                        />
-                    </div>
-                </div>
-            </>)}
+                </>)
+            }
 
-        </div>
+        </div >
     )
 }
 export default Editor

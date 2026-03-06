@@ -230,7 +230,7 @@ const NewInput = props => {
                                 {inputValue.DROPDOWN.map((opt, idx) => (
                                     <div key={idx} className={styles.optionRow}>
                                         {idx === 0 && (<span className={styles.formLabel} style={{
-                                            whiteSpace:"nowrap"
+                                            whiteSpace: "nowrap"
                                         }}>
                                             {t("Default Option")}
                                         </span>)}
@@ -490,11 +490,14 @@ const NewBlock = props => {
                                                     <button onClick={() => {
                                                         removePart(index)
                                                     }}>{t('Remove')}</button>
-                                                    <button onClick={() => {
-                                                        setEditingBlock(true)
-                                                        setEditBlockIndex(index);
-                                                        setActiveTab("add_input")
-                                                    }}>{t('Modify')}</button>
+                                                    {typeof item !== "string" && (
+                                                        <button onClick={() => {
+                                                            setEditingBlock(true)
+                                                            setEditBlockIndex(index);
+                                                            setActiveTab("add_input")
+                                                        }}>{t('Modify')}</button>
+                                                    )}
+
                                                 </div>
                                             </div>
                                         ))}

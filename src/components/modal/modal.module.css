@@ -21,7 +21,12 @@
     border-radius: 10px;
     border: 3px;
     border-style: solid;
-    border-color: var(--modal-background)
+    border-color: var(--modal-background);
+    overflow: hidden;
+}
+
+.icon{
+    width: 20px;
 }
 
 .title {
@@ -33,17 +38,18 @@
     justify-content: space-between;
 }
 
-.close{
+.close {
     right: 0;
     background-color: var(--modal-close);
     padding: 5px;
     border-radius: 100px;
 }
-.close:hover{
+
+.close:hover {
     filter: brightness(1.2);
 }
 
-.titleBar{
+.titleBar {
     justify-content: center;
     display: flex;
     width: 100%;
