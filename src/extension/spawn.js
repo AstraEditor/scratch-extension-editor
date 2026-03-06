@@ -34,6 +34,7 @@ const replaceClass = Ext => {
 
 export async function spawnExtension() {
     const Extension = getAllValue();
+    console.clear();
     console.log("Ready to Spawn Extension:")
     console.log(Extension)
 
@@ -66,12 +67,15 @@ export async function spawnExtension() {
 
         let blockText = "";
         let blockValue = {};
+                    let indexOfinput = 0;
+
         data.parts.forEach((data, index) => {
-            let inputID = id + index.toString()
+            let inputID = data.id || `input_${indexOfinput}`;
             if (typeof data === "string") {
                 blockText += data;
             }
             if (typeof data === "object") {
+                indexOfinput += 1;
                 blockText += `[${inputID}]`;
                 let argument = {};
                 let menu;
@@ -124,7 +128,6 @@ export async function spawnExtension() {
             }
         })
         if (isCondition) { //是否是分支
-            console.log(data.type)
             return { opcode: id, blockType, text: blockText, arguments: blockValue }
         } else {
             return { opcode: id, blockType, text: blockText, arguments: blockValue }
@@ -139,7 +142,24 @@ export async function spawnExtension() {
         });
         return returnList
     }
-
+    const spawnBlockJS = () => {
+        const Blocks = Object.values(Extension.blocks);
+        const final = [];
+        Blocks.forEach((blk, index) => {
+            const id = Object.keys(Extension.blocks)[index]
+            final.push(`${id} (args) {`)
+            let indexOfInput = 0;
+            blk.parts.forEach(blkPart => {
+                if (typeof blkPart === 'object') {
+                    final.push(`const ${blkPart.id || `input_${indexOfInput}`} = args.${blkPart.id || `input_${indexOfInput}`};`)
+                    indexOfInput += 1;
+                }
+            })
+            final.push(blk.code)
+            final.push(`}`)
+        })
+        return final
+    }
     const ExtensionText = `
 // Name: ${Extension.comments.name}
 // ID: ${Extension.comments.id}
@@ -166,6 +186,7 @@ export async function spawnExtension() {
                 menus: ${JSON.stringify(menus)}
             }
         }
+        ${spawnBlockJS().join('\n')}
     }
     Scratch.extensions.register(new ${Extension.comments.id}());
 })(Scratch)
@@ -184,7 +205,6 @@ export async function spawnExtension() {
     let result = ExtensionText;
     try {
         result = await prettier.format(ExtensionText, options);
-        console.log(result);
     } catch (error) {
         console.error('格式化失败:', error);
     }

@@ -196,3 +196,38 @@
 .hr{
     opacity: 0.2;
 }
+
+.idEditor {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 10px;
+}
+
+.idEditor label {
+    font-size: 14px;
+    color: #aaa;
+    min-width: 80px;
+}
+
+.idInput {
+    flex: 1;
+    padding: 8px 12px;
+    border: 1px solid #ffffff20;
+    border-radius: 6px;
+    background: #00000030;
+    color: #fff;
+    font-size: 14px;
+    font-family: 'JetBrains Mono', 'Cascadia Mono', monospace;
+    outline: none;
+    transition: border-color 0.2s, background 0.2s;
+}
+
+.idInput:focus {
+    border-color: #0099ff;
+    background: #00000050;
+}
+
+.idInput::placeholder {
+    color: #666;
+}
