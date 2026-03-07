@@ -1,4 +1,4 @@
-import { react, useState } from 'react';
+import { useState } from 'react';
 import styles from "./main.module.css";
 import '../../style/style.css';
 
@@ -12,7 +12,7 @@ const Main = () => {
     const [activeTab, setActiveTab] = useState('home');
     return (
         <div className={styles.mainContainer}>
-            {activeTab !== 'home' || activeTab === 'editor' && (
+            {(activeTab !== 'home' || activeTab === 'editor') && (
                 <img className={styles.backButton} onClick={() => setActiveTab("home")} src={back} alt="Back" />
             )}
 

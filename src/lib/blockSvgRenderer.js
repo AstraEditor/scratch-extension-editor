@@ -3,6 +3,8 @@
  * 基于 scratch-blocks 的渲染逻辑
  */
 
+/* eslint-disable no-unused-vars */
+
 const SVG_NS = "http://www.w3.org/2000/svg";
 
 // ============== 常量定义 (来自 scratch-blocks/core/block_render_svg_vertical.js) ==============

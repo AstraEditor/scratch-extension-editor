@@ -9,12 +9,12 @@ import Tip from '../tip/tip.jsx';
 import { prepareBlockForDisplay } from "../editor/blockUtils.js";
 
 
-import { VscChevronUp, VscChevronDown, VscClose, VscWarning } from "react-icons/vsc";
+import { VscClose } from "react-icons/vsc";
 
 
 function moveUp(array, index, pos = 1) {
     if (index <= 0 && pos > 0) return array;
-    if (index == array.length - 1 && pos < 0) return array;
+    if (index === array.length - 1 && pos < 0) return array;
 
     const newArray = [...array];
     [newArray[index - pos], newArray[index]] = [newArray[index], newArray[index - pos]];
@@ -42,8 +42,12 @@ const NewInput = props => {
                         ...inputType,
                         DROPDOWN: props.blockPart.value
                     })
+                    break;
+                default:
+                    break;
             }
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
 
@@ -326,6 +330,7 @@ const NewBlock = props => {
 
     useEffect(() => {
         updateSVG();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [blockType, blockPart]);
 
     useEffect(() => {
@@ -488,6 +493,7 @@ const NewBlock = props => {
             document.body.style.userSelect = '';
             setDragPreviewItem(null);
         };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [dragIndex]);
 
     const handlePartsScroll = () => {

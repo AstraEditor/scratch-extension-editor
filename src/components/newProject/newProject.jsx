@@ -3,7 +3,6 @@ import {
     init,
     returnValue,
     setValueTo,
-    getAllValue
 } from '../../extension/storage';
 import { spawnExtID } from '../../extension/check';
 import { useTranslation } from '../../i18n';

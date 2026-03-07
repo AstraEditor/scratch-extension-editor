@@ -8,7 +8,7 @@ import InputPart from './InputPart';
 import { BlockType, InputType, renderBlockToHTML } from '../../lib/blockSvgRenderer.js';
 import { getAllValue, setValueTo, returnValue } from '../../extension/storage.js';
 import { useTranslation, BLOCK_TYPE_ID } from '../../i18n';
-import { VscSettingsGear, VscEdit, VscClose, VscWarning } from "react-icons/vsc";
+import { VscSettingsGear, VscEdit, VscClose } from "react-icons/vsc";
 import Tip from '../tip/tip.jsx';
 import VMAPI from './vm-api.js';
 import VMAPI_CN from './vm-api-cn.js';
@@ -63,7 +63,8 @@ const Editor = () => {
     const [isCreatingBlock, setCreatBlock] = useState(false);
     const [isSaveBlock, setSaveBlock] = useState(false);
     const [editingIndex, setEditingIndex] = useState(null);
-    const [blockVersion, setBlockVersion] = useState(0);
+    // eslint-disable-next-line no-unused-vars
+    const [_blockVersion, setBlockVersion] = useState(0);
     const [isEditingBlock, setEditingBlock] = useState(null);
     const [editingBlockName, setEditingBlockName] = useState(null);  // 当前编辑的 block 名称
     const [blockCode, setBlockCode] = useState('');  // Monaco 中的代码
@@ -282,6 +283,7 @@ const Editor = () => {
         if (isEditingBlock && isMonacoMounted && monacoApiRef.current) {
             injectInputDefinitions(monacoApiRef.current, isEditingBlock);
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isEditingBlock, isMonacoMounted]);
 
     // 当 blockCode 变化时更新高亮（处理初始加载的情况）
@@ -294,6 +296,7 @@ const Editor = () => {
                 });
             }
         }, [100])
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [blockCode, isMonacoMounted]);
 
     const handleSaveBlock = (blockName, blockData) => {

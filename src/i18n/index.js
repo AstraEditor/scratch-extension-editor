@@ -214,4 +214,5 @@ export const getAllTranslations = () => {
     return translations[lang] || {};
 };
 
-export default { t, getCurrentLanguage, setLanguage, SUPPORTED_LANGUAGES, useTranslation, BLOCK_TYPE_ID };
+const i18n = { t, getCurrentLanguage, setLanguage, SUPPORTED_LANGUAGES, useTranslation, BLOCK_TYPE_ID };
+export default i18n;
