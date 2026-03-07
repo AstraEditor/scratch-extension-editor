@@ -11,3 +11,16 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+/* Scratch Input 变量高亮样式 */
+.scratch-input-highlight {
+  background-color: rgba(79, 195, 247, 0.15);
+  border-radius: 3px;
+  cursor: help;
+}
+
+.scratch-input-inline {
+  color: #4fc3f7 !important;
+  font-weight: 500;
+  text-shadow: 0 0 8px rgba(79, 195, 247, 0.3);
+}

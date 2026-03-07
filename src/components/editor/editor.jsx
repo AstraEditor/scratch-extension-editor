@@ -5,10 +5,11 @@ import NewBlock from '../newBlock/newBlock';
 import OutputProject from '../outputProject/outputProject.jsx';
 import MonacoSettingsModal from './monacoSettingsModal.jsx';
 import InputPart from './InputPart';
-import { InputType, renderBlockToHTML } from '../../lib/blockSvgRenderer.js';
+import { BlockType, InputType, renderBlockToHTML } from '../../lib/blockSvgRenderer.js';
 import { getAllValue, setValueTo, returnValue } from '../../extension/storage.js';
 import { useTranslation, BLOCK_TYPE_ID } from '../../i18n';
-import { VscSettingsGear, VscEdit, VscClose } from "react-icons/vsc";
+import { VscSettingsGear, VscEdit, VscClose, VscWarning } from "react-icons/vsc";
+import Tip from '../tip/tip.jsx';
 import {
     VSCODE_DARK_PLUS,
     DEFAULT_MONACO_CONFIG,
@@ -67,6 +68,10 @@ const Editor = () => {
     // 输入框高亮状态
     const [highlightedInput, setHighlightedInput] = useState(null);
     const previewRef = useRef(null);
+
+    // Input ID 列表用于语法高亮
+    const inputIdsRef = useRef([]);
+    const decorationsRef = useRef([]);
 
     // 展开状态
     const [isHideIndex, setHideIndex] = useState(null);
@@ -141,11 +146,15 @@ const Editor = () => {
 
         // 收集所有 input 并生成类型定义
         const inputDefs = [];
+        const inputIds = [];  // 收集所有 input ID 用于高亮
         let inputIdx = 0;
         block.parts.forEach(part => {
             if (typeof part === 'object' && part !== null) {
                 const inputId = part.id || `input_${inputIdx}`;
                 const inputType = part.inputType;
+
+                // 收集 ID 用于语法高亮
+                inputIds.push(inputId);
 
                 // 根据类型生成不同的类型定义
                 let typeStr = 'any';
@@ -168,11 +177,66 @@ const Editor = () => {
             }
         });
 
+        // 保存 input IDs 用于装饰器
+        inputIdsRef.current = inputIds;
+
         // 注入全局变量定义
         if (inputDefs.length > 0) {
             const dts = inputDefs.join('\n');
-            console.log(dts)
             monaco.languages.typescript.javascriptDefaults.addExtraLib(dts, 'inputs.d.ts');
+        }
+
+        // 注册自定义颜色提供器，为 input 变量添加高亮
+        registerInputHighlight(monaco, inputIds);
+    };
+
+    // 注册 input 变量的自定义高亮
+    const registerInputHighlight = (monaco, inputIds) => {
+        if (!editorRef.current || inputIds.length === 0) return;
+
+        const editor = editorRef.current;
+        const model = editor.getModel();
+        if (!model) return;
+
+        // 创建装饰器：为所有 input 变量添加高亮
+        const decorations = [];
+        const text = model.getValue();
+
+        // 为每个 input ID 找到所有出现的位置并添加装饰
+        inputIds.forEach(inputId => {
+            // 使用正则匹配变量名（单词边界）
+            const regex = new RegExp(`\\b${inputId}\\b`, 'g');
+            let match;
+            while ((match = regex.exec(text)) !== null) {
+                const startPos = model.getPositionAt(match.index);
+                const endPos = model.getPositionAt(match.index + match[0].length);
+
+                decorations.push({
+                    range: new monaco.Range(
+                        startPos.lineNumber,
+                        startPos.column,
+                        endPos.lineNumber,
+                        endPos.column
+                    ),
+                    options: {
+                        className: 'scratch-input-highlight',
+                        inlineClassName: 'scratch-input-inline',
+                        hoverMessage: { value: `**Scratch Input**: ${inputId}` },
+                        color: '#4fc3f7',  // 青色
+                        inlineClassNameAffectsLetterSpacing: true,
+                    }
+                });
+            }
+        });
+
+        // 应用装饰器
+        decorationsRef.current = editor.deltaDecorations(decorationsRef.current, decorations);
+    };
+
+    // 更新装饰器（内容变化时）
+    const updateDecorations = () => {
+        if (monacoApiRef.current && editorRef.current && inputIdsRef.current.length > 0) {
+            registerInputHighlight(monacoApiRef.current, inputIdsRef.current);
         }
     };
 
@@ -220,6 +284,8 @@ const Editor = () => {
     // Monaco 内容变化时更新状态和存储
     const handleCodeChange = (value) => {
         setBlockCode(value);
+        // 更新装饰器高亮
+        updateDecorations();
         // 自动保存（防抖可以后续添加）
         if (editingBlockName) {
             const blocks = returnValue("blocks");
@@ -250,10 +316,33 @@ const Editor = () => {
         setBlockVersion(v => v + 1);
     };
 
+    // 在光标位置插入文本
+    const handleInsertAtCursor = (text) => {
+        if (!editorRef.current) return;
+
+        const editor = editorRef.current;
+        const position = editor.getPosition();  // 获取当前光标位置
+
+        // 使用 executeEdits 在光标位置插入文本
+        editor.executeEdits('insert-input', [{
+            range: new monacoApiRef.current.Range(
+                position.lineNumber,
+                position.column,
+                position.lineNumber,
+                position.column
+            ),
+            text: text,
+            forceMoveMarkers: true
+        }]);
+
+        // 让编辑器获得焦点
+        editor.focus();
+    };
+
     // 更新 input 的 ID
     const handleUpdateInputId = (inputIndex, newId) => {
         if (!editingBlockName || !isEditingBlock) return;
-        
+
         const blocks = returnValue("blocks");
         const block = blocks[editingBlockName];
         if (!block || !block.parts) return;
@@ -274,7 +363,7 @@ const Editor = () => {
         // 更新存储和状态
         blocks[editingBlockName] = { ...block, parts: newParts };
         setValueTo("blocks", blocks);
-        
+
         // 更新当前编辑状态
         setEditingBlock({ ...isEditingBlock, parts: newParts });
     };
@@ -295,6 +384,7 @@ const Editor = () => {
                     isHideIndex={isHideIndex}
                     setHide={setHideIndex}
                     onUpdateId={handleUpdateInputId}
+                    onInsert={handleInsertAtCursor}
                 />
             );
         });
@@ -381,13 +471,21 @@ const Editor = () => {
                         <span className={styles.FonudTip}>
                             {t("Type: ") + t(isEditingBlock.type)}
                         </span>
+                        {isEditingBlock.type === BlockType.HAT && (
+                            <Tip
+                                title={t("Hat block use different grammar.")}
+                            >
+                                <a href='https://docs.turbowarp.org/development/extensions/hats'>See https://docs.turbowarp.org/development/extensions/hats</a>
+                            </Tip>
+                        )}
                         <span className={styles.FonudTip}>
                             {t('Found ') + isEditingBlock.parts.filter(item => typeof item === 'object' && item !== null).length.toString() + t(" Input(s).")}
                         </span>
                         <div className={styles.sectionCard}>
                             {renderInputParts()}
                         </div>
-                        <button onClick={handleBack}>{t('Back')}</button>
+                        <div className={styles.DoneButtonDiv}><button className={styles.DoneButton} onClick={handleBack}>{t('Done')}</button></div>
+
                     </div>
                 )}
             </div>

@@ -1,10 +1,12 @@
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState, useRef } from "react";
 import { renderBlockToHTML } from "../../lib/blockSvgRenderer.js";
 import Modal from '../modal/modal'
 import styles from './newBlock.module.css'
 import { BlockType, InputType } from "../../lib/blockSvgRenderer.js";
 import { returnValue } from '../../extension/storage.js';
 import { useTranslation } from '../../i18n';
+import Tip from '../tip/tip.jsx';
+
 
 import { VscChevronUp, VscChevronDown, VscClose, VscWarning } from "react-icons/vsc";
 
@@ -18,14 +20,6 @@ function moveUp(array, index, pos = 1) {
     return newArray;
 }
 
-const Tip = props => {
-    return (
-        <div class={styles.Tip}>
-            <VscWarning />
-            <span>{props.title}</span>
-        </div>
-    )
-}
 
 const NewInput = props => {
     const { t } = useTranslation();
@@ -282,6 +276,26 @@ const NewBlock = props => {
     const [isEditingBlock, setEditingBlock] = useState(false);
     const canEditParts = true;
 
+    // 拖拽状态
+    const [dragIndex, setDragIndex] = useState(null);
+    const [insertIndex, setInsertIndex] = useState(null);
+    const [dragPreviewItem, setDragPreviewItem] = useState(null);
+    const [dragPreviewPosition, setDragPreviewPosition] = useState({ x: 0, y: 0 });
+    const domViewRef = useRef(null);
+    const scrollIntervalRef = useRef(null);
+    const dragPointerYRef = useRef(0);
+    const dragPointerOffsetRef = useRef({ x: 0, y: 0 });
+    const dragIndexRef = useRef(null);
+    const insertIndexRef = useRef(null);
+
+    useEffect(() => {
+        dragIndexRef.current = dragIndex;
+    }, [dragIndex]);
+
+    useEffect(() => {
+        insertIndexRef.current = insertIndex;
+    }, [insertIndex]);
+
     // 从 storage 获取颜色
     const getColors = () => ({
         primary: returnValue("comments").color[0],
@@ -354,6 +368,165 @@ const NewBlock = props => {
         setBlockPart(newPart);
     };
 
+    const clearAutoScroll = () => {
+        if (scrollIntervalRef.current) {
+            clearInterval(scrollIntervalRef.current);
+            scrollIntervalRef.current = null;
+        }
+    };
+
+    const getInsertIndexFromPointer = (clientY) => {
+        if (!domViewRef.current) return 0;
+        const rows = domViewRef.current.querySelectorAll('[data-part-row="true"]');
+        for (let i = 0; i < rows.length; i += 1) {
+            const rect = rows[i].getBoundingClientRect();
+            const middleY = rect.top + rect.height / 2;
+            if (clientY < middleY) return i;
+        }
+        return rows.length;
+    };
+
+    // 自动滚动逻辑
+    const autoScroll = (clientY) => {
+        if (!domViewRef.current) return;
+        const container = domViewRef.current;
+        const rect = container.getBoundingClientRect();
+        const scrollZone = 50; // 触发滚动的边缘区域大小
+        const scrollSpeed = 8; // 滚动速度
+
+        clearAutoScroll();
+
+        // 检查是否在顶部边缘
+        if (clientY < rect.top + scrollZone && clientY > rect.top) {
+            scrollIntervalRef.current = setInterval(() => {
+                container.scrollTop -= scrollSpeed;
+                setInsertIndex(getInsertIndexFromPointer(dragPointerYRef.current));
+            }, 16);
+        }
+        // 检查是否在底部边缘
+        else if (clientY > rect.bottom - scrollZone && clientY < rect.bottom) {
+            scrollIntervalRef.current = setInterval(() => {
+                container.scrollTop += scrollSpeed;
+                setInsertIndex(getInsertIndexFromPointer(dragPointerYRef.current));
+            }, 16);
+        }
+    };
+
+    const finishDrag = () => {
+        clearAutoScroll();
+        document.body.style.userSelect = '';
+        const currentDragIndex = dragIndexRef.current;
+        const currentInsertIndex = insertIndexRef.current;
+        setDragPreviewItem(null);
+        if (currentDragIndex === null || currentInsertIndex === null || currentInsertIndex === undefined) {
+            setDragIndex(null);
+            setInsertIndex(null);
+            return;
+        }
+
+        setBlockPart((prevParts) => {
+            if (currentDragIndex < 0 || currentDragIndex >= prevParts.length) {
+                return prevParts;
+            }
+            const newPart = [...prevParts];
+            const [draggedItem] = newPart.splice(currentDragIndex, 1);
+            let targetIndex = currentInsertIndex;
+            if (currentInsertIndex > currentDragIndex) {
+                targetIndex -= 1;
+            }
+            const safeTargetIndex = Math.max(0, Math.min(targetIndex, newPart.length));
+            newPart.splice(safeTargetIndex, 0, draggedItem);
+            return newPart;
+        });
+        setDragIndex(null);
+        setInsertIndex(null);
+    };
+
+    const handlePartMouseDown = (e, index) => {
+        if (e.button !== 0) return;
+        if (e.target.closest('button, input, select, textarea, label')) return;
+        e.preventDefault();
+        const rowRect = e.currentTarget.getBoundingClientRect();
+        dragPointerOffsetRef.current = {
+            x: e.clientX - rowRect.left,
+            y: e.clientY - rowRect.top
+        };
+        dragPointerYRef.current = e.clientY;
+        setDragPreviewPosition({
+            x: e.clientX - dragPointerOffsetRef.current.x,
+            y: e.clientY - dragPointerOffsetRef.current.y
+        });
+        setDragPreviewItem(blockPart[index]);
+        setDragIndex(index);
+        setInsertIndex(index);
+    };
+
+    useEffect(() => {
+        if (dragIndex === null) return;
+        document.body.style.userSelect = 'none';
+
+        const handleMouseMove = (e) => {
+            dragPointerYRef.current = e.clientY;
+            setDragPreviewPosition({
+                x: e.clientX - dragPointerOffsetRef.current.x,
+                y: e.clientY - dragPointerOffsetRef.current.y
+            });
+            setInsertIndex(getInsertIndexFromPointer(e.clientY));
+            autoScroll(e.clientY);
+        };
+
+        const handleMouseUp = () => {
+            finishDrag();
+        };
+
+        window.addEventListener('mousemove', handleMouseMove);
+        window.addEventListener('mouseup', handleMouseUp);
+
+        return () => {
+            window.removeEventListener('mousemove', handleMouseMove);
+            window.removeEventListener('mouseup', handleMouseUp);
+            clearAutoScroll();
+            document.body.style.userSelect = '';
+            setDragPreviewItem(null);
+        };
+    }, [dragIndex]);
+
+    const handlePartsScroll = () => {
+        if (dragIndexRef.current === null) return;
+        setInsertIndex(getInsertIndexFromPointer(dragPointerYRef.current));
+    };
+
+    const renderDropGap = (gapIndex) => (
+        <div
+            className={`${styles.dropGap} ${styles.dropGapVisible} ${insertIndex === gapIndex ? styles.dropGapActive : ''}`}
+        >
+            <div className={styles.dropGapLine} />
+        </div>
+    );
+
+    const renderPartSummary = (item) => {
+        if (typeof item === "object") {
+            return (
+                <code className={styles.partCode}>
+                    {getTypeName(item.inputType)}{item.inputType !== BlockType.BOOLEAN && ":"} {Array.isArray(item.value) ? (item.value[0] + '...') : item.value}
+                </code>
+            );
+        }
+        if (item === "_NextBrach_") {
+            return <code className={styles.partCode}>New Brach</code>;
+        }
+        return <code className={styles.partCode}>{item}</code>;
+    };
+
+    const addBrach = () => {
+        setBlockPart(
+            [
+                ...blockPart,
+                "_NextBrach_"
+            ]
+        )
+    }
+
     const getTypeName = value => {
         switch (value) {
             case "textNumber":
@@ -382,164 +555,213 @@ const NewBlock = props => {
                 width="75%"
             >
                 {activeTab === 'create' && (
-                    <div className={styles.newBlock}>
-                        <div className={styles.blockArea}>
-                            <div className={styles.sectionCard}>
-                                <div className={styles.sectionTitle}>{t('Block Preview')}</div>
-                                <div className={styles.svgView}>
-                                    <div className={styles.previewOpcode}>{blockName}</div>
-                                    <div dangerouslySetInnerHTML={{ __html: svgHTML }} />
-                                </div>
-                            </div>
-
-                            <div className={styles.sectionCard}>
-                                <div className={styles.formRow}>
-                                    <label className={styles.formLabel}>{t('ID')}</label>
-                                    <input
-                                        type="text"
-                                        value={blockName}
-                                        onChange={e => {
-                                            // 只允许 a-z A-Z 字符
-                                            const value = e.target.value.replace(/[^a-zA-Z]/g, '');
-                                            setBlockName(value);
-                                        }}
-                                        placeholder={t('Enter ID (a-z, A-Z only)')}
-                                    />
-                                </div>
-
-                                <div className={styles.formRow}>
-                                    <label className={styles.formLabel}>{t('Block Type')}</label>
-                                    <select
-                                        value={blockType}
-                                        onChange={e => {
-                                            setBlocktype(e.target.value);
-                                        }}
-                                    >
-                                        <option value={BlockType.STACK}>{t('stack')}</option>
-                                        <option value={BlockType.HAT}>{t('hat')}</option>
-                                        <option value={BlockType.ROUND}>{t('repoter')}</option>
-                                        <option value={BlockType.BOOLEAN}>{t('boolean')}</option>
-                                        <option value={BlockType.C_BLOCK}>{t('C block')}</option>
-                                    </select>
-                                </div>
-
-                                <div className={styles.actionsRow}>
-                                    {canEditParts && (
-                                        <>
-                                            <button onClick={() => {
-                                                setBlockPart(
-                                                    [
-                                                        ...blockPart,
-                                                        "Text"
-                                                    ]
-                                                )
-                                            }}>
-                                                {returnValue("comments").translate ? "Add Text Translate ID" : t('Add Text')}
-                                            </button>
-                                            <button onClick={() => {
-                                                setEditingBlock(false);
-                                                setActiveTab("add_input")
-                                            }}>
-                                                {t('Add Input')}
-                                            </button>
-                                        </>
-                                    )}
-                                    <button onClick={() => {
-                                        saveBlock()
-                                    }}>
-                                        {t('Save Block')}
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        <div className={styles.domView}>
-                            <div className={styles.sectionCard}>
-                                <div className={styles.sectionTitle}>{t('Block Parts')}</div>
-                                {blockPart.length === 0 ? (
-                                    <div className={styles.emptyParts}>{t('No parts yet. Add text or input to start building.')}</div>
-                                ) : (
-                                    <div className={styles.partsList}>
-                                        {blockPart.map((item, index) => (
-                                            <div className={styles.partRow} key={`${typeof item}-${index}`}>
-                                                <div className={styles.partIndex}>#{index + 1}</div>
-                                                <div className={styles.partContent}>
-                                                    {typeof item === "object" ? (
-                                                        <code className={styles.partCode}>
-                                                            {getTypeName(item.inputType)}{item.inputType !== BlockType.BOOLEAN && ":"} {Array.isArray(item.value) ? (item.value[0] + '...') : item.value}
-                                                        </code>
-                                                    ) : (
-                                                        <input
-                                                            type="text"
-                                                            value={item}
-                                                            onChange={e => {
-                                                                updateTextPart(index, e.target.value)
-                                                            }}
-                                                        />
-                                                    )}
-                                                </div>
-                                                <div className={styles.partActions}>
-                                                    <button onClick={() => {
-                                                        setBlockPart(moveUp(blockPart, index))
-                                                    }}><VscChevronUp /></button>
-                                                    <button onClick={() => {
-                                                        setBlockPart(moveUp(blockPart, index, -1))
-                                                    }}><VscChevronDown /></button>
-                                                    <button onClick={() => {
-                                                        setBlockPart(moveUp(blockPart, index, index))
-                                                    }}>{t('move to top')}</button>
-                                                    <button onClick={() => {
-                                                        removePart(index)
-                                                    }}>{t('Remove')}</button>
-                                                    {typeof item !== "string" && (
-                                                        <button onClick={() => {
-                                                            setEditingBlock(true)
-                                                            setEditBlockIndex(index);
-                                                            setActiveTab("add_input")
-                                                        }}>{t('Modify')}</button>
-                                                    )}
-
-                                                </div>
-                                            </div>
-                                        ))}
+                    <>
+                        <div className={styles.newBlock}>
+                            <div className={styles.blockArea}>
+                                <div className={styles.sectionCard}>
+                                    <div className={styles.sectionTitle}>{t('Block Preview')}</div>
+                                    <div className={styles.svgView}>
+                                        <div className={styles.previewOpcode}>{blockName}</div>
+                                        <div dangerouslySetInnerHTML={{ __html: svgHTML }} />
                                     </div>
-                                )}
+                                </div>
+
+                                <div className={styles.sectionCard}>
+                                    <div className={styles.formRow}>
+                                        <label className={styles.formLabel}>{t('ID')}</label>
+                                        <input
+                                            type="text"
+                                            value={blockName}
+                                            onChange={e => {
+                                                // 只允许 a-z A-Z 字符
+                                                const value = e.target.value.replace(/[^a-zA-Z]/g, '');
+                                                setBlockName(value);
+                                            }}
+                                            placeholder={t('Enter ID (a-z, A-Z only)')}
+                                        />
+                                    </div>
+
+                                    <div className={styles.formRow}>
+                                        <label className={styles.formLabel}>{t('Block Type')}</label>
+                                        <select
+                                            value={blockType}
+                                            onChange={e => {
+                                                setBlocktype(e.target.value);
+                                            }}
+                                        >
+                                            <option value={BlockType.STACK}>{t('stack')}</option>
+                                            <option value={BlockType.HAT}>{t('hat')}</option>
+                                            <option value={BlockType.EVENT}>{t('event')}</option>
+                                            <option value={BlockType.ROUND}>{t('repoter')}</option>
+                                            <option value={BlockType.BOOLEAN}>{t('boolean')}</option>
+                                            <option value={BlockType.C_BLOCK}>{t('C block')}</option>
+                                        </select>
+                                    </div>
+
+                                    <div className={styles.actionsRow}>
+                                        {canEditParts && (
+                                            <>
+                                                <button onClick={() => {
+                                                    setBlockPart(
+                                                        [
+                                                            ...blockPart,
+                                                            "Text"
+                                                        ]
+                                                    )
+                                                }}>
+                                                    {returnValue("comments").translate ? "Add Text Translate ID" : t('Add Text')}
+                                                </button>
+                                                <button onClick={() => {
+                                                    setEditingBlock(false);
+                                                    setActiveTab("add_input")
+                                                }}>
+                                                    {t('Add Input')}
+                                                </button>
+                                            </>
+                                        )}
+                                        {(blockType === BlockType.C_BLOCK || blockType === BlockType.C_BLOCK_END) && (
+                                            <button onClick={() => {
+                                                addBrach()
+                                            }}>
+                                                {t('Add Brach')}
+                                            </button>
+                                        )}
+                                        <button onClick={() => {
+                                            saveBlock()
+                                        }}>
+                                            {t('Save Block')}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className={styles.domView} ref={domViewRef} onScroll={handlePartsScroll}>
+                                <div className={styles.sectionCard}>
+                                    <div className={styles.sectionTitle}>{t('Block Parts')}</div>
+                                    {blockPart.length === 0 ? (
+                                        <div className={styles.emptyParts}>{t('No parts yet. Add text or input to start building.')}</div>
+                                    ) : (
+                                        <div className={styles.partsList}>
+                                            {renderDropGap(0)}
+                                            {blockPart.map((item, index) => (
+                                                <Fragment key={`${typeof item}-${index}`}>
+                                                    <div
+                                                        className={`${styles.partRow} ${dragIndex === index ? styles.dragging : ''}`}
+                                                        data-part-row="true"
+                                                        onMouseDown={(e) => handlePartMouseDown(e, index)}
+                                                    >
+                                                        <div className={styles.partIndex}>#{index + 1}</div>
+                                                        <div className={styles.partContent}>
+                                                            {typeof item === "object" ? (
+                                                                <code className={styles.partCode}>
+                                                                    {getTypeName(item.inputType)}{item.inputType !== BlockType.BOOLEAN && ":"} {Array.isArray(item.value) ? (item.value[0] + '...') : item.value}
+                                                                </code>
+                                                            ) : (
+                                                                item === "_NextBrach_" ? (
+                                                                    <>
+                                                                        <code className={styles.partCode}>
+                                                                            New Brach
+                                                                        </code>
+                                                                        {!(blockType === BlockType.C_BLOCK || blockType === BlockType.C_BLOCK_END) && (
+                                                                            <Tip
+                                                                                    title={t("This Block can't use New Brach.")}
+                                                                            />
+                                                                        )}
+                                                                    </>
+                                                                ) : (
+                                                                    <input
+                                                                        type="text"
+                                                                        value={item}
+                                                                        onChange={e => {
+                                                                            updateTextPart(index, e.target.value)
+                                                                        }}
+                                                                    />
+                                                                )
+                                                            )}
+                                                        </div>
+                                                        <div className={styles.partActions}>
+                                                            <button onClick={() => {
+                                                                setBlockPart(moveUp(blockPart, index))
+                                                            }}><VscChevronUp /></button>
+                                                            <button onClick={() => {
+                                                                setBlockPart(moveUp(blockPart, index, -1))
+                                                            }}><VscChevronDown /></button>
+                                                            <button onClick={() => {
+                                                                setBlockPart(moveUp(blockPart, index, index))
+                                                            }}>{t('move to top')}</button>
+                                                            <button onClick={() => {
+                                                                removePart(index)
+                                                            }}>{t('Remove')}</button>
+                                                            {typeof item !== "string" && (
+                                                                <button onClick={() => {
+                                                                    setEditingBlock(true)
+                                                                    setEditBlockIndex(index);
+                                                                    setActiveTab("add_input")
+                                                                }}>{t('Modify')}</button>
+                                                            )}
+
+                                                        </div>
+                                                    </div>
+                                                    {renderDropGap(index + 1)}
+                                                </Fragment>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         </div>
-                    </div>
-                )}
-                {activeTab === 'add_input' && (
-                    <NewInput
-                        back={() => {
-                            setEditBlockIndex(0);
-                            setEditingBlock(false);
-                            setActiveTab("create");
-                            updateSVG()
-                        }}
-                        done={(input) => {
-                            if (isEditingBlock) {
-                                const BlockPart = blockPart;
-                                blockPart[EditBlockIndex] = input;
-                                setBlockPart(BlockPart)
-                            } else {
-                                setBlockPart(
-                                    [
-                                        ...blockPart,
-                                        input
-                                    ]
-                                )
-                            }
-                            setEditBlockIndex(0);
-                            setEditingBlock(false);
-                            setActiveTab("create");
-                            updateSVG()
-                        }}
-                        isEditingBlock={isEditingBlock}
-                        blockPart={blockPart[EditBlockIndex]}
-                    />
-                )}
+                        {dragIndex !== null && dragPreviewItem !== null && (
+                            <div
+                                className={styles.dragPreview}
+                                style={{
+                                    transform: `translate(${dragPreviewPosition.x}px, ${dragPreviewPosition.y}px)`
+                                }}
+                            >
+                                <div className={`${styles.partRow} ${styles.dragPreviewCard}`}>
+                                    <div className={styles.partIndex}>#{dragIndex + 1}</div>
+                                    <div className={styles.partContent}>
+                                        {renderPartSummary(dragPreviewItem)}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </>
+                )
+                }
+                {
+                    activeTab === 'add_input' && (
+                        <NewInput
+                            back={() => {
+                                setEditBlockIndex(0);
+                                setEditingBlock(false);
+                                setActiveTab("create");
+                                updateSVG()
+                            }}
+                            done={(input) => {
+                                if (isEditingBlock) {
+                                    const BlockPart = blockPart;
+                                    blockPart[EditBlockIndex] = input;
+                                    setBlockPart(BlockPart)
+                                } else {
+                                    setBlockPart(
+                                        [
+                                            ...blockPart,
+                                            input
+                                        ]
+                                    )
+                                }
+                                setEditBlockIndex(0);
+                                setEditingBlock(false);
+                                setActiveTab("create");
+                                updateSVG()
+                            }}
+                            isEditingBlock={isEditingBlock}
+                            blockPart={blockPart[EditBlockIndex]}
+                        />
+                    )
+                }
 
-            </Modal>
-        </div>
+            </Modal >
+        </div >
     )
 }
 

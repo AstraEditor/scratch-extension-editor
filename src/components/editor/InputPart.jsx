@@ -3,10 +3,10 @@
  */
 import { useState, useEffect } from 'react';
 import { useTranslation, BLOCK_TYPE_ID } from '../../i18n';
-import { VscEye, VscChevronUp } from "react-icons/vsc";
+import { VscEye, VscChevronUp, VscInsert } from "react-icons/vsc";
 import styles from './editor.module.css';
 
-const InputPart = ({ part, index, onHighlight, onClearHighlight, isHideIndex, setHide, onUpdateId }) => {
+const InputPart = ({ part, index, onHighlight, onClearHighlight, isHideIndex, setHide, onUpdateId, onInsert }) => {
     const { t } = useTranslation();
     const defaultId = `input_${index}`;
     const [inputId, setInputId] = useState(part.id || defaultId);
@@ -32,6 +32,13 @@ const InputPart = ({ part, index, onHighlight, onClearHighlight, isHideIndex, se
         }
     };
 
+    // 插入变量到光标位置
+    const handleInsert = () => {
+        if (onInsert) {
+            onInsert(part.id || defaultId);
+        }
+    };
+
     return (
         <div className={styles.part}>
             {typeof part === 'object' && (
@@ -43,6 +50,14 @@ const InputPart = ({ part, index, onHighlight, onClearHighlight, isHideIndex, se
                             <small style={{ marginLeft: '8px', opacity: 0.6 }}>({part.id || defaultId})</small>
                         </div>
                         <div className={styles.valuePartSettings}>
+                            <div
+                                onClick={handleInsert}
+                                style={{ cursor: 'pointer' }}
+                                title={t("Insert")}
+                                className={styles.valuePartButtons}
+                            >
+                                <VscInsert />
+                            </div>
                             <div
                                 onMouseEnter={onHighlight}
                                 onMouseLeave={onClearHighlight}

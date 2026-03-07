@@ -9,6 +9,7 @@ const Type = {
     Blocks: {
         Command: "Scratch.BlockType.COMMAND",
         Hat: "Scratch.BlockType.HAT",
+        Event: "Scratch.BlockType.EVENT",
         Boolean: "Scratch.BlockType.BOOLEAN",
         Report: "Scratch.BlockType.REPORTER",
         Branches: "Scratch.BlockType.CONDITIONAL"
@@ -50,6 +51,9 @@ export async function spawnExtension() {
             case BlockType.HAT:
                 blockType = Type.Blocks.Hat;
                 break
+            case BlockType.EVENT:
+                blockType = Type.Blocks.Event;
+                break
             case BlockType.BOOLEAN:
                 blockType = Type.Blocks.Boolean;
                 break
@@ -57,6 +61,7 @@ export async function spawnExtension() {
                 blockType = Type.Blocks.Report;
                 break
             case BlockType.C_BLOCK:
+            case BlockType.C_BLOCK_END:
                 blockType = Type.Blocks.Branches;
                 isCondition = true;
                 break
@@ -64,19 +69,33 @@ export async function spawnExtension() {
                 blockType = Type.Blocks.Command;
                 break
         }
-
-        let blockText = "";
+        // 加入的文本
+        let blockText;
+        if (isCondition) {
+            blockText = [""];
+        } else {
+            blockText = "";
+        }
         let blockValue = {};
-                    let indexOfinput = 0;
+        let indexOfinput = 0;
+        let brachCount = 1;
 
-        data.parts.forEach((data, index) => {
+        data.parts.forEach(data => {
             let inputID = data.id || `input_${indexOfinput}`;
             if (typeof data === "string") {
-                blockText += data;
+                // 下一个分支
+                if (data === "_NextBrach_") {
+                    brachCount += 1;
+                    if (isCondition) blockText.push(""); //防止哪个人给不是分支加这个导致爆炸
+                } else {
+                    if (isCondition) blockText[blockText.length - 1] += data;
+                    else blockText += data;
+                }
             }
             if (typeof data === "object") {
                 indexOfinput += 1;
-                blockText += `[${inputID}]`;
+                if (isCondition) blockText[blockText.length - 1] += `[${inputID}]`;
+                else blockText += `[${inputID}]`;
                 let argument = {};
                 let menu;
                 switch (data.inputType) {
@@ -128,7 +147,7 @@ export async function spawnExtension() {
             }
         })
         if (isCondition) { //是否是分支
-            return { opcode: id, blockType, text: blockText, arguments: blockValue }
+            return { opcode: id, blockType, branchCount: brachCount.toString(), text: blockText, arguments: blockValue }
         } else {
             return { opcode: id, blockType, text: blockText, arguments: blockValue }
         }
@@ -147,16 +166,21 @@ export async function spawnExtension() {
         const final = [];
         Blocks.forEach((blk, index) => {
             const id = Object.keys(Extension.blocks)[index]
-            final.push(`${id} (args) {`)
-            let indexOfInput = 0;
-            blk.parts.forEach(blkPart => {
-                if (typeof blkPart === 'object') {
-                    final.push(`const ${blkPart.id || `input_${indexOfInput}`} = args.${blkPart.id || `input_${indexOfInput}`};`)
-                    indexOfInput += 1;
-                }
-            })
-            final.push(blk.code)
-            final.push(`}`)
+            if (blk.type === BlockType.HAT) {
+                // 帽子积木的生成不同，参考 https://docs.turbowarp.org/development/extensions/hats
+            } else {
+                final.push(`${id} (args) {`)
+                let indexOfInput = 0;
+                blk.parts.forEach(blkPart => {
+                    if (typeof blkPart === 'object') {
+                        final.push(`const ${blkPart.id || `input_${indexOfInput}`} = args.${blkPart.id || `input_${indexOfInput}`};`)
+                        indexOfInput += 1;
+                    }
+                })
+                final.push(blk.code)
+                final.push(`}`)
+            }
+            console.log()
         })
         return final
     }
@@ -171,6 +195,9 @@ export async function spawnExtension() {
 
 (function(Scratch) {
     "use strict";
+    if (!Scratch.extensions.unsandboxed) {
+        throw new Error("${Extension.comments.name} must be run unsandboxed");
+    }
     class ${Extension.comments.id} {
         constructor(runtime){
             this.runtime = runtime;

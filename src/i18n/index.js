@@ -114,7 +114,8 @@ const translations = {
         'Invalid Block ID!': '积木ID无效!',
         'Block Parts': '积木内容',
         'No parts yet. Add text or input to start building.': '还没有内容，先添加文本或输入。',
-        'If the Addon is not enabled, the background of text and numbers will be consistent in AstraEditor.':"如果没有启用插件，文字和数字的背景在 AstraEditor 是一样的",
+        'If the Addon is not enabled, the background of text and numbers will be consistent in AstraEditor.': "如果没有启用插件，文字和数字的背景在 AstraEditor 是一样的",
+        "This Block can't use New Brach.":"这个积木无法使用新分支",
 
         // NewInput
         'Add input': '添加输入',
@@ -126,10 +127,10 @@ const translations = {
         'Dropdown': '下拉框',
         'Boolean': '布尔值',
         'Default Input': '默认输入',
-        'read only': '接受子积木',
+        'read only': '不接受子积木',
         'Options': '选项',
         'Default Option': "默认选项",
-        "Dropdown Readonly":"接受子积木的下拉框",
+        "Dropdown Readonly":"不接受子积木的下拉框",
 
         // Output Project
         'Output Project': '输出项目',
@@ -141,10 +142,11 @@ const translations = {
         'repoter': '返回值积木',
         'boolean': '布尔积木',
         'C block': 'C型积木',
+        "event":"事件积木",
 
         // NewBlock additional
         'Text or Number': '文字或数字',
-        'Read Only Dropdown': '接受子积木的下拉框',
+        'Read Only Dropdown': '不接受子积木的下拉框',
 
         // Common
         'Remove': '删除',

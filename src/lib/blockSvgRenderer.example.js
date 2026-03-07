@@ -3,7 +3,7 @@
  * 演示如何通过JSON数据生成Scratch积木SVG
  */
 
-import { renderBlock, svgToString, BlockType, InputType, MIN_BLOCK_Y } from "./blockSvgRenderer.js";
+import { renderBlock, svgToString, BlockType, InputType, MIN_BLOCK_Y, NEXT_BRANCH_MARKER } from "./blockSvgRenderer.js";
 
 // ============== 示例数据 ==============
 
@@ -290,6 +290,73 @@ const tallCBlock = {
   branchHeight: MIN_BLOCK_Y * 2,  // 分支高度 = 2个块高度 (96)
 };
 
+// ============== 使用 NEXT_BRANCH_MARKER 的示例 ==============
+
+// 导入 NEXT_BRANCH_MARKER 常量
+// import { NEXT_BRANCH_MARKER } from "./blockSvgRenderer.js";
+
+// 示例15: 使用 _NextBrach_ 分隔符的双分支C型积木
+// 分隔符后面的内容会自动分配到对应的分支分隔行
+const ifElseAutoBlock = {
+  type: BlockType.C_BLOCK,
+  colors: {
+    primary: "#FFAB19",
+    secondary: "#EC9C13",
+    tertiary: "#CF8B17",
+  },
+  parts: [
+    "if ",
+    { inputType: InputType.BOOLEAN, value: "" },
+    " then",
+    "_NextBrach_",      // 分隔符：之后的内容会显示在第二个分支的分隔行
+    "else",
+  ],
+  // 不需要手动指定 branches 和 branchParts，会自动计算
+};
+
+// 示例16: 使用 _NextBrach_ 的三分支C型积木（带输入框）
+const multiBranchAutoBlock = {
+  type: BlockType.C_BLOCK,
+  colors: {
+    primary: "#9966FF",
+    secondary: "#855CD6",
+    tertiary: "#774DCB",
+  },
+  parts: [
+    "switch ",
+    { inputType: InputType.DROPDOWN, value: "value" },
+    "_NextBrach_",           // 第一个分隔符：之后的内容显示在第一个分支后的分隔行
+    "case ", { inputType: InputType.TEXT_NUMBER, value: "1" },
+    "_NextBrach_",           // 第二个分隔符：之后的内容显示在第二个分支后的分隔行
+    "default",
+  ],
+  // 自动计算：branches = 3（2个分隔符 + 1个基础分支）
+};
+
+// 示例17: 简单的 if-else-if 链
+const ifElseIfBlock = {
+  type: BlockType.C_BLOCK,
+  colors: {
+    primary: "#FFAB19",
+    secondary: "#EC9C13",
+    tertiary: "#CF8B17",
+  },
+  parts: [
+    "if ",
+    { inputType: InputType.BOOLEAN, value: "" },
+    " then",
+    "_NextBrach_",
+    "else if ",
+    { inputType: InputType.BOOLEAN, value: "" },
+    " then",
+    "_NextBrach_",
+    "else",
+  ],
+  // 自动生成：顶部行显示 "if <condition> then"
+  //          第一个分支后显示 "else if <condition> then"
+  //          第二个分支后显示 "else"
+};
+
 // ============== 使用方法 ==============
 
 // 方法1: 渲染到现有SVG容器
@@ -375,4 +442,8 @@ export {
   multiBranchBlock,
   foreverBlock,
   tallCBlock,
+  // 使用 NEXT_BRANCH_MARKER 的示例
+  ifElseAutoBlock,
+  multiBranchAutoBlock,
+  ifElseIfBlock,
 };

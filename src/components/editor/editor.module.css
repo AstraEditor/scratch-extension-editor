@@ -119,6 +119,7 @@
     display: flex;
     flex-direction: column;
     padding: 10px;
+    height: calc(100% - 20px);
 }
 
 .FonudTip {
@@ -147,7 +148,7 @@
     margin-bottom: 10px;
 }
 
-.valuePartTitle{
+.valuePartTitle {
     background-color: none;
     border: none;
     display: flex;
@@ -193,7 +194,7 @@
     padding-top: 10px;
 }
 
-.hr{
+.hr {
     opacity: 0.2;
 }
 
@@ -230,4 +231,30 @@
 
 .idInput::placeholder {
     color: #666;
+}
+
+.DoneButtonDiv {
+    height: 100%;
+    width: 100%;
+    display: flex;
+    flex-direction: column-reverse;
+}
+
+
+.Tip {
+    min-height: 30px;
+    width: calc(100% - 20px);
+    background-color: #cccc0055;
+    border-color: #ee0;
+    border-radius: 5px;
+    border-width: 1px;
+    border-style: solid;
+    color: #ee0;
+    padding: 10px;
+    gap: 10px;
+}
+.title{
+        display: flex;
+    justify-content: center;
+    align-items: center;
 }

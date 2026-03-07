@@ -171,6 +171,7 @@ function createSvgElement(tag, attrs = {}) {
 const BlockType = {
   STACK: "stack",
   HAT: "hat",
+  EVENT: "event",
   END: "end",
   ROUND: "round",
   BOOLEAN: "boolean",
@@ -188,6 +189,9 @@ const InputType = {
   DROPDOWN_READONLY: "dropdownReadOnly",  // 不可填入积木的下拉框
   VARIABLE: "variable",
 };
+
+// 分支分隔标记 - 用于 parts 数组中标记内容分配到不同分支
+const NEXT_BRANCH_MARKER = "_NextBrach_";
 
 function normalizeInputType(inputType) {
   if (!inputType) {
@@ -568,6 +572,59 @@ function getInputTextColor(inputType) {
   }
 }
 
+function normalizeInputValue(value) {
+  if (Array.isArray(value)) {
+    return value[0] || "";
+  }
+  if (value === null || value === undefined) {
+    return "";
+  }
+  return String(value);
+}
+
+function calculateInputWidth(inputType, value) {
+  const normalizedInputType = normalizeInputType(inputType);
+  const textValue = normalizeInputValue(value);
+  const textWidth = getTextWidth(textValue);
+
+  if (normalizedInputType === InputType.BOOLEAN) {
+    return getInputMinWidth(normalizedInputType);
+  }
+
+  if (
+    normalizedInputType === InputType.DROPDOWN ||
+    normalizedInputType === InputType.DROPDOWN_READONLY ||
+    normalizedInputType === InputType.VARIABLE
+  ) {
+    const arrowWidth = 12 + DROPDOWN_ARROW_PADDING;
+    const width = textWidth + EDITABLE_FIELD_PADDING + arrowWidth + 2 * BOX_FIELD_PADDING;
+    return Math.max(getInputMinWidth(normalizedInputType), width);
+  }
+
+  const width = textWidth + EDITABLE_FIELD_PADDING + 2 * BOX_FIELD_PADDING;
+  return Math.max(getInputMinWidth(normalizedInputType), width);
+}
+
+function calculatePartsWidth(parts = []) {
+  if (!parts || parts.length === 0) {
+    return 0;
+  }
+
+  let width = 0;
+  for (const part of parts) {
+    if (typeof part === "string") {
+      width += getTextWidth(part) + SEP_SPACE_X;
+      continue;
+    }
+
+    if (part && typeof part === "object") {
+      width += calculateInputWidth(part.inputType, part.value) + SEP_SPACE_X;
+    }
+  }
+
+  return width > 0 ? width - SEP_SPACE_X : 0;
+}
+
 // ============== 主渲染函数 ==============
 
 /**
@@ -576,7 +633,7 @@ function getInputTextColor(inputType) {
  * @param {Object} options - 渲染选项
  */
 function renderBlock(blockData, options = {}) {
-  const {
+  let {
     type = BlockType.STACK,
     parts = [],
     colors = DefaultColors,
@@ -592,6 +649,43 @@ function renderBlock(blockData, options = {}) {
   const { standalone = false } = options;
   const { primary, secondary, tertiary } = colors;
 
+  // 处理 NEXT_BRANCH_MARKER 分隔符
+  // 如果 parts 中包含 _NextBrach_，则自动分割内容到不同分支
+  let topParts = parts;
+  let autoBranchParts = [];
+  let hasAutoBranchSplit = false;
+
+  // 检测是否包含 NEXT_BRANCH_MARKER
+  const markerIndices = [];
+  for (let i = 0; i < parts.length; i++) {
+    if (parts[i] === NEXT_BRANCH_MARKER) {
+      markerIndices.push(i);
+    }
+  }
+
+  if (markerIndices.length > 0) {
+    hasAutoBranchSplit = true;
+    // 按 NEXT_BRANCH_MARKER 分割 parts
+    const splitParts = [];
+    let startIndex = 0;
+    for (const markerIndex of markerIndices) {
+      splitParts.push(parts.slice(startIndex, markerIndex));
+      startIndex = markerIndex + 1;
+    }
+    // 添加最后一部分
+    splitParts.push(parts.slice(startIndex));
+
+    // 第一部分是顶部行内容
+    topParts = splitParts[0];
+    // 后续部分是各分支分隔行的内容
+    autoBranchParts = splitParts.slice(1);
+
+    // 自动计算分支数量
+    // 分支数量 = 分隔标记数量 + 1（默认基础分支）
+    // 或者等于 autoBranchParts.length + 1（每个分支分隔行对应一个分支）
+    branches = Math.max(branches, autoBranchParts.length + 1);
+  }
+
   // 创建容器
   const container = createSvgElement("g");
   container.classList.add("scratch-block");
@@ -599,11 +693,11 @@ function renderBlock(blockData, options = {}) {
   // 输入框索引用于高亮功能
   let inputIndex = 0;
 
-  // 计算内容布局
+  // 计算内容布局（使用 topParts 而非原始 parts）
   let cursorX = 0;
   const components = [];
 
-  for (const part of parts) {
+  for (const part of topParts) {
     let comp;
 
     if (typeof part === "string") {
@@ -619,27 +713,8 @@ function renderBlock(blockData, options = {}) {
     } else {
       // 输入框组件
       const inputType = normalizeInputType(part.inputType);
-      const value = part.value || '';
-      const textWidth = getTextWidth(value);
-
-      // 计算输入框宽度 - 参考 scratch-blocks 的 field.js updateWidth
-      // width = textWidth + EDITABLE_FIELD_PADDING + arrowWidth + 2 * BOX_FIELD_PADDING
-      let inputWidth;
-      if (inputType === InputType.BOOLEAN) {
-        // 布尔类型输入框使用固定宽度，不根据文字计算
-        inputWidth = getInputMinWidth(inputType);
-      } else if (inputType === InputType.DROPDOWN || inputType === InputType.DROPDOWN_READONLY || inputType === InputType.VARIABLE) {
-        // 下拉框: 文本 + 编辑padding + 箭头 + 两边box padding
-        const arrowWidth = 12 + DROPDOWN_ARROW_PADDING;  // 20
-        inputWidth = textWidth + EDITABLE_FIELD_PADDING + arrowWidth + 2 * BOX_FIELD_PADDING;
-        // 确保不小于最小宽度
-        inputWidth = Math.max(getInputMinWidth(inputType), inputWidth);
-      } else {
-        // 数字/文本输入: 文本 + 编辑padding + 两边box padding
-        inputWidth = textWidth + EDITABLE_FIELD_PADDING + 2 * BOX_FIELD_PADDING;
-        // 确保不小于最小宽度
-        inputWidth = Math.max(getInputMinWidth(inputType), inputWidth);
-      }
+      const value = normalizeInputValue(part.value);
+      const inputWidth = calculateInputWidth(inputType, value);
 
       comp = {
         type: 'input',
@@ -665,7 +740,7 @@ function renderBlock(blockData, options = {}) {
   // 检查第一个元素是否是输入框（需要避开凹槽）
   // 如果是，需要增加宽度来容纳偏移
   const firstComp = components[0];
-  const hasTopNotch = type !== BlockType.HAT && type !== BlockType.END && type !== BlockType.ROUND && type !== BlockType.BOOLEAN;
+  const hasTopNotch = type !== BlockType.HAT && type !== BlockType.EVENT && type !== BlockType.END && type !== BlockType.ROUND && type !== BlockType.BOOLEAN;
   const needsNotchOffset = firstComp && firstComp.type === 'input' && hasTopNotch;
   const notchOffset = needsNotchOffset ? Math.max(0, INPUT_AND_FIELD_MIN_X - SEP_SPACE_X) : 0;
 
@@ -679,19 +754,25 @@ function renderBlock(blockData, options = {}) {
   const padding = SEP_SPACE_X * 2;  // 16
   let blockWidth, blockHeight;
 
+  // 确定使用的分支分隔行内容
+  const effectiveBranchParts = hasAutoBranchSplit ? autoBranchParts : branchParts;
+
   // C型积木：预先计算每个分隔行的高度
   let statementRowHeights = [];
+  let maxBranchContentWidth = 0;
   if (type === BlockType.C_BLOCK || type === BlockType.C_BLOCK_END) {
     for (let i = 0; i < branches; i++) {
-      const parts = branchParts[i] || [];
+      const parts = effectiveBranchParts[i] || [];
       // 如果有内容，使用MIN_BLOCK_Y（48），否则使用EXTRA_STATEMENT_ROW_Y（32）
       const rowHeight = parts.length > 0 ? MIN_BLOCK_Y : EXTRA_STATEMENT_ROW_Y;
       statementRowHeights.push(rowHeight);
+      maxBranchContentWidth = Math.max(maxBranchContentWidth, calculatePartsWidth(parts));
     }
   }
 
   switch (type) {
     case BlockType.HAT:
+    case BlockType.EVENT:
       // 帽子类型需要额外保证宽度至少能容纳顶部圆弧
       blockWidth = Math.max(MIN_BLOCK_X, contentWidth + padding, HAT_MIN_WIDTH);
       blockHeight = MIN_BLOCK_Y;
@@ -715,7 +796,7 @@ function renderBlock(blockData, options = {}) {
       break;
     case BlockType.C_BLOCK:
     case BlockType.C_BLOCK_END:
-      blockWidth = Math.max(MIN_BLOCK_X_WITH_STATEMENT, contentWidth + padding);
+      blockWidth = Math.max(MIN_BLOCK_X_WITH_STATEMENT, contentWidth + padding, maxBranchContentWidth + padding);
       // C型积木高度 = 顶部 + 分支*高度 + 各分隔行高度之和
       const totalStatementRowHeight = statementRowHeights.reduce((sum, h) => sum + h, 0);
       blockHeight = MIN_BLOCK_Y + branches * branchHeight + totalStatementRowHeight;
@@ -730,6 +811,7 @@ function renderBlock(blockData, options = {}) {
   let bgPath;
   switch (type) {
     case BlockType.HAT:
+    case BlockType.EVENT:
       bgPath = generateHatPath(blockWidth);
       break;
     case BlockType.END:
@@ -803,10 +885,10 @@ function renderBlock(blockData, options = {}) {
     }
   }
 
-  // C型积木：渲染每个分支的内容 (branchParts)
-  if ((type === BlockType.C_BLOCK || type === BlockType.C_BLOCK_END) && branchParts) {
-    for (let branchIndex = 0; branchIndex < branchParts.length; branchIndex++) {
-      const parts = branchParts[branchIndex];
+  // C型积木：渲染每个分支的内容 (使用 effectiveBranchParts)
+  if ((type === BlockType.C_BLOCK || type === BlockType.C_BLOCK_END) && effectiveBranchParts) {
+    for (let branchIndex = 0; branchIndex < effectiveBranchParts.length; branchIndex++) {
+      const parts = effectiveBranchParts[branchIndex];
       if (!parts || parts.length === 0) continue;
 
       // 计算前面所有分隔行的高度之和
@@ -847,9 +929,9 @@ function renderBlock(blockData, options = {}) {
         } else if (part && typeof part === 'object') {
           // 输入框
           const inputType = normalizeInputType(part.inputType);
-          const value = part.value || "";
+          const value = normalizeInputValue(part.value);
           const textWidth = getTextWidth(value);
-          const inputWidth = Math.max(getInputMinWidth(inputType), textWidth + BOX_FIELD_PADDING * 2);
+          const inputWidth = calculateInputWidth(inputType, value);
 
           const inputY = branchContentY - INPUT_SHAPE_HEIGHT / 2;
           const inputPath = generateInputPath(inputType, inputWidth);
@@ -867,9 +949,16 @@ function renderBlock(blockData, options = {}) {
 
           // 输入框文本
           if (inputType !== InputType.BOOLEAN) {
+            let textX;
+            if (inputType === InputType.DROPDOWN || inputType === InputType.DROPDOWN_READONLY || inputType === InputType.VARIABLE) {
+              const arrowWidth = 12 + DROPDOWN_ARROW_PADDING;
+              textX = currentBranchX + (inputWidth - arrowWidth) / 2;
+            } else {
+              textX = currentBranchX + inputWidth / 2;
+            }
             const inputText = createSvgElement("text", {
               class: "blocklyText",
-              x: currentBranchX + inputWidth / 2,
+              x: textX,
               y: branchContentY,
               "text-anchor": "middle",
               "dominant-baseline": "middle",
@@ -886,14 +975,20 @@ function renderBlock(blockData, options = {}) {
 
           // 下拉箭头
           if (inputType === InputType.DROPDOWN || inputType === InputType.DROPDOWN_READONLY || inputType === InputType.VARIABLE) {
-            const arrowX = currentBranchX + BOX_FIELD_PADDING + textWidth + EDITABLE_FIELD_PADDING;
-            const arrowY = branchContentY - DROPDOWN_ARROW_HEIGHT / 2;
-            const arrow = createSvgElement("path", {
-              d: DROPDOWN_ARROW_PATH,
-              fill: "#FFFFFF",
-              opacity: 0.6,
-              transform: `translate(${arrowX}, ${arrowY})`,
+            const arrowX = currentBranchX + BOX_FIELD_PADDING + textWidth + EDITABLE_FIELD_PADDING + DROPDOWN_ARROW_PADDING / 2;
+            const arrowY = inputY + (INPUT_SHAPE_HEIGHT - 8.79) / 2;
+            const arrow = createSvgElement("image", {
+              x: arrowX,
+              y: arrowY,
+              width: 12,
+              height: 8.79,
             });
+
+            const arrowData = inputType === InputType.DROPDOWN_READONLY
+              ? DROPDOWN_ARROW_DARK_SVG
+              : DROPDOWN_ARROW_SVG;
+            const dataUri = 'data:image/svg+xml;base64,' + btoa(arrowData);
+            arrow.setAttributeNS('http://www.w3.org/1999/xlink', 'xlink:href', dataUri);
             container.appendChild(arrow);
           }
 
@@ -964,7 +1059,6 @@ function renderBlock(blockData, options = {}) {
       }
       // 输入框文本
       if (comp.value) {
-        const textWidth = needString(comp.inputType) ? getTextWidth(comp.value) : 25;
         let textX;
 
         // 参考 scratch-blocks: centerTextX = (width - arrowWidth) / 2
@@ -1075,6 +1169,8 @@ export {
   STATEMENT_INPUT_INNER_SPACE,
   MIN_BLOCK_X_WITH_STATEMENT,
   EXTRA_STATEMENT_ROW_Y,
+  // 分支分隔标记
+  NEXT_BRANCH_MARKER,
 };
 
 export default renderBlock;

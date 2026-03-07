@@ -99,7 +99,7 @@
 .partsList {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 0;
 }
 
 .partRow {
@@ -110,6 +110,7 @@
     border-radius: 6px;
     padding: 8px;
     background: #00000020;
+    margin: 4px 0;
 }
 
 .partIndex {
@@ -259,4 +260,70 @@
     color:#ee0;
     padding: 10px;
     gap: 10px;
+}
+
+/* 拖拽样式 */
+.partRow {
+    cursor: grab;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.partRow:active {
+    cursor: grabbing;
+}
+
+.partRow.dragging {
+    opacity: 0.5;
+    transform: scale(1.02);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    cursor: grabbing;
+}
+
+.partRow:hover {
+    border-color: #ffffff40;
+}
+
+.dropGap {
+    position: relative;
+    height: 0;
+    border-radius: 6px;
+    overflow: hidden;
+    transition: height 0.12s ease, background-color 0.12s ease;
+}
+
+.dropGapVisible {
+    height: 5px;
+}
+
+.dropGapLine {
+    position: absolute;
+    left: 8px;
+    right: 8px;
+    top: 50%;
+    height: 3px;
+    border-radius: 999px;
+    background: var(--accent-color);
+    transform: translateY(-50%) scaleX(0.55);
+    opacity: 0;
+}
+
+.dropGapActive .dropGapLine {
+    transform: translateY(-50%) scaleX(1);
+    opacity: 1;
+}
+
+.dragPreview {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 2500;
+    width: min(520px, calc(100vw - 32px));
+    pointer-events: none;
+}
+
+.dragPreviewCard {
+    margin: 0;
+    background: var(--accent-color-transparent);
+    border-color: var(--accent-color);
+    box-shadow: 0 12px 28px #00000070;
 }
