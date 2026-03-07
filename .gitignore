@@ -4,7 +4,7 @@ node_modules/
 # We need this to pass CI
 
 # Build output
-# We need dist
+build/
 
 # Editor
 .vscode/
