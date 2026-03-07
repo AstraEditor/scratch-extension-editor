@@ -1,6 +1,6 @@
 /**
  * Scratch Block SVG Renderer
- * 完全基于 scratch-blocks 的渲染逻辑
+ * 基于 scratch-blocks 的渲染逻辑
  */
 
 const SVG_NS = "http://www.w3.org/2000/svg";

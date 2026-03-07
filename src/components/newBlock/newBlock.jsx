@@ -6,6 +6,7 @@ import { BlockType, InputType } from "../../lib/blockSvgRenderer.js";
 import { returnValue } from '../../extension/storage.js';
 import { useTranslation } from '../../i18n';
 import Tip from '../tip/tip.jsx';
+import { prepareBlockForDisplay } from "../editor/blockUtils.js";
 
 
 import { VscChevronUp, VscChevronDown, VscClose, VscWarning } from "react-icons/vsc";
@@ -25,14 +26,12 @@ const NewInput = props => {
     const { t } = useTranslation();
     const [inputType, setInputType] = useState(InputType.TEXT)
     const [inputValue, setInputValue] = useState(
-        { TEXT: "Text", NUMBER: "0", DROPDOWN: ["Option 1"] }
+        { TEXT: "Text", NUMBER: "0", DROPDOWN: [{ name: "Option 1", value: "1" }] }
     )
 
     const [inputTypeREADONLY, setInputTypeREADONLY] = useState(false);
     useEffect(() => {
         if (props.isEditingBlock) {
-            console.log(props.isEditingBlock)
-            console.log(props.blockPart)
             setInputType(props.blockPart.inputType); //这里是固定文本，但定义它的类型是从InputType读取的，所以直接读
             switch (props.blockPart.inputType) {
                 //我们没有找到更好的方法来添加...
@@ -99,7 +98,7 @@ const NewInput = props => {
                 return inputValue.NUMBER
             case InputType.DROPDOWN:
             case InputType.DROPDOWN_READONLY:
-                return inputValue.DROPDOWN[0] || ""
+                return inputValue.DROPDOWN[0].name || ""
             case InputType.BOOLEAN:
                 return "" //布尔没有储存值
             default:
@@ -134,9 +133,14 @@ const NewInput = props => {
 
     // 添加下拉选项
     const addDropdownOption = () => {
+        const nowDropDown = inputValue.DROPDOWN;
+        const length = nowDropDown.length;
+        nowDropDown.push({});
+        nowDropDown[length]["name"] = `Option ${length + 1}`;
+        nowDropDown[length]["value"] = `${length + 1}`;
         setInputValue(prev => ({
             ...prev,
-            DROPDOWN: [...prev.DROPDOWN, `Option ${prev.DROPDOWN.length + 1}`]
+            DROPDOWN: nowDropDown
         }));
     };
 
@@ -149,10 +153,12 @@ const NewInput = props => {
     };
 
     // 修改下拉选项
-    const updateDropdownOption = (index, newValue) => {
+    const updateDropdownOption = (idx, name, newValue) => {
+        const nowDropDown = inputValue.DROPDOWN;
+        nowDropDown[idx][name] = newValue;
         setInputValue(prev => ({
             ...prev,
-            DROPDOWN: prev.DROPDOWN.map((opt, i) => i === index ? newValue : opt)
+            DROPDOWN: nowDropDown
         }));
     };
 
@@ -221,7 +227,7 @@ const NewInput = props => {
                                 />
                             </label>
                             <div className={styles.optionList}>
-                                {inputValue.DROPDOWN.map((opt, idx) => (
+                                {Object.keys(inputValue.DROPDOWN).map((opt, idx) => (
                                     <div key={idx} className={styles.optionRow}>
                                         {idx === 0 && (<span className={styles.formLabel} style={{
                                             whiteSpace: "nowrap"
@@ -229,8 +235,12 @@ const NewInput = props => {
                                             {t("Default Option")}
                                         </span>)}
                                         <input
-                                            value={opt}
-                                            onChange={e => updateDropdownOption(idx, e.target.value)}
+                                            value={inputValue.DROPDOWN[opt]["name"]}
+                                            onChange={e => updateDropdownOption(idx,"name",e.target.value)}
+                                        />
+                                        <input
+                                            value={inputValue.DROPDOWN[opt]["value"]}
+                                            onChange={e => updateDropdownOption(idx,"value", e.target.value)}
                                         />
                                         <button onClick={() => removeDropdownOption(idx)} disabled={inputValue.DROPDOWN.length <= 1}>
                                             <VscClose />
@@ -303,24 +313,13 @@ const NewBlock = props => {
         tertiary: returnValue("comments").color[2],
     });
 
-    // 预处理 parts，用于显示（数组类型的 value 取第一项）
-    const preparePartsForDisplay = (parts) => {
-        if (!parts) return parts;
-        return parts.map(part => {
-            if (part && typeof part === 'object' && Array.isArray(part.value)) {
-                return { ...part, value: part.value[0] || '' };
-            }
-            return part;
-        });
-    };
-
     const svgHTML = renderBlockToHTML(nowSvgBlock);
 
     const updateSVG = () => {
         const newBlock = {
             type: blockType,
             colors: getColors(),
-            parts: preparePartsForDisplay(blockPart)
+            parts: prepareBlockForDisplay({ parts: blockPart }).parts
         };
         setSvgBlock(newBlock);
     };
@@ -653,7 +652,7 @@ const NewBlock = props => {
                                                         <div className={styles.partContent}>
                                                             {typeof item === "object" ? (
                                                                 <code className={styles.partCode}>
-                                                                    {getTypeName(item.inputType)}{item.inputType !== BlockType.BOOLEAN && ":"} {Array.isArray(item.value) ? (item.value[0] + '...') : item.value}
+                                                                    {getTypeName(item.inputType)}{item.inputType !== BlockType.BOOLEAN && ":"} {Array.isArray(item.value) ? (item.value[0].name + '...') : item.value}
                                                                 </code>
                                                             ) : (
                                                                 item === "_NextBrach_" ? (
@@ -679,12 +678,6 @@ const NewBlock = props => {
                                                             )}
                                                         </div>
                                                         <div className={styles.partActions}>
-                                                            <button onClick={() => {
-                                                                setBlockPart(moveUp(blockPart, index))
-                                                            }}><VscChevronUp /></button>
-                                                            <button onClick={() => {
-                                                                setBlockPart(moveUp(blockPart, index, -1))
-                                                            }}><VscChevronDown /></button>
                                                             <button onClick={() => {
                                                                 setBlockPart(moveUp(blockPart, index, index))
                                                             }}>{t('move to top')}</button>

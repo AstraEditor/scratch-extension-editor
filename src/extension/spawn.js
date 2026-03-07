@@ -40,9 +40,11 @@ export async function spawnExtension() {
     console.log(Extension)
 
     let menus = {};
-    let isCondition = false
 
     const spawnBlock = (id, data) => {
+        let isCondition = false;
+        let isEvent = false;
+
         let blockType;
         switch (data.type) {
             case BlockType.STACK:
@@ -53,6 +55,7 @@ export async function spawnExtension() {
                 break
             case BlockType.EVENT:
                 blockType = Type.Blocks.Event;
+                isEvent = true;
                 break
             case BlockType.BOOLEAN:
                 blockType = Type.Blocks.Boolean;
@@ -86,7 +89,10 @@ export async function spawnExtension() {
                 // 下一个分支
                 if (data === "_NextBrach_") {
                     brachCount += 1;
-                    if (isCondition) blockText.push(""); //防止哪个人给不是分支加这个导致爆炸
+                    if (isCondition) {
+                        blockText[blockText.length - 1] = `Scratch.translate("${blockText[blockText.length - 1]}")`;
+                        blockText.push("");
+                    } //防止哪个人给不是分支加这个导致爆炸
                 } else {
                     if (isCondition) blockText[blockText.length - 1] += data;
                     else blockText += data;
@@ -112,29 +118,21 @@ export async function spawnExtension() {
                         }
                         break
                     case "dropdown":
-                        argument["type"] = Type.Arguments.String;
-                        argument["menu"] = inputID
-                        menu = [];
-                        data.value.forEach(data => {
-                            menu.push({
-                                text: `Scratch.translate("${data}")`,
-                                value: data
-                            })
-                        })
-                        menus[inputID] = { acceptReporters: true, items: menu }
-                        break
                     case "dropdownReadOnly":
                         argument["type"] = Type.Arguments.String;
                         argument["menu"] = inputID
                         menu = [];
                         data.value.forEach(data => {
                             menu.push({
-                                text: `Scratch.translate("${data}")`,
-                                value: data
+                                text: `Scratch.translate("${data.name}")`,
+                                value: data.value
                             })
                         })
-                        menus[inputID] = { acceptReporters: false, items: menu } // 只需修改 acceptReporters
-                        break
+                        menus[inputID] = {
+                            acceptReporters: (data.inputType === "dropdown"), // 关键区别
+                            items: menu
+                        };
+                        break;
                     case "boolean":
                         argument["type"] = Type.Arguments.Boolean;
                         break
@@ -146,11 +144,13 @@ export async function spawnExtension() {
                 blockValue[inputID] = argument;
             }
         })
-        if (isCondition) { //是否是分支
-            return { opcode: id, blockType, branchCount: brachCount.toString(), text: blockText, arguments: blockValue }
-        } else {
-            return { opcode: id, blockType, text: blockText, arguments: blockValue }
+        if (isCondition) {
+            blockText[blockText.length - 1] = `Scratch.translate("${blockText[blockText.length - 1]}")`;
         }
+        //是否是分支
+        if (isCondition) return { opcode: id, blockType, branchCount: brachCount.toString(), text: blockText, arguments: blockValue }
+        else if (isEvent) return { opcode: id, blockType, isEdgeActivated: false, text: `Scratch.translate("${blockText}")`, arguments: blockValue }
+        return { opcode: id, blockType, text: `Scratch.translate("${blockText}")`, arguments: blockValue }
     }
 
     const spawnExtensionBlocks = () => {
@@ -166,8 +166,9 @@ export async function spawnExtension() {
         const final = [];
         Blocks.forEach((blk, index) => {
             const id = Object.keys(Extension.blocks)[index]
-            if (blk.type === BlockType.HAT) {
-                // 帽子积木的生成不同，参考 https://docs.turbowarp.org/development/extensions/hats
+            if (blk.type === BlockType.EVENT) {
+                // 事件积木的生成不同，参考 https://docs.turbowarp.org/development/extensions/hats
+                // 因此这里忽略
             } else {
                 final.push(`${id} (args) {`)
                 let indexOfInput = 0;
@@ -177,6 +178,7 @@ export async function spawnExtension() {
                         indexOfInput += 1;
                     }
                 })
+                final.push(`const OPCODE = "${Extension.comments.id}_${id}";`)
                 final.push(blk.code)
                 final.push(`}`)
             }
@@ -184,7 +186,19 @@ export async function spawnExtension() {
         })
         return final
     }
-    const ExtensionText = `
+
+    const spawnEventBlockJS = () => {
+        const Blocks = Object.values(Extension.blocks);
+        const final = [];
+        Blocks.forEach(blk => {
+            if (blk.type === BlockType.EVENT) {
+                // 因为事件的触发没有确定的语法，所以直接加入
+                final.push(blk.code)
+            }
+        })
+        return final
+    }
+    let ExtensionText = `
 // Name: ${Extension.comments.name}
 // ID: ${Extension.comments.id}
 // Description: ${Extension.comments.description}
@@ -198,6 +212,7 @@ export async function spawnExtension() {
     if (!Scratch.extensions.unsandboxed) {
         throw new Error("${Extension.comments.name} must be run unsandboxed");
     }
+    const VM = Scratch.vm;
     class ${Extension.comments.id} {
         constructor(runtime){
             this.runtime = runtime;
@@ -215,10 +230,16 @@ export async function spawnExtension() {
         }
         ${spawnBlockJS().join('\n')}
     }
+    ${spawnEventBlockJS().join('\n')}
     Scratch.extensions.register(new ${Extension.comments.id}());
 })(Scratch)
 
 `
+    ExtensionText = ExtensionText.replace(
+        /"Scratch\.translate\(\\"((?:[^"\\]|\\.)*)\\"\)"/g,
+        'Scratch.translate("$1")'
+    );
+
     const options = {
         parser: 'babel',
         plugins: [parserBabel, parserEstree],

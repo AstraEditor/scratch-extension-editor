@@ -10,6 +10,9 @@ import { getAllValue, setValueTo, returnValue } from '../../extension/storage.js
 import { useTranslation, BLOCK_TYPE_ID } from '../../i18n';
 import { VscSettingsGear, VscEdit, VscClose, VscWarning } from "react-icons/vsc";
 import Tip from '../tip/tip.jsx';
+import VMAPI from './vm-api.js';
+import VMAPI_CN from './vm-api-cn.js';
+
 import {
     VSCODE_DARK_PLUS,
     DEFAULT_MONACO_CONFIG,
@@ -176,14 +179,41 @@ const Editor = () => {
                 inputIdx++;
             }
         });
+        if (block.type !== BlockType.EVENT) {
+            const extID = returnValue("comments").id;
+            const allBlock = Object.values(returnValue("blocks"))
+            let blockCode = '';
+            for (let index = 0; index < allBlock.length; index += 1) {
+                console.log(allBlock[index])
+                if (allBlock[index] === block) {
+                    blockCode = Object.keys(returnValue("blocks"))[index];
+                    break
+                }
+            }
+            inputDefs.push(`/**`);
+            inputDefs.push(`* Return the opcode of this block`);
+            inputDefs.push(`* @returns {string} "${extID}_${blockCode}"`);
+            inputDefs.push(`*/`);
+            inputDefs.push(`declare const OPCODE: string;`);
+            // OPCODE
+        }
 
         // 保存 input IDs 用于装饰器
         inputIdsRef.current = inputIds;
 
-        // 注入全局变量定义
+        // 注入 input 变量定义
         if (inputDefs.length > 0) {
-            const dts = inputDefs.join('\n');
-            monaco.languages.typescript.javascriptDefaults.addExtraLib(dts, 'inputs.d.ts');
+            const inputDts = inputDefs.join('\n');
+            monaco.languages.typescript.javascriptDefaults.addExtraLib(inputDts, 'inputs.d.ts');
+        }
+
+        // 注入完整的 VM API 类型定义（包含 JSDoc 注释）
+        switch (localStorage.getItem("app_language")) {
+            case "zh":
+                monaco.languages.typescript.javascriptDefaults.addExtraLib(VMAPI_CN, 'vm-api.d.ts');
+                break
+            default:
+                monaco.languages.typescript.javascriptDefaults.addExtraLib(VMAPI, 'vm-api.d.ts');
         }
 
         // 注册自定义颜色提供器，为 input 变量添加高亮
@@ -254,9 +284,26 @@ const Editor = () => {
         }
     }, [isEditingBlock, isMonacoMounted]);
 
+    // 当 blockCode 变化时更新高亮（处理初始加载的情况）
+    useEffect(() => {
+        setTimeout(() => {
+            if (isMonacoMounted && editorRef.current && inputIdsRef.current.length > 0) {
+                // 使用 requestAnimationFrame 确保 Monaco 已完成渲染
+                requestAnimationFrame(() => {
+                    updateDecorations();
+                });
+            }
+        }, [100])
+    }, [blockCode, isMonacoMounted]);
+
     const handleSaveBlock = (blockName, blockData) => {
         const allBlocks = getAllValue().blocks || {};
-        setValueTo("blocks", { ...allBlocks, [blockName]: blockData });
+        // 编辑模式下保留原有积木的 code 字段
+        const existingBlock = allBlocks[blockName] || {};
+        const savedBlock = editingIndex !== null
+            ? { ...existingBlock, ...blockData }
+            : blockData;
+        setValueTo("blocks", { ...allBlocks, [blockName]: savedBlock });
         setEditingIndex(null);
     };
 
@@ -471,9 +518,9 @@ const Editor = () => {
                         <span className={styles.FonudTip}>
                             {t("Type: ") + t(isEditingBlock.type)}
                         </span>
-                        {isEditingBlock.type === BlockType.HAT && (
+                        {isEditingBlock.type === BlockType.EVENT && (
                             <Tip
-                                title={t("Hat block use different grammar.")}
+                                title={t("Event block use different grammar.")}
                             >
                                 <a href='https://docs.turbowarp.org/development/extensions/hats'>See https://docs.turbowarp.org/development/extensions/hats</a>
                             </Tip>
