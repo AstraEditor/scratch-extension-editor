@@ -1,5 +1,9 @@
 # Scratch Extension Editor
 
+We are remake Extension Editor (Changed name to "AstraBlocktory")
+
+<!--
+
 一站式 Scratch 扩展开发编辑器，基于 Monaco Editor（VS Code 核心）构建。
 
 ## 功能特性
@@ -142,6 +146,8 @@ GPL-3.0
 
 KOSHINO
 
+
 ## 贡献
 
 欢迎提交 Issue 和 Pull Request！
+-->
