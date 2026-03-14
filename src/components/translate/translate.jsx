@@ -110,6 +110,8 @@ const Translate = props => {
                                 });
                             }
                             break;
+                        default:
+                            break;
                     }
                 } else {
                     if (canJoin(blkPart)) {
@@ -310,6 +312,8 @@ const Translate = props => {
                                 name: translations[targetLang]?.[v.name] || v.name
                             }));
                         }
+                        break;
+                    default:
                         break;
                 }
                 return translatedPart;

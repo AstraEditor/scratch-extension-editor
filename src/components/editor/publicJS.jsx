@@ -85,14 +85,14 @@ const Editor = props => {
     useEffect(() => {
         const ids = [];
 
-        Object.entries(returnValue('blocks')).map(([name, blk], index) => {
+        Object.entries(returnValue('blocks')).forEach(([name, blk]) => {
             const id = returnValue('comments')['id'] + '_' + name;
-            delete ids[id]
-            ids.push(id)
-        })
+            delete ids[id];
+            ids.push(id);
+        });
 
         inputIdsRef.current = ids;
-    }, [])
+    }, []);
 
     // 拖拽调整宽度
     useEffect(() => {

@@ -5,6 +5,7 @@ node_modules/
 
 # Build output
 build/
+build/static/
 
 # Editor
 .vscode/
@@ -43,3 +44,5 @@ yarn-error.log*
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+build/asset-manifest.json
+build/index.html
