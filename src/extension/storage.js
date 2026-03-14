@@ -2,7 +2,6 @@ let comments;
 let blocks;
 let publicJS;
 let translate;
-let commands;
 
 export function init() {
     comments = {
