@@ -25,7 +25,6 @@ export default function NewProject(props) {
     const [nowDesc, setDesc] = useState("");
     const [nowAuthor, setAuthor] = useState("");
     const [nowLicense, setLicense] = useState("MPL-2.0");
-    const [nowEnableTranslate, setEnableTranslate] = useState(false);
     const [useCustomID, setUseCustomID] = useState(false);
 
     const [nowCustomLicence, setCustomLicencse] = useState('Custom');
@@ -74,7 +73,6 @@ export default function NewProject(props) {
         newComment.author = nowAuthor || "";
         newComment.license = nowLicense || "MPL-2.0";
         newComment.color = nowColor || ["#0099ff", "#0066ff", "#0033ff"];
-        newComment.translate = nowEnableTranslate || false;
         setValueTo("comments", newComment);
         props.Done()
     }
@@ -131,10 +129,6 @@ export default function NewProject(props) {
                     checked={!isDisabledCustomColor}
                     onChange={(e) => setDisabledCustomColor(!e.target.checked)}
                 /><br />
-                {t('Enable Translate')}: <input type='checkbox'
-                    checked={nowEnableTranslate}
-                    onChange={(e) => setEnableTranslate(e.target.checked)}
-                />
             </div>
             <div>
                 <Input

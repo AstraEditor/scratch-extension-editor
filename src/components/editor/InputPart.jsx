@@ -68,7 +68,7 @@ const InputPart = ({ part, index, onHighlight, onClearHighlight, isHideIndex, se
                                 <VscEye />
                             </div>
                             <div
-                                onClick={() => setHide(index)}
+                                onClick={() => isHideIndex === index ? setHide(-1) : setHide(index)}
                                 style={{ cursor: 'pointer' }}
                                 title={t("Setting")}
                                 className={styles.valuePartButtons}

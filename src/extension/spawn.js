@@ -1,4 +1,4 @@
-import { getAllValue } from "./storage"
+import { getAllValue, returnValue } from "./storage"
 import * as prettier from "prettier/standalone";
 import * as parserBabel from "prettier/plugins/babel";
 import * as parserEstree from "prettier/plugins/estree";
@@ -12,7 +12,8 @@ const Type = {
         Event: "Scratch.BlockType.EVENT",
         Boolean: "Scratch.BlockType.BOOLEAN",
         Report: "Scratch.BlockType.REPORTER",
-        Branches: "Scratch.BlockType.CONDITIONAL"
+        Branches: "Scratch.BlockType.CONDITIONAL",
+        Loop: "Scratch.BlockType.LOOP",
     },
 
     Arguments: {
@@ -44,6 +45,13 @@ export async function spawnExtension() {
     const spawnBlock = (id, data) => {
         let isCondition = false;
         let isEvent = false;
+        let isEnd = false;
+        let isLoop = false;
+        
+        if (data.blockConfig) { 
+            if (!data.blockConfig.hasNextConnection) isEnd = true;
+            if (data.blockConfig.isLoop) isLoop = true;
+        }
 
         let blockType;
         switch (data.type) {
@@ -65,13 +73,18 @@ export async function spawnExtension() {
                 break
             case BlockType.C_BLOCK:
             case BlockType.C_BLOCK_END:
-                blockType = Type.Blocks.Branches;
+                if (data.type === BlockType.C_BLOCK_END) isEnd = true;
+
+                if (isLoop) blockType = Type.Blocks.Loop;
+                else blockType = Type.Blocks.Branches;
+
                 isCondition = true;
                 break
             default:
                 blockType = Type.Blocks.Command;
                 break
         }
+
         // 加入的文本
         let blockText;
         if (isCondition) {
@@ -148,9 +161,9 @@ export async function spawnExtension() {
             blockText[blockText.length - 1] = `Scratch.translate("${blockText[blockText.length - 1]}")`;
         }
         //是否是分支
-        if (isCondition) return { opcode: id, blockType, branchCount: brachCount.toString(), text: blockText, arguments: blockValue }
-        else if (isEvent) return { opcode: id, blockType, isEdgeActivated: false, text: `Scratch.translate("${blockText}")`, arguments: blockValue }
-        return { opcode: id, blockType, text: `Scratch.translate("${blockText}")`, arguments: blockValue }
+        if (isCondition) return { opcode: id, blockType, branchCount: brachCount.toString(), isTerminal: isEnd ,text: blockText, arguments: blockValue  }
+        else if (isEvent) return { opcode: id, blockType, isEdgeActivated: false, text: `Scratch.translate("${blockText}")`, isTerminal: isEnd, arguments: blockValue }
+        return { opcode: id, blockType, text: `Scratch.translate("${blockText}")`, isTerminal: isEnd, arguments: blockValue }
     }
 
     const spawnExtensionBlocks = () => {
@@ -178,26 +191,42 @@ export async function spawnExtension() {
                         indexOfInput += 1;
                     }
                 })
-                final.push(`const OPCODE = "${Extension.comments.id}_${id}";`)
+                // final.push(`const OPCODE = "${Extension.comments.id}_${id}";`)
                 final.push(blk.code)
                 final.push(`}`)
             }
-            console.log()
         })
         return final
     }
 
-    const spawnEventBlockJS = () => {
-        const Blocks = Object.values(Extension.blocks);
-        const final = [];
-        Blocks.forEach(blk => {
-            if (blk.type === BlockType.EVENT) {
-                // 因为事件的触发没有确定的语法，所以直接加入
-                final.push(blk.code)
-            }
+    const getAllOPCODEConst = () => {
+        const ids = [];
+
+        Object.entries(returnValue('blocks')).forEach(([name]) => {
+            const id = returnValue('comments')['id'] + '_' + name;
+            const text = `const ${id} = "${id}"`;
+            delete ids[text]
+            ids.push(text)
         })
-        return final
+
+        return ids.join('\n')
     }
+
+    const spawnTranslate = () => {
+        const translateList = returnValue('translate')
+        const returnList = {};
+        const convert = {
+            'zh-CN': 'zh-cn'
+        }
+        translateList.forEach(value => {
+            returnList[convert[value.id] || value.id] = {};
+            Object.entries(value.string).forEach(([id, string]) => {
+                returnList[convert[value.id] || value.id][`_${id}`] = string
+            })
+        })
+        return returnList
+    }
+
     let ExtensionText = `
 // Name: ${Extension.comments.name}
 // ID: ${Extension.comments.id}
@@ -206,17 +235,21 @@ export async function spawnExtension() {
 // License: ${Extension.comments.license}
 
 /* Built by Astras Blocktory*/
-
+Scratch.translate.setup(${JSON.stringify(spawnTranslate())});
 (function(Scratch) {
     "use strict";
     if (!Scratch.extensions.unsandboxed) {
         throw new Error("${Extension.comments.name} must be run unsandboxed");
     }
     const VM = Scratch.vm;
+
+    // opcode constants for all blocks
+    ${getAllOPCODEConst()}
+
+    // Public JS
+    ${Extension.publicJS}
+    
     class ${Extension.comments.id} {
-        constructor(runtime){
-            this.runtime = runtime;
-        }
         getInfo() {
             return {
                 name: "${Extension.comments.name}",
@@ -230,7 +263,6 @@ export async function spawnExtension() {
         }
         ${spawnBlockJS().join('\n')}
     }
-    ${spawnEventBlockJS().join('\n')}
     Scratch.extensions.register(new ${Extension.comments.id}());
 })(Scratch)
 

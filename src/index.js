@@ -3,19 +3,32 @@ import ReactDOM from 'react-dom/client';
 import './index.css';
 import Main from './components/main/main';
 import reportWebVitals from './reportWebVitals';
+import {
+    init,
+    returnValue,
+    getAllValue,
+    setValueTo,
+    setAllValue
+} from './extension/storage'
+
 
 // 配置 Monaco 编辑器加载器（使用本地静态资源，避免 CDN 导致加载失败）
 import { loader } from '@monaco-editor/react';
 
-const monacoBasePath = new URL('./vs', window.location.href).toString();
+// 初始化存储
+init();
+
+// 使用 PUBLIC_URL 确保路径在开发和生产环境中都正确
+const publicUrl = process.env.PUBLIC_URL || '';
+const monacoBasePath = `${publicUrl}/vs`;
+
 loader.config({
     paths: {
         vs: monacoBasePath
     },
     'vs/nls': {
         availableLanguages: {
-            // 与 monaco-editor@0.55.x 的 nls 模块名保持一致，避免初始化卡住
-            '*': 'zh-cn.js'
+            '*': 'zh-cn'
         }
     }
 });
@@ -37,6 +50,15 @@ window.ResizeObserver = class ResizeObserver extends _ResizeObserver {
     }
 };
 
+if (process.env.NODE_ENV === 'development') {
+    window.storage = {
+        get: returnValue,
+        getAll: getAllValue,
+        set: setValueTo,
+        setAll: setAllValue
+    };
+}
+  
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(

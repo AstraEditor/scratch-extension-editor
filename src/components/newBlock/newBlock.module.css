@@ -21,8 +21,8 @@
 }
 
 .sectionCard {
-    background-color: #00000026;
-    border: 1px solid #ffffff1f;
+    background-color: var(--background-overlay);
+    border: 1px solid var(--border-color);
     border-radius: 8px;
     padding: 10px;
     margin-bottom: 10px;
@@ -35,7 +35,7 @@
 
 .previewOpcode {
     font-size: 12px;
-    color: #888;
+    color: var(--text-dim);
     margin-bottom: 6px;
 }
 
@@ -46,7 +46,7 @@
     min-height: 220px;
     max-height: 300px;
     overflow: auto;
-    background-color: #00000020;
+    background-color: var(--background-overlay-light);
     border-radius: 6px;
     padding: 8px;
     box-sizing: border-box;
@@ -61,7 +61,7 @@
 }
 
 .formLabel {
-    color: #c7c7c7;
+    color: var(--text-secondary);
     font-size: 13px;
     display: flex;
     align-items: center;
@@ -76,8 +76,8 @@
     height: 32px;
     box-sizing: border-box;
     border-radius: 4px;
-    border: 1px solid #ffffff33;
-    background: #111;
+    border: 1px solid var(--border-color-light);
+    background: var(--background-color);
     color: var(--text-color);
     padding: 4px 8px;
 }
@@ -89,11 +89,11 @@
 }
 
 .emptyParts {
-    color: #a9a9a9;
-    border: 1px dashed #ffffff2a;
+    color: var(--text-label);
+    border: 1px dashed var(--border-color);
     border-radius: 6px;
     padding: 14px;
-    background: #00000014;
+    background: var(--background-overlay-light);
 }
 
 .partsList {
@@ -106,10 +106,10 @@
     display: flex;
     align-items: flex-start;
     gap: 8px;
-    border: 1px solid #ffffff1c;
+    border: 1px solid var(--border-color);
     border-radius: 6px;
     padding: 8px;
-    background: #00000020;
+    background: var(--background-overlay-light);
     margin: 4px 0;
 }
 
@@ -117,7 +117,7 @@
     width: 34px;
     min-width: 34px;
     text-align: center;
-    color: #9a9a9a;
+    color: var(--text-dim);
     font-size: 12px;
     padding-top: 8px;
 }
@@ -129,8 +129,8 @@
 
 .partCode {
     display: inline-block;
-    background: #111;
-    border: 1px solid #ffffff26;
+    background: var(--background-color);
+    border: 1px solid var(--border-color);
     border-radius: 5px;
     padding: 7px 10px;
 }
@@ -173,8 +173,8 @@
     flex: 1;
     min-width: 0;
     overflow: auto;
-    background: #00000026;
-    border: 1px solid #ffffff1f;
+    background: var(--background-overlay);
+    border: 1px solid var(--border-color);
     border-radius: 8px;
     padding: 10px;
     box-sizing: border-box;
@@ -187,7 +187,7 @@
     width: 100%;
     min-height: 120px;
     overflow: auto;
-    background-color: #00000020;
+    background-color: var(--background-overlay-light);
     border-radius: 6px;
     padding: 8px;
     box-sizing: border-box;
@@ -252,14 +252,15 @@
     align-items: center;
     min-height: 30px;
     width: calc(100% - 20px);
-    background-color: #cccc0055;
-    border-color: #ee0;
+    background-color: var(--warning-color);
+    border-color: var(--warning-text);
     border-radius: 5px;
     border-width: 1px;
     border-style: solid;
-    color:#ee0;
+    color: var(--warning-text);
     padding: 10px;
     gap: 10px;
+    opacity: 0.6;
 }
 
 /* 拖拽样式 */
@@ -280,7 +281,7 @@
 }
 
 .partRow:hover {
-    border-color: #ffffff40;
+    border-color: var(--border-color-light);
 }
 
 .dropGap {
@@ -325,5 +326,50 @@
     margin: 0;
     background: var(--accent-color-transparent);
     border-color: var(--accent-color);
-    box-shadow: 0 12px 28px #00000070;
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.44);
+}
+
+/* 配置面板样式 */
+.configSection {
+    background: var(--background-overlay-light);
+    border: 1px solid var(--border-color-light);
+    border-radius: 6px;
+    padding: 10px;
+    margin-bottom: 10px;
+}
+
+.configSection .sectionTitle {
+    font-size: 13px;
+    margin-bottom: 8px;
+    color: var(--text-secondary);
+}
+
+.configSection .formRow {
+    margin-bottom: 6px;
+}
+
+.configSection .formRow:last-child {
+    margin-bottom: 0;
+}
+
+.configSection .formLabel {
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.configSection input[type='checkbox'] {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+}
+
+.configSection input[type='number'] {
+    width: 80px;
+    height: 28px;
+    box-sizing: border-box;
+    border-radius: 4px;
+    border: 1px solid var(--border-color-light);
+    background: var(--background-color);
+    color: var(--text-color);
+    padding: 4px 8px;
 }

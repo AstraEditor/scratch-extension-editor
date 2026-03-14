@@ -21,7 +21,6 @@ export const BLOCK_TYPE_ID = {
     "number":"Number"
 }
 
-// 语言包 - 使用英文文本作为键，只需要翻译非英文语言
 const translations = {
     zh: {
         // Home
@@ -101,6 +100,7 @@ const translations = {
         'Reset Defaults': '恢复默认',
         'Format JSON': '格式化 JSON',
         'Apply': '应用',
+        'Load': '加载',
 
         // NewBlock
         'New Block': '新建积木',
@@ -115,7 +115,12 @@ const translations = {
         'Block Parts': '积木内容',
         'No parts yet. Add text or input to start building.': '还没有内容，先添加文本或输入。',
         'If the Addon is not enabled, the background of text and numbers will be consistent in AstraEditor.': "如果没有启用插件，文字和数字的背景在 AstraEditor 是一样的",
-        "This Block can't use New Brach.":"这个积木无法使用新分支",
+        "This Block can't use New Brach.": "这个积木无法使用新分支",
+        "New Brach": "新分支",
+        'Block Config': "积木配置",
+        'End Block': "结束积木",
+        'Loop': "循环",
+        'Block ID already exists!': "积木ID已存在!",
 
         // NewInput
         'Add input': '添加输入',
@@ -158,6 +163,41 @@ const translations = {
         'Type: ': '类型：',
         'Found ': "找到了 ",
         " Input(s).": " 个输入项",
+
+        // Public JS
+        'Public JS': '公共JS',
+        'Empty flyout': '空列表',
+        'No code': '无代码',
+
+        // InputPart
+        'Insert': '插入',
+        'Seek': '查看',
+
+        // NewBlock
+        'Add Brach': '添加分支',
+        'Are you sure to remove this block?': '确定要删除这个积木吗？',
+        'Write program': '编写程序',
+        'Event block use different grammar.': '事件积木使用不同的语法。',
+        'Unknown Mode': '未知模式',
+        'What licence do you like?': '您想要什么许可证？',
+
+        // Translate
+        'Translation Manager': '翻译管理器',
+        'From JavaScript code': '来自 JavaScript 代码',
+        'Target Language': '目标语言',
+        'Search texts...': '搜索文本...',
+        'Show only untranslated': '仅显示未翻译',
+        'translated': '已翻译',
+        'Translating...': '翻译中...',
+        'Translate All': '翻译全部',
+        'Texts to Translate': '待翻译文本',
+        'No texts found': '没有找到文本',
+        'Original': '原文',
+        'Translation': '译文',
+        'Enter translation': '输入翻译',
+        'Auto translate': '自动翻译',
+        'Translations saved!': '翻译已保存！',
+        'Translation failed': '翻译失败',
     },
 };
 

@@ -1,5 +1,5 @@
 import { Fragment, useEffect, useState, useRef } from "react";
-import { renderBlockToHTML } from "../../lib/blockSvgRenderer.js";
+import { renderBlockToHTML, DefaultBlockConfig, getConfigForBlockType, NEXT_BRANCH_MARKER } from "../../lib/blockSvgRenderer.js";
 import Modal from '../modal/modal'
 import styles from './newBlock.module.css'
 import { BlockType, InputType } from "../../lib/blockSvgRenderer.js";
@@ -285,6 +285,9 @@ const NewBlock = props => {
     const [blockType, setBlocktype] = useState(BlockType.STACK);
     const [blockPart, setBlockPart] = useState([]);
     const [blockName, setBlockName] = useState("");
+    
+    // 积木配置状态
+    const [blockConfig, setBlockConfig] = useState({ ...DefaultBlockConfig });
 
     const [EditBlockIndex, setEditBlockIndex] = useState(0);
     const [isEditingBlock, setEditingBlock] = useState(false);
@@ -320,10 +323,15 @@ const NewBlock = props => {
     const svgHTML = renderBlockToHTML(nowSvgBlock);
 
     const updateSVG = () => {
+        // 合并 type 默认配置和用户自定义配置
+        const typeDefaultConfig = getConfigForBlockType(blockType);
+        const mergedConfig = { ...typeDefaultConfig, ...blockConfig };
+        
         const newBlock = {
             type: blockType,
             colors: getColors(),
-            parts: prepareBlockForDisplay({ parts: blockPart }).parts
+            parts: prepareBlockForDisplay({ parts: blockPart }).parts,
+            blockConfig: mergedConfig
         };
         setSvgBlock(newBlock);
     };
@@ -331,12 +339,18 @@ const NewBlock = props => {
     useEffect(() => {
         updateSVG();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [blockType, blockPart]);
+    }, [blockType, blockPart, blockConfig]);
 
     useEffect(() => {
         if (props.initialBlock) {
             setBlocktype(props.initialBlock.type || BlockType.STACK);
             setBlockPart(props.initialBlock.parts || []);
+            // 加载已有的 blockConfig 或使用默认配置
+            if (props.initialBlock.blockConfig) {
+                setBlockConfig({ ...DefaultBlockConfig, ...props.initialBlock.blockConfig });
+            } else {
+                setBlockConfig(getConfigForBlockType(props.initialBlock.type || BlockType.STACK));
+            }
             // 立即更新 svg block
             setSvgBlock({
                 ...props.initialBlock,
@@ -350,9 +364,20 @@ const NewBlock = props => {
 
     const saveBlock = () => {
         if (props.onSave && blockName.trim()) {
+            Object.entries(returnValue('blocks')).forEach(([name]) => {
+                console.log(props.editingIndex)
+                if(name === blockName.trim() && props.editingIndex !== name) {
+                    alert(t('Block ID already exists!'))
+                    return
+                }
+            })
+            const typeDefaultConfig = getConfigForBlockType(blockType);
+            const mergedConfig = { ...typeDefaultConfig, ...blockConfig };
+            
             props.onSave(blockName.trim(), {
                 type: blockType,
-                parts: blockPart
+                parts: blockPart,
+                blockConfig: mergedConfig
             });
             props.close();
         } else {
@@ -518,7 +543,7 @@ const NewBlock = props => {
             );
         }
         if (item === "_NextBrach_") {
-            return <code className={styles.partCode}>New Brach</code>;
+            return <code className={styles.partCode}>{t('New Brach')}</code>;
         }
         return <code className={styles.partCode}>{item}</code>;
     };
@@ -527,7 +552,7 @@ const NewBlock = props => {
         setBlockPart(
             [
                 ...blockPart,
-                "_NextBrach_"
+                NEXT_BRANCH_MARKER
             ]
         )
     }
@@ -591,7 +616,10 @@ const NewBlock = props => {
                                         <select
                                             value={blockType}
                                             onChange={e => {
-                                                setBlocktype(e.target.value);
+                                                const newType = e.target.value;
+                                                setBlocktype(newType);
+                                                // 自动更新配置为该类型的默认配置
+                                                setBlockConfig(getConfigForBlockType(newType));
                                             }}
                                         >
                                             <option value={BlockType.STACK}>{t('stack')}</option>
@@ -599,8 +627,48 @@ const NewBlock = props => {
                                             <option value={BlockType.EVENT}>{t('event')}</option>
                                             <option value={BlockType.ROUND}>{t('repoter')}</option>
                                             <option value={BlockType.BOOLEAN}>{t('boolean')}</option>
+                                            <hr />
                                             <option value={BlockType.C_BLOCK}>{t('C block')}</option>
                                         </select>
+                                    </div>
+
+                                    {/* 积木配置面板 */}
+                                    <div className={styles.configSection}>
+                                        <div className={styles.sectionTitle}>{t('Block Config')}</div>
+                                        
+                                        {/* 连接配置 - 仅对非 reporter 类型显示 */}
+                                        {blockType !== BlockType.ROUND && blockType !== BlockType.BOOLEAN && blockType !== BlockType.HAT && blockType !== BlockType.EVENT && (
+                                            <div className={styles.formRow}>
+                                                <label className={styles.formLabel}>
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={!blockConfig.hasNextConnection}
+                                                        onChange={e => setBlockConfig({
+                                                            ...blockConfig,
+                                                            hasNextConnection: !e.target.checked
+                                                        })}
+                                                    />
+                                                    {t('End Block')}
+                                                </label>
+                                            </div>
+                                        )}
+                                        
+                                        {/* C型积木配置 */}
+                                        {blockType === BlockType.C_BLOCK && (
+                                            <div className={styles.formRow}>
+                                                <label className={styles.formLabel}>
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={blockConfig.isLoop}
+                                                        onChange={e => setBlockConfig({
+                                                            ...blockConfig,
+                                                            isLoop: e.target.checked
+                                                        })}
+                                                    />
+                                                    {t('Loop')}
+                                                </label>
+                                            </div>
+                                        )}
                                     </div>
 
                                     <div className={styles.actionsRow}>
@@ -624,7 +692,7 @@ const NewBlock = props => {
                                                 </button>
                                             </>
                                         )}
-                                        {(blockType === BlockType.C_BLOCK || blockType === BlockType.C_BLOCK_END) && (
+                                        {blockType === BlockType.C_BLOCK && (
                                             <button onClick={() => {
                                                 addBrach()
                                             }}>
@@ -664,7 +732,7 @@ const NewBlock = props => {
                                                                 item === "_NextBrach_" ? (
                                                                     <>
                                                                         <code className={styles.partCode}>
-                                                                            New Brach
+                                                                                {t('New Brach')}
                                                                         </code>
                                                                         {!(blockType === BlockType.C_BLOCK || blockType === BlockType.C_BLOCK_END) && (
                                                                             <Tip

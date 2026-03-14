@@ -1,26 +1,9 @@
 import styles from "./home.module.css";
-import { setAllValue } from '../../extension/storage.js';
 import { setLanguage, SUPPORTED_LANGUAGES, useTranslation } from "../../i18n";
+import { loadProject } from "../editor/blockUtils";
 
 const Home = props => {
     const { t, language } = useTranslation();
-
-    const loadProject = (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-
-        const reader = new FileReader();
-        reader.onload = (event) => {
-            try {
-                const data = JSON.parse(event.target.result);
-                setAllValue(data);
-                props.Loaded();
-            } catch (err) {
-                alert(t('Failed to load project: ') + err.message);
-            }
-        };
-        reader.readAsText(file);
-    };
 
     return (
         <div>
@@ -29,7 +12,7 @@ const Home = props => {
                 <p>{t('What would you like to do?')}</p>
                 <button className={styles.actionButton} onClick={props.newProject}>{t('Create New Extension')}</button>
                 <button className={styles.actionButton} onClick={() => document.getElementById('file-input').click()}>{t('Load Extension (.ab)')}</button>
-                <input id="file-input" type="file" accept=".ab,.json" style={{ display: 'none' }} onChange={loadProject} />
+                <input id="file-input" type="file" accept=".ab,.json" style={{ display: 'none' }} onChange={(e) => loadProject(e,() => {props.loaded()})} />
                 <div className={styles.footer}>
                     <select onChange={e => {
                         setLanguage(e.target.value);

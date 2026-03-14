@@ -1,7 +1,8 @@
 /**
  * 积木相关工具函数
  */
-import { returnValue, getAllValue } from '../../extension/storage.js';
+import { returnValue, getAllValue, setAllValue } from '../../extension/storage.js';
+import {t} from '../../i18n/index.js'
 
 /**
  * 预处理积木数据，用于显示（数组类型的 value 取第一项，颜色从 storage 获取）
@@ -38,4 +39,27 @@ export const saveProject = () => {
     download.click();
     document.body.removeChild(download);
     URL.revokeObjectURL(download.href);
+};
+
+/**
+ * 加载项目
+ * @param e 事件
+ * @param loaded 加载完成的操作
+ */
+
+export const loadProject = (e, loaded) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+        try {
+            const data = JSON.parse(event.target.result);
+            setAllValue(data);
+            loaded();
+        } catch (err) {
+            alert(t('Failed to load project: ') + err.message);
+        }
+    };
+    reader.readAsText(file);
 };

@@ -10,27 +10,40 @@ import Editor from '../editor/editor'
 
 const Main = () => {
     const [activeTab, setActiveTab] = useState('home');
+    const [projectVersion, setProjectVersion] = useState(0);
+
     return (
         <div className={styles.mainContainer}>
-            {(activeTab !== 'home' || activeTab === 'editor') && (
+            {(activeTab === 'new') && (
                 <img className={styles.backButton} onClick={() => setActiveTab("home")} src={back} alt="Back" />
             )}
 
             {activeTab === 'home' && (
                 <Home
                     newProject={() => setActiveTab("new")}
-                    Loaded = {() => setActiveTab("editor")}
+                    loaded={() => {
+                        setProjectVersion(v => v + 1);
+                        setActiveTab("editor");
+                    }}
                 />
             )}
             {activeTab === 'new' && (
                 <NewProject
-                    Done = {() => setActiveTab("editor")}
+                    Done={() => {
+                        setProjectVersion(v => v + 1);
+                        setActiveTab("editor");
+                    }}
                 />
             )}
             {activeTab === 'editor' && (
                 <Editor
+                    key={projectVersion}
                     className={styles.editor}
-                    Menu = {() => setActiveTab("home")}
+                    Menu={() => setActiveTab("home")}
+                    loaded={() => {
+                        setProjectVersion(v => v + 1);
+                        setActiveTab("editor")
+                    }}
                 />
             )}
 

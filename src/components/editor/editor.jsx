@@ -12,6 +12,11 @@ import { VscSettingsGear, VscEdit, VscClose } from "react-icons/vsc";
 import Tip from '../tip/tip.jsx';
 import VMAPI from './vm-api.js';
 import VMAPI_CN from './vm-api-cn.js';
+import SCRATCH_API from './scratch-api.js';
+import SCRATCH_API_CN from './scratch-api-cn.js';
+
+import TranslateTab from '../translate/translate.jsx'
+import PublicJSeditor from './publicJS.jsx';
 
 import {
     VSCODE_DARK_PLUS,
@@ -21,7 +26,7 @@ import {
     applyLanguageServiceSettings,
     MONACO_SETTINGS_KEY
 } from './monacoConfig.js';
-import { prepareBlockForDisplay, saveProject } from './blockUtils.js';
+import { prepareBlockForDisplay, saveProject, loadProject } from './blockUtils.js';
 
 const FUNCTION_BODY_DIAGNOSTIC_CODES = [1108];
 
@@ -44,7 +49,7 @@ const applyBlockLanguageServiceSettings = (monaco, monacoConfig) => {
     monaco.languages.typescript.typescriptDefaults.setDiagnosticsOptions(diagnosticsOptions);
 };
 
-const Editor = () => {
+const Editor = props => {
     const { t } = useTranslation();
 
     // 布局状态
@@ -62,6 +67,8 @@ const Editor = () => {
     // 积木编辑状态
     const [isCreatingBlock, setCreatBlock] = useState(false);
     const [isSaveBlock, setSaveBlock] = useState(false);
+    const [isOpenPublicJSeditor, setOpenPublicJSeditor] = useState(false);
+    const [isOpenTranslate, setOpenTranslate] = useState(false);
     const [editingIndex, setEditingIndex] = useState(null);
     // eslint-disable-next-line no-unused-vars
     const [_blockVersion, setBlockVersion] = useState(0);
@@ -212,10 +219,13 @@ const Editor = () => {
         switch (localStorage.getItem("app_language")) {
             case "zh":
                 monaco.languages.typescript.javascriptDefaults.addExtraLib(VMAPI_CN, 'vm-api.d.ts');
+                monaco.languages.typescript.javascriptDefaults.addExtraLib(SCRATCH_API_CN, 'scratch-api.d.ts');
                 break
             default:
                 monaco.languages.typescript.javascriptDefaults.addExtraLib(VMAPI, 'vm-api.d.ts');
+                monaco.languages.typescript.javascriptDefaults.addExtraLib(SCRATCH_API, 'scratch-api.d.ts');
         }
+        
 
         // 注册自定义颜色提供器，为 input 变量添加高亮
         registerInputHighlight(monaco, inputIds);
@@ -275,6 +285,8 @@ const Editor = () => {
         monacoApiRef.current = monaco;
         editorRef.current = editor;
         applyBlockLanguageServiceSettings(monaco, monacoConfig);
+        // 应用主题（确保自定义主题生效）
+        monaco.editor.setTheme(monacoConfig.theme || 'vscode-dark-plus');
         setIsMonacoMounted(true);  // 标记 Monaco 已挂载
     };
 
@@ -440,6 +452,16 @@ const Editor = () => {
         });
     };
 
+    // 返回这个积木是否可以使用编辑器
+    const canUseEditor = (blk) => {
+        if (!blk) return false;
+
+        if (blk["type"] === BlockType.EVENT) {
+            return false
+        }
+        return true
+    }
+
     return (
         <div className={styles.editor} ref={containerRef}>
             {/* 模态框 */}
@@ -452,6 +474,7 @@ const Editor = () => {
                     onSave={handleSaveBlock}
                     initialBlock={editingIndex !== null ? getAllValue().blocks?.[editingIndex] : null}
                     initialBlockName={editingIndex !== null ? editingIndex : null}
+                    editingIndex={editingIndex}
                 />
             )}
             {isSaveBlock && (
@@ -467,8 +490,8 @@ const Editor = () => {
             )}
 
             {/* 积木区 */}
-            <div className={styles.blocks} style={isEditingBlock ? { width: `${leftWidth}%` } : { width: `100%` }}>
-                {isEditingBlock === null ? (
+            <div className={styles.blocks} style={isEditingBlock && canUseEditor(isEditingBlock) ? { width: `${leftWidth}%` } : { width: `100%` }}>
+                {isEditingBlock === null && !isOpenPublicJSeditor && !isOpenTranslate ? (
                     <>
                         {/* 工具栏 */}
                         <div className={styles.Tabs}>
@@ -478,8 +501,16 @@ const Editor = () => {
                             }}>{t('Create new Block')}</button>
                             <button className={styles.Button} onClick={() => setSaveBlock(true)}>{t('Output')}</button>
                             <button className={styles.Button} onClick={saveProject}>{t('Save')}</button>
+                            <button className={styles.Button} onClick={() => document.getElementById('file-input').click()}>{t('Load')}</button>
+                            <button className={styles.Button} onClick={() => setOpenPublicJSeditor(true)}>
+                                <span>{t('Public JS')}</span>
+                            </button>
+                            <input id="file-input" type="file" accept=".ab,.json" style={{ display: 'none' }} onChange={(e) => loadProject(e, () => { props.loaded() })} />
                             <button className={styles.Button} onClick={() => setMonacoSettingsOpen(true)}>
                                 <span>{t('Editor Settings')}</span>
+                            </button>
+                            <button className={styles.Button} onClick={() => setOpenTranslate(true)}>
+                                <span>{t('Translate')}</span>
                             </button>
                         </div>
 
@@ -513,6 +544,16 @@ const Editor = () => {
                             ))}
                         </div>
                     </>
+                ) : isOpenPublicJSeditor ? (
+                    <>
+                        <PublicJSeditor
+                            back={() => setOpenPublicJSeditor(false)}
+                        />
+                    </>
+                ) : isOpenTranslate ? (
+                    <TranslateTab
+                        close={() => setOpenTranslate(false)}
+                    />
                 ) : (
                     /* 编辑积木视图 */
                     <div className={styles.editBlock}>
@@ -541,7 +582,7 @@ const Editor = () => {
             </div>
 
             {/* 代码编辑区 */}
-            {isEditingBlock && (
+            {isEditingBlock && canUseEditor(isEditingBlock) && (
                 <>
                     <div className={styles.resizer} onMouseDown={handleMouseDown} />
                     <div className={styles.code} style={{ width: `${100 - leftWidth}%` }}>
@@ -555,7 +596,7 @@ const Editor = () => {
                                 beforeMount={handleMonacoBeforeMount}
                                 onMount={handleMonacoMount}
                                 loading={<div style={{ color: '#888', padding: '20px' }}>{t('Loading editor...')}</div>}
-                                options={monacoConfig.options}
+                                options={{ ...monacoConfig.options, fixedOverflowWidgets: true }}
                             />
                         </div>
                     </div>
