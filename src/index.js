@@ -22,16 +22,19 @@ init();
 const publicUrl = process.env.PUBLIC_URL || '';
 const monacoBasePath = `${publicUrl}/vs`;
 
-loader.config({
-    paths: {
-        vs: monacoBasePath
-    },
-    'vs/nls': {
-        availableLanguages: {
-            '*': 'zh-cn'
+// 检查 loader 是否存在
+if (loader && typeof loader.config === 'function') {
+    loader.config({
+        paths: {
+            vs: monacoBasePath
+        },
+        'vs/nls': {
+            availableLanguages: {
+                '*': 'zh-cn'
+            }
         }
-    }
-});
+    });
+}
 
 // 忽略 ResizeObserver 循环警告 （世上最铸币警告）
 const debounce = (fn, delay) => {

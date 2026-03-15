@@ -83,11 +83,12 @@ const Translate = props => {
         const jsTexts = []; // 来自 publicJS 的文本
         const blockCodeTexts = {}; // { blockId: [texts] } 来自积木代码的文本
         const canJoin = value => {
-            return renderConstList.indexOf(value) === -1;
+            return typeof value === 'string' && renderConstList.indexOf(value) === -1;
         };
 
         // 从积木中提取文本
         Object.entries(returnValue('blocks')).forEach(([name, blk]) => {
+            if (!blk || !blk.parts) return;
             blockMap[name] = [];
             blk.parts.forEach(blkPart => {
                 if (typeof blkPart === 'object') {
@@ -103,7 +104,7 @@ const Translate = props => {
                         case InputType.DROPDOWN_READONLY:
                             if (Array.isArray(blkPart.value)) {
                                 blkPart.value.forEach(v => {
-                                    if (canJoin(v.name)) {
+                                    if (v && typeof v === 'object' && canJoin(v.name)) {
                                         textSet.add(v.name);
                                         blockMap[name].push(v.name);
                                     }
@@ -113,11 +114,9 @@ const Translate = props => {
                         default:
                             break;
                     }
-                } else {
-                    if (canJoin(blkPart)) {
-                        textSet.add(blkPart);
-                        blockMap[name].push(blkPart);
-                    }
+                } else if (typeof blkPart === 'string' && canJoin(blkPart)) {
+                    textSet.add(blkPart);
+                    blockMap[name].push(blkPart);
                 }
             });
 
@@ -335,6 +334,7 @@ const Translate = props => {
 
     // 过滤显示的文本
     const filteredTexts = allTexts.filter(text => {
+        if (typeof text !== 'string') return false;
         const matchesSearch = text.toLowerCase().includes(searchFilter.toLowerCase());
         const isUntranslated = !translations[targetLang]?.[text];
         const isBeingEdited = editingTexts.has(text);
@@ -509,7 +509,7 @@ const Translate = props => {
                         {Object.entries(returnValue('blocks')).map(([blockId, blockData]) => {
                             const blockTexts = blockTextMap[blockId] || [];
                             const hasMatchingText = blockTexts.some(text => 
-                                text.toLowerCase().includes(searchFilter.toLowerCase())
+                                typeof text === 'string' && text.toLowerCase().includes(searchFilter.toLowerCase())
                             );
                             if (searchFilter && !hasMatchingText) return null;
                             

@@ -29,6 +29,7 @@ const translations = {
         'Create New Extension': '创建新扩展',
         'Load Extension (.ab)': '加载扩展 (.ab)',
         'Failed to load project: ': '加载项目失败: ',
+        'Decompile Extension (.js)': "反编译扩展 (.js)",
 
         // NewProject
         'Create extension': '创建扩展',
@@ -106,7 +107,8 @@ const translations = {
         'Block': '积木',
         'Public': '公共',
         'full opcode': '完整opcode',
-        'Input ID':"输入 ID",
+        'Input ID': "输入 ID",
+        "Hot Reload": "热重载",
 
         // NewBlock
         'New Block': '新建积木',

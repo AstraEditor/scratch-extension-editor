@@ -43,6 +43,8 @@ export async function spawnExtension() {
     let menus = {};
 
     const spawnBlock = (id, data) => {
+        if (!data) data = {};
+        
         let isCondition = false;
         let isEvent = false;
         let isEnd = false;
@@ -95,8 +97,11 @@ export async function spawnExtension() {
         let blockValue = {};
         let indexOfinput = 0;
         let brachCount = 1;
-
-        data.parts.forEach(data => {
+        if (!blockType) blockType = Type.Blocks.Command;
+        
+        // 安全处理 parts
+        const parts = data.parts || [];
+        parts.forEach(data => {
             let inputID = data.id || `input_${indexOfinput}`;
             if (typeof data === "string") {
                 // 下一个分支
@@ -135,12 +140,17 @@ export async function spawnExtension() {
                         argument["type"] = Type.Arguments.String;
                         argument["menu"] = inputID
                         menu = [];
-                        data.value.forEach(data => {
-                            menu.push({
-                                text: `Scratch.translate("${data.name}")`,
-                                value: data.value
-                            })
-                        })
+                        // 安全处理 dropdown value
+                        if (Array.isArray(data.value)) {
+                            data.value.forEach(item => {
+                                if (item && typeof item === 'object') {
+                                    menu.push({
+                                        text: `Scratch.translate("${item.name || ''}")`,
+                                        value: item.value || ''
+                                    });
+                                }
+                            });
+                        }
                         menus[inputID] = {
                             acceptReporters: (data.inputType === "dropdown"), // 关键区别
                             items: menu
@@ -167,79 +177,102 @@ export async function spawnExtension() {
     }
 
     const spawnExtensionBlocks = () => {
-        const Blocks = Extension.blocks;
+        const Blocks = Extension.blocks || {};
         const returnList = [];
-        Object.keys(Blocks).forEach((opcode, index) => {
-            returnList.push(spawnBlock(opcode, Object.values(Blocks)[index]))
+        Object.keys(Blocks).forEach((opcode) => {
+            const blockData = Blocks[opcode];
+            if (blockData) {
+                returnList.push(spawnBlock(opcode, blockData));
+            }
         });
-        return returnList
+        return returnList;
     }
     const spawnBlockJS = () => {
-        const Blocks = Object.values(Extension.blocks);
+        const Blocks = Extension.blocks || {};
         const final = [];
-        Blocks.forEach((blk, index) => {
-            const id = Object.keys(Extension.blocks)[index]
+        Object.keys(Blocks).forEach((id, index) => {
+            const blk = Blocks[id];
+            if (!blk) return;
+            
             if (blk.type === BlockType.EVENT) {
                 // 事件积木的生成不同，参考 https://docs.turbowarp.org/development/extensions/hats
                 // 因此这里忽略
             } else {
                 final.push(`${id} (args) {`)
                 let indexOfInput = 0;
-                blk.parts.forEach(blkPart => {
-                    if (typeof blkPart === 'object') {
-                        final.push(`const ${blkPart.id || `input_${indexOfInput}`} = args.${blkPart.id || `input_${indexOfInput}`};`)
-                        indexOfInput += 1;
-                    }
-                })
-                // final.push(`const OPCODE = "${Extension.comments.id}_${id}";`)
-                final.push(blk.code)
+                if (blk.parts && Array.isArray(blk.parts)) {
+                    blk.parts.forEach(blkPart => {
+                        if (typeof blkPart === 'object') {
+                            final.push(`const ${blkPart.id || `input_${indexOfInput}`} = args.${blkPart.id || `input_${indexOfInput}`};`)
+                            indexOfInput += 1;
+                        }
+                    })
+                }
+                final.push(blk.code || '')
                 final.push(`}`)
             }
         })
-        return final
+        return final;
     }
 
     const getAllOPCODEConst = () => {
         const ids = [];
-
-        Object.entries(returnValue('blocks')).forEach(([name]) => {
-            const id = returnValue('comments')['id'] + '_' + name;
+        const blocksData = returnValue('blocks') || {};
+        const commentsData = returnValue('comments') || {};
+        
+        Object.keys(blocksData).forEach((name) => {
+            const id = (commentsData['id'] || 'extension') + '_' + name;
             const text = `const ${id} = "${id}"`;
-            delete ids[text]
-            ids.push(text)
-        })
+            ids.push(text);
+        });
 
-        return ids.join('\n')
+        return ids.join('\n');
     }
 
     const spawnTranslate = () => {
-        const translateList = returnValue('translate')
+        const translateList = returnValue('translate') || [];
         const returnList = {};
         const convert = {
             'zh-CN': 'zh-cn'
         }
         translateList.forEach(value => {
-            returnList[convert[value.id] || value.id] = {};
-            Object.entries(value.string).forEach(([id, string]) => {
-                returnList[convert[value.id] || value.id][`_${id}`] = string
-            })
-        })
-        return returnList
+            if (!value || !value.id) return; // 跳过无效条目
+            const langKey = convert[value.id] || value.id;
+            returnList[langKey] = {};
+            // 直接使用 string 属性中的 key（原始代码中已包含下划线）
+            const stringObj = value.string;
+            if (stringObj && typeof stringObj === 'object') {
+                Object.entries(stringObj).forEach(([id, str]) => {
+                    returnList[langKey][id] = str;
+                });
+            }
+        });
+        return returnList;
     }
-
+    console.log(1)
+    
+    // 安全获取 comments 数据
+    const extComments = Extension.comments || {};
+    const extName = extComments.name || 'Untitled Extension';
+    const extId = extComments.id || 'untitledExtension';
+    const extDesc = extComments.description || '';
+    const extAuthor = extComments.author || '';
+    const extLicense = extComments.license || 'MPL-2.0';
+    const extColor = extComments.color || ['#0FBD8C', '#0DA57A', '#0B8E69'];
+    
     let ExtensionText = `
-// Name: ${Extension.comments.name}
-// ID: ${Extension.comments.id}
-// Description: ${Extension.comments.description}
-// By: ${Extension.comments.author}
-// License: ${Extension.comments.license}
+// Name: ${extName}
+// ID: ${extId}
+// Description: ${extDesc}
+// By: ${extAuthor}
+// License: ${extLicense}
 
 /* Built by AstraBlocktory*/
 Scratch.translate.setup(${JSON.stringify(spawnTranslate())});
 (function(Scratch) {
     "use strict";
     if (!Scratch.extensions.unsandboxed) {
-        throw new Error("${Extension.comments.name} must be run unsandboxed");
+        throw new Error("${extName} must be run unsandboxed");
     }
     const VM = Scratch.vm;
 
@@ -247,23 +280,23 @@ Scratch.translate.setup(${JSON.stringify(spawnTranslate())});
     ${getAllOPCODEConst()}
 
     // Public JS
-    ${Extension.publicJS}
+    ${Extension.publicJS || ''}
     
-    class ${Extension.comments.id} {
+    class ${extId} {
         getInfo() {
             return {
-                name: "${Extension.comments.name}",
-                id: "${Extension.comments.id}",
-                color1: "${Extension.comments.color[0]}",
-                color2: "${Extension.comments.color[1]}",
-                color3: "${Extension.comments.color[2]}",
+                name: "${extName}",
+                id: "${extId}",
+                color1: "${extColor[0] || '#0FBD8C'}",
+                color2: "${extColor[1] || '#0DA57A'}",
+                color3: "${extColor[2] || '#0B8E69'}",
                 blocks: ${replaceClass(JSON.stringify(spawnExtensionBlocks()))},
                 menus: ${JSON.stringify(menus)}
             }
         }
         ${spawnBlockJS().join('\n')}
     }
-    Scratch.extensions.register(new ${Extension.comments.id}());
+    Scratch.extensions.register(new ${extId}());
 })(Scratch)
 
 `

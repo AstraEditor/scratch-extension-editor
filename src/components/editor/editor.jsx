@@ -191,7 +191,7 @@ const Editor = props => {
                 inputDefs.push(`* `);
                 if (inputType !== InputType.BOOLEAN) inputDefs.push(`* Default Value: ${part.value}`);
                 inputDefs.push(`*/`);
-                inputDefs.push(`declare const ${inputId}: ${typeStr};`);
+                inputDefs.push(`declare let ${inputId}: ${typeStr};`);
                 inputIdx++;
             }
         });
@@ -207,6 +207,10 @@ const Editor = props => {
             delete ids[id];
             ids.push(id);
         });
+        inputDefs.push(`/**`);
+        inputDefs.push(`* This Block Inputs`);
+        inputDefs.push(`*/`);
+        inputDefs.push(`declare const args;`)
 
         // 保存 input IDs 用于装饰器
         inputIdsRef.current = [...inputIds, ...ids];

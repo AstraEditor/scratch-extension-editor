@@ -1,7 +1,7 @@
 /**
  * 积木相关工具函数
  */
-import { returnValue, setAllValue } from '../../extension/storage.js';
+import { getAllValue, returnValue, setAllValue } from '../../extension/storage.js';
 import {t} from '../../i18n/index.js'
 
 /**
@@ -30,11 +30,11 @@ export const prepareBlockForDisplay = (blockData) => {
  * 保存项目为 JSON 文件
  */
 export const saveProject = () => {
-    const project = returnValue('comments');
+    const project = getAllValue();
     const download = document.createElement('a');
     const blob = new Blob([JSON.stringify(project, null, 2)], { type: 'application/json' });
     download.href = URL.createObjectURL(blob);
-    download.download = (project.name || "project") + ".ab";
+    download.download = (project.comments.name || "project") + ".ab";
     document.body.appendChild(download);
     download.click();
     document.body.removeChild(download);

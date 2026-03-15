@@ -5,11 +5,11 @@ let translate;
 
 export function init() {
     comments = {
-        "name": "",
-        "id": "",
-        "description": "",
+        "name": "A Extension",
+        "id": "aExtension",
+        "description": "a extension",
         "color": ["#0099ff", "#0066ff", "#0033ff"],
-        "author": "",
+        "author": "a person",
         "license": "MPL-2.0",
     };
     blocks = {};

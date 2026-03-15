@@ -27,7 +27,22 @@
     display: flex;
     justify-content: center;
     align-items: center;
+    animation: get_in 2s cubic-bezier(0, 0.01, 0, 1.01);
 }
+
+@keyframes get_in {
+    0% {
+        opacity: 0;
+    }
+    25%{
+        opacity: 0;
+        transform: translateY(90px);
+    }
+    100% {
+        opacity: 1;
+    }
+}
+
 .logoPic{
     width: 100px;
     height: 100px;
