@@ -1,5 +1,11 @@
 .mainPanel {
     text-align: center;
+    display: flex;
+    flex-direction: column;
+    width:100%;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
 }
 
 .footer {
@@ -11,4 +17,31 @@
     justify-content: center;
     gap: 10px;
     padding: 10px;
+}
+
+.logo{
+    max-height: 150px;
+    color: #09f;
+    font-size: 60px;
+    font-weight: bolder;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.logoPic{
+    width: 100px;
+    height: 100px;
+    margin: 20px;
+}
+
+.actionButton{
+    width: 170px;
+    height: 50px;
+    border: 2px solid var(--accent-color);
+    transition: background-color 0.2s ease;
+    background: none;
+}
+
+.actionButton:hover{
+    background-color: var(--accent-color);
 }

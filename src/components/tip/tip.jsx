@@ -8,9 +8,11 @@ const Tip = props => {
                 <VscWarning />
                 <span>{props.title}</span>
             </div>
-            <div class={styles.title}>
-                {props.children}
-            </div>
+            {props.children &&
+                <div class={styles.title}>
+                    {props.children}
+                </div>
+            }
         </div>
     )
 };

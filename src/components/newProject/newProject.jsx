@@ -6,6 +6,7 @@ import {
 } from '../../extension/storage';
 import { spawnExtID } from '../../extension/check';
 import { useTranslation } from '../../i18n';
+import Tip from '../tip/tip.jsx';
 
 import styles from './newProject.module.css';
 
@@ -84,15 +85,36 @@ export default function NewProject(props) {
                 nowValue={nowName}
                 placeholder={t('Name')}
             />
-            <div>
+            <div style={{
+                display: 'flex',
+                alignItems: 'center'
+            }}>
                 <input type="checkbox" checked={useCustomID} onChange={e => {
                     setUseCustomID(e.target.checked)
                 }} />
                 {t('Custom ID?')}
             </div>
-            <div>{t('Extension id')}: {useCustomID ? (<input value={nowID} onChange={e => {
-                setID(e.target.value)
-            }} />) : (<span>{nowID}</span>)}</div>
+            {
+                (nowID.trim() !== "" || useCustomID) ?
+                    <div>
+                        {t('Extension id')}:
+                        {useCustomID ? (<input value={nowID} onChange={e => {
+                            setID(e.target.value)
+                        }} />
+                        ) : (
+                            <p style={{
+                                backgroundColor: "var(--frontground-color)",
+                                width: "200px",
+                                display: "inline-block",
+                            }}>{nowID}</p>
+                        )}
+                    </div> :
+                    <div style={{
+                        width: "200px"
+                    }}>
+                        <Tip title={t('Empty extension id')} />
+                    </div>
+            }
             <Input
                 setName={value => setDesc(value)}
                 nowValue={nowDesc}

@@ -1,6 +1,8 @@
 import {
     loadMonacoConfig,
-    applyLanguageServiceSettings,
+    applyBlockLanguageServiceSettings,
+    registerInputHighlight,
+    insertTextAtCursor,
     VSCODE_DARK_PLUS
 } from './monacoConfig.js';
 import MonacoEditor from '@monaco-editor/react';
@@ -8,9 +10,9 @@ import { useState, useRef, useEffect } from 'react';
 import { t } from '../../i18n'
 import { returnValue, setValueTo, getAllValue } from '../../extension/storage.js';
 import styles from './publicJS.module.css'
-import { renderBlockToHTML } from '../../lib/blockSvgRenderer.js';
+import { BlockType, renderBlockToHTML } from '../../lib/blockSvgRenderer.js';
 import { prepareBlockForDisplay } from './blockUtils.js';
-import { VscChevronUp } from "react-icons/vsc";
+import { VscChevronUp, VscRunBelow } from "react-icons/vsc";
 import VMAPI from './vm-api.js';
 import VMAPI_CN from './vm-api-cn.js';
 import SCRATCH_API from './scratch-api.js';
@@ -22,20 +24,29 @@ const Block = props => {
         props.setExpand();
     };
 
+    const fullOpcode = returnValue('comments')['id'] + '_' + props.name;
+
     return (
         <div key={props.name} className={styles.blockPreview}>
             <div className={styles.intro}>
                 <div>
                     <div style={{ fontSize: '16px', color: '#666' }}>opcode: "{props.name}"</div>
-                    <div style={{ fontSize: '16px', color: '#666' }}>full opcode: "{returnValue('comments')['id'] + '_' + props.name}"</div>
+                    <div style={{ fontSize: '16px', color: '#666' }}>full opcode: "{fullOpcode}"</div>
                 </div>
-                <div className={styles.chevron} onClick={handleToggle}>
-                    <div style={{
-                        transform: props.expand ? "rotate(180deg)" : "rotate(0deg)",
-                        transition: 'transform 0.2s ease'
-                    }}>
-                        <VscChevronUp />
+                <div>
+                    <div className={styles.chevron} onClick={handleToggle}>
+                        <div style={{
+                            transform: props.expand ? "rotate(180deg)" : "rotate(0deg)",
+                            transition: 'transform 0.2s ease'
+                        }}>
+                            <VscChevronUp />
+                        </div>
                     </div>
+                    <div className={styles.chevron} onClick= {() => {
+                        props.insert(`Scratch.vm.runtime.startHats('${fullOpcode}');`)
+                    }} title={t("Insert Run Code")}>{props.blk.type === BlockType.EVENT && (
+                        <VscRunBelow />
+                    )}</div>
                 </div>
             </div>
             <div className={styles.Block}>
@@ -75,6 +86,28 @@ const Editor = props => {
     const decorationsRef = useRef([]);
 
     const [expandBlockIndex, setExpandBlockIndex] = useState(-1);
+
+    const handleInsertAtCursor = (text) => {
+        if (!editorRef.current) return;
+
+        const editor = editorRef.current;
+        const position = editor.getPosition();  // 获取当前光标位置
+
+        // 使用 executeEdits 在光标位置插入文本
+        editor.executeEdits('insert-input', [{
+            range: new monacoApiRef.current.Range(
+                position.lineNumber,
+                position.column,
+                position.lineNumber,
+                position.column
+            ),
+            text: text,
+            forceMoveMarkers: true
+        }]);
+
+        // 让编辑器获得焦点
+        editor.focus();
+    };
 
     // 切换展开状态
     const handleToggleExpand = (index) => {
@@ -231,7 +264,7 @@ const Editor = props => {
     // 为 Monaco 注入 input 变量定义
     const injectInputDefinitions = (monaco) => {
         // 收集所有 input 并生成类型定义
-        const inputDefs = [];        
+        const inputDefs = [];
 
         inputIdsRef.current.forEach(value => {
             inputDefs.push(`/**`);
@@ -289,6 +322,7 @@ const Editor = props => {
                             index={index}
                             expand={index === expandBlockIndex}
                             setExpand={() => handleToggleExpand(index)}
+                            insert={handleInsertAtCursor}
                             renderEditor={(value) => (
                                 <MonacoEditor
                                     height="300px"

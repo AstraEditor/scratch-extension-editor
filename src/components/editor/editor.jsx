@@ -8,7 +8,9 @@ import InputPart from './InputPart';
 import { BlockType, InputType, renderBlockToHTML } from '../../lib/blockSvgRenderer.js';
 import { getAllValue, setValueTo, returnValue } from '../../extension/storage.js';
 import { useTranslation, BLOCK_TYPE_ID } from '../../i18n';
-import { VscSettingsGear, VscEdit, VscClose } from "react-icons/vsc";
+import { VscSettingsGear, VscEdit, VscClose, VscAdd, VscFileCode, VscGitFetch, VscArchive, VscJson } from "react-icons/vsc";
+import { MdOutlineTranslate } from "react-icons/md";
+
 import Tip from '../tip/tip.jsx';
 import VMAPI from './vm-api.js';
 import VMAPI_CN from './vm-api-cn.js';
@@ -498,19 +500,19 @@ const Editor = props => {
                             <button className={styles.Button} onClick={() => {
                                 setEditingIndex(null);
                                 setCreatBlock(true);
-                            }}>{t('Create new Block')}</button>
-                            <button className={styles.Button} onClick={() => setSaveBlock(true)}>{t('Output')}</button>
-                            <button className={styles.Button} onClick={saveProject}>{t('Save')}</button>
-                            <button className={styles.Button} onClick={() => document.getElementById('file-input').click()}>{t('Load')}</button>
+                            }}><VscAdd />{t('Create new Block')}</button>
+                            <button className={styles.Button} onClick={() => setSaveBlock(true)}><VscFileCode />{t('Output')}</button>
+                            <button className={styles.Button} onClick={saveProject}><VscGitFetch />{t('Save')}</button>
+                            <button className={styles.Button} onClick={() => document.getElementById('file-input').click()}><VscArchive />{t('Load')}</button>
                             <button className={styles.Button} onClick={() => setOpenPublicJSeditor(true)}>
-                                <span>{t('Public JS')}</span>
+                                <VscJson /><span>{t('Public JS')}</span>
                             </button>
                             <input id="file-input" type="file" accept=".ab,.json" style={{ display: 'none' }} onChange={(e) => loadProject(e, () => { props.loaded() })} />
                             <button className={styles.Button} onClick={() => setMonacoSettingsOpen(true)}>
-                                <span>{t('Editor Settings')}</span>
+                            <VscSettingsGear /><span>{t('Editor Settings')}</span>
                             </button>
                             <button className={styles.Button} onClick={() => setOpenTranslate(true)}>
-                                <span>{t('Translate')}</span>
+                            <MdOutlineTranslate /><span>{t('Translate')}</span>
                             </button>
                         </div>
 

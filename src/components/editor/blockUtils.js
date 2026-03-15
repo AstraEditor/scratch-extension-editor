@@ -30,11 +30,11 @@ export const prepareBlockForDisplay = (blockData) => {
  * 保存项目为 JSON 文件
  */
 export const saveProject = () => {
-    const project = getAllValue();
+    const project = returnValue('comments');
     const download = document.createElement('a');
     const blob = new Blob([JSON.stringify(project, null, 2)], { type: 'application/json' });
     download.href = URL.createObjectURL(blob);
-    download.download = (project[0 /* Comments */]?.name || "project") + ".ab";
+    download.download = (project.name || "project") + ".ab";
     document.body.appendChild(download);
     download.click();
     document.body.removeChild(download);

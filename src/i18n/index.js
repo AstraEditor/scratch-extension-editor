@@ -24,7 +24,7 @@ export const BLOCK_TYPE_ID = {
 const translations = {
     zh: {
         // Home
-        'Welcome to Astras Blocktory': '欢迎使用 Astras Blocktory',
+        'Welcome to AstraBlocktory': '欢迎使用 AstraBlocktory',
         'What would you like to do?': '您想要做什么？',
         'Create New Extension': '创建新扩展',
         'Load Extension (.ab)': '加载扩展 (.ab)',
@@ -44,6 +44,7 @@ const translations = {
         'Invalid extension name!': '扩展名称无效!',
         'Invalid extension ID!': '扩展ID无效!',
         'Custom': '自定义',
+        'Empty extension id':"空扩展ID",
 
         // Editor
         'Blocks': '积木',
@@ -101,6 +102,7 @@ const translations = {
         'Format JSON': '格式化 JSON',
         'Apply': '应用',
         'Load': '加载',
+        'Translate': '翻译',
 
         // NewBlock
         'New Block': '新建积木',

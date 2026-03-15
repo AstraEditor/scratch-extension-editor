@@ -234,7 +234,7 @@ export async function spawnExtension() {
 // By: ${Extension.comments.author}
 // License: ${Extension.comments.license}
 
-/* Built by Astras Blocktory*/
+/* Built by AstraBlocktory*/
 Scratch.translate.setup(${JSON.stringify(spawnTranslate())});
 (function(Scratch) {
     "use strict";
