@@ -116,6 +116,7 @@ const Editor = props => {
         setTimeout(() => {
             updateDecorations();
         }, 100);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
     // 导入IDs

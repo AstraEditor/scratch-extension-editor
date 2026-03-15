@@ -11,7 +11,7 @@ const Home = props => {
         <div>
             <div className={styles.mainPanel}>
                 <div className={styles.logo}>
-                    <img src={logo} className={styles.logoPic}/><span className={styles.title}>Astra Blocktory</span>
+                    <img src={logo} className={styles.logoPic} alt="logo" /><span className={styles.title}>Astra Blocktory</span>
                 </div>
                 <p>{t('What would you like to do?')}</p>
                 <button className={styles.actionButton} onClick={props.newProject}>{t('Create New Extension')}</button>

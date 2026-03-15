@@ -1,7 +1,7 @@
 /**
  * 积木相关工具函数
  */
-import { returnValue, getAllValue, setAllValue } from '../../extension/storage.js';
+import { returnValue, setAllValue } from '../../extension/storage.js';
 import {t} from '../../i18n/index.js'
 
 /**
