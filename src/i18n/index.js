@@ -103,6 +103,10 @@ const translations = {
         'Apply': '应用',
         'Load': '加载',
         'Translate': '翻译',
+        'Block': '积木',
+        'Public': '公共',
+        'full opcode': '完整opcode',
+        'Input ID':"输入 ID",
 
         // NewBlock
         'New Block': '新建积木',

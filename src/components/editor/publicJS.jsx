@@ -1,8 +1,6 @@
 import {
     loadMonacoConfig,
-    applyBlockLanguageServiceSettings,
-    registerInputHighlight,
-    insertTextAtCursor,
+    applyLanguageServiceSettings,
     VSCODE_DARK_PLUS
 } from './monacoConfig.js';
 import MonacoEditor from '@monaco-editor/react';
@@ -19,7 +17,7 @@ import SCRATCH_API from './scratch-api.js';
 import SCRATCH_API_CN from './scratch-api-cn.js';
 
 
-const Block = props => {
+export const Block = props => {
     const handleToggle = () => {
         props.setExpand();
     };
@@ -31,7 +29,7 @@ const Block = props => {
             <div className={styles.intro}>
                 <div>
                     <div style={{ fontSize: '16px', color: '#666' }}>opcode: "{props.name}"</div>
-                    <div style={{ fontSize: '16px', color: '#666' }}>full opcode: "{fullOpcode}"</div>
+                    <div style={{ fontSize: '16px', color: '#666' }}>{t('full opcode')}: "{fullOpcode}"</div>
                 </div>
                 <div>
                     <div className={styles.chevron} onClick={handleToggle}>
@@ -42,7 +40,7 @@ const Block = props => {
                             <VscChevronUp />
                         </div>
                     </div>
-                    <div className={styles.chevron} onClick= {() => {
+                    <div className={styles.chevron} onClick={() => {
                         props.insert(`Scratch.vm.runtime.startHats('${fullOpcode}');`)
                     }} title={t("Insert Run Code")}>{props.blk.type === BlockType.EVENT && (
                         <VscRunBelow />
@@ -113,6 +111,12 @@ const Editor = props => {
     const handleToggleExpand = (index) => {
         setExpandBlockIndex(prev => prev === index ? -1 : index);
     };
+
+    useEffect(() => {
+        setTimeout(() => {
+            updateDecorations();
+        }, 100);
+    }, [])
 
     // 导入IDs
     useEffect(() => {

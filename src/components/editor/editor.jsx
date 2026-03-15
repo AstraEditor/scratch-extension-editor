@@ -8,8 +8,9 @@ import InputPart from './InputPart';
 import { BlockType, InputType, renderBlockToHTML } from '../../lib/blockSvgRenderer.js';
 import { getAllValue, setValueTo, returnValue } from '../../extension/storage.js';
 import { useTranslation, BLOCK_TYPE_ID } from '../../i18n';
-import { VscSettingsGear, VscEdit, VscClose, VscAdd, VscFileCode, VscGitFetch, VscArchive, VscJson } from "react-icons/vsc";
+import { VscSettingsGear, VscEdit, VscClose, VscAdd, VscFileCode, VscGitFetch, VscArchive, VscJson, VscRefresh } from "react-icons/vsc";
 import { MdOutlineTranslate } from "react-icons/md";
+import { Block } from './publicJS.jsx';
 
 import Tip from '../tip/tip.jsx';
 import VMAPI from './vm-api.js';
@@ -29,6 +30,7 @@ import {
     MONACO_SETTINGS_KEY
 } from './monacoConfig.js';
 import { prepareBlockForDisplay, saveProject, loadProject } from './blockUtils.js';
+import hotReloadService from '../../extension/HotReloadService.js';
 
 const FUNCTION_BODY_DIAGNOSTIC_CODES = [1108];
 
@@ -72,6 +74,7 @@ const Editor = props => {
     const [isOpenPublicJSeditor, setOpenPublicJSeditor] = useState(false);
     const [isOpenTranslate, setOpenTranslate] = useState(false);
     const [editingIndex, setEditingIndex] = useState(null);
+    const [isHotReloading, setHotReloading] = useState(false);  // 热重载状态
     // eslint-disable-next-line no-unused-vars
     const [_blockVersion, setBlockVersion] = useState(0);
     const [isEditingBlock, setEditingBlock] = useState(null);
@@ -99,6 +102,7 @@ const Editor = props => {
         if (!monacoApiRef.current) return;
         applyBlockLanguageServiceSettings(monacoApiRef.current, monacoConfig);
     }, [monacoConfig]);
+
 
     // 拖拽调整宽度
     useEffect(() => {
@@ -160,6 +164,8 @@ const Editor = props => {
         // 收集所有 input 并生成类型定义
         const inputDefs = [];
         const inputIds = [];  // 收集所有 input ID 用于高亮
+        const ids = [];
+
         let inputIdx = 0;
         block.parts.forEach(part => {
             if (typeof part === 'object' && part !== null) {
@@ -189,27 +195,21 @@ const Editor = props => {
                 inputIdx++;
             }
         });
-        if (block.type !== BlockType.EVENT) {
-            const extID = returnValue("comments").id;
-            const allBlock = Object.values(returnValue("blocks"))
-            let blockCode = '';
-            for (let index = 0; index < allBlock.length; index += 1) {
-                console.log(allBlock[index])
-                if (allBlock[index] === block) {
-                    blockCode = Object.keys(returnValue("blocks"))[index];
-                    break
-                }
-            }
+
+
+        Object.entries(returnValue('blocks')).forEach(([name, blk]) => {
+            const id = returnValue('comments')['id'] + '_' + name;
             inputDefs.push(`/**`);
-            inputDefs.push(`* Return the opcode of this block`);
-            inputDefs.push(`* @returns {string} "${extID}_${blockCode}"`);
+            inputDefs.push(`* Return the opcode of the block`);
+            inputDefs.push(`* @returns {string} "${id}"`);
             inputDefs.push(`*/`);
-            inputDefs.push(`declare const OPCODE: string;`);
-            // OPCODE
-        }
+            inputDefs.push(`declare const ${id}: "${id}";`)
+            delete ids[id];
+            ids.push(id);
+        });
 
         // 保存 input IDs 用于装饰器
-        inputIdsRef.current = inputIds;
+        inputIdsRef.current = [...inputIds, ...ids];
 
         // 注入 input 变量定义
         if (inputDefs.length > 0) {
@@ -227,7 +227,7 @@ const Editor = props => {
                 monaco.languages.typescript.javascriptDefaults.addExtraLib(VMAPI, 'vm-api.d.ts');
                 monaco.languages.typescript.javascriptDefaults.addExtraLib(SCRATCH_API, 'scratch-api.d.ts');
         }
-        
+
 
         // 注册自定义颜色提供器，为 input 变量添加高亮
         registerInputHighlight(monaco, inputIds);
@@ -322,6 +322,25 @@ const Editor = props => {
             : blockData;
         setValueTo("blocks", { ...allBlocks, [blockName]: savedBlock });
         setEditingIndex(null);
+    };
+
+    // 热重载处理
+    const handleHotReload = async () => {
+        if (isHotReloading) return;
+        
+        setHotReloading(true);
+        try {
+            const result = await hotReloadService.hotReload();
+            if (result.success) {
+                alert(t('Extension hot reload successful!'));
+            } else {
+                alert(t('Hot reload failed: ') + (result.error || t('Unknown error')));
+            }
+        } catch (error) {
+            alert(t('Hot reload failed: ') + error.message);
+        } finally {
+            setHotReloading(false);
+        }
     };
 
     // 开始编辑 block，读取代码到 Monaco
@@ -464,6 +483,14 @@ const Editor = props => {
         return true
     }
 
+    const [expandBlockIndex, setExpandBlockIndex] = useState(-1);
+    const [blockTab, setBlockTab] = useState(1);
+    // 切换展开状态
+    const handleToggleExpand = (index) => {
+        setExpandBlockIndex(prev => prev === index ? -1 : index);
+    };
+
+
     return (
         <div className={styles.editor} ref={containerRef}>
             {/* 模态框 */}
@@ -509,10 +536,18 @@ const Editor = props => {
                             </button>
                             <input id="file-input" type="file" accept=".ab,.json" style={{ display: 'none' }} onChange={(e) => loadProject(e, () => { props.loaded() })} />
                             <button className={styles.Button} onClick={() => setMonacoSettingsOpen(true)}>
-                            <VscSettingsGear /><span>{t('Editor Settings')}</span>
+                                <VscSettingsGear /><span>{t('Editor Settings')}</span>
                             </button>
                             <button className={styles.Button} onClick={() => setOpenTranslate(true)}>
-                            <MdOutlineTranslate /><span>{t('Translate')}</span>
+                                <MdOutlineTranslate /><span>{t('Translate')}</span>
+                            </button>
+                            <button 
+                                className={styles.Button} 
+                                onClick={handleHotReload}
+                                disabled={isHotReloading}
+                                title={t('Hot reload extension to Scratch editor')}
+                            >
+                                <VscRefresh /><span>{isHotReloading ? t('Reloading...') : t('Hot Reload')}</span>
                             </button>
                         </div>
 
@@ -560,23 +595,53 @@ const Editor = props => {
                     /* 编辑积木视图 */
                     <div className={styles.editBlock}>
                         <h1>{t('Code')}</h1>
-                        <div ref={previewRef} className={styles.OnceBlockPreview} dangerouslySetInnerHTML={{ __html: renderBlockToHTML(prepareBlockForDisplay(isEditingBlock)) }} />
-                        <span className={styles.FonudTip}>
-                            {t("Type: ") + t(isEditingBlock.type)}
-                        </span>
-                        {isEditingBlock.type === BlockType.EVENT && (
-                            <Tip
-                                title={t("Event block use different grammar.")}
-                            >
-                                <a href='https://docs.turbowarp.org/development/extensions/hats'>See https://docs.turbowarp.org/development/extensions/hats</a>
-                            </Tip>
-                        )}
-                        <span className={styles.FonudTip}>
-                            {t('Found ') + isEditingBlock.parts.filter(item => typeof item === 'object' && item !== null).length.toString() + t(" Input(s).")}
-                        </span>
-                        <div className={styles.sectionCard}>
-                            {renderInputParts()}
+                        <div className={styles.selectTab}>
+                            <button className={styles.selectTabButton} onClick={() => { setBlockTab(1) }}>{t('Block')}</button>
+                            <button className={styles.selectTabButton} onClick={() => { setBlockTab(2) }}>{t('Public')}</button>
                         </div>
+                        {blockTab === 1 && <><div ref={previewRef} className={styles.OnceBlockPreview} dangerouslySetInnerHTML={{ __html: renderBlockToHTML(prepareBlockForDisplay(isEditingBlock)) }} />
+                            <span className={styles.FonudTip}>
+                                {t("Type: ") + t(isEditingBlock.type)}
+                            </span>
+                            {isEditingBlock.type === BlockType.EVENT && (
+                                <Tip
+                                    title={t("Event block use different grammar.")}
+                                >
+                                    <a href='https://docs.turbowarp.org/development/extensions/hats'>See https://docs.turbowarp.org/development/extensions/hats</a>
+                                </Tip>
+                            )}
+                            <span className={styles.FonudTip}>
+                                {t('Found ') + isEditingBlock.parts.filter(item => typeof item === 'object' && item !== null).length.toString() + t(" Input(s).")}
+                            </span>
+                            <div className={styles.sectionCard}>
+                                {renderInputParts()}
+                            </div></>}
+                        {blockTab === 2 && <>
+                            {Object.keys(getAllValue().blocks).length === 0 ? (<>
+                                <span className={styles.Nothing}>{t('Empty flyout')}</span>
+                            </>) : Object.entries(getAllValue().blocks || {}).map(([name, blk], index) => (
+                                <Block
+                                    key={name}
+                                    name={name}
+                                    blk={blk}
+                                    index={index}
+                                    expand={index === expandBlockIndex}
+                                    setExpand={() => handleToggleExpand(index)}
+                                    insert={handleInsertAtCursor}
+                                    renderEditor={(value) => (
+                                        <MonacoEditor
+                                            height="300px"
+                                            defaultLanguage="javascript"
+                                            theme={monacoConfig.theme || 'vscode-dark-plus'}
+                                            loading={<div style={{ color: '#888', padding: '20px' }}>{t('Loading editor...')}</div>}
+                                            options={{ ...monacoConfig.options, readOnly: true, minimap: { enabled: false }, fixedOverflowWidgets: true }}
+                                            value={value}
+                                        />
+                                    )}
+                                />
+                            ))}
+                        </>}
+
                         <div className={styles.DoneButtonDiv}><button className={styles.DoneButton} onClick={handleBack}>{t('Done')}</button></div>
 
                     </div>
