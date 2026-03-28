@@ -1,0 +1,68 @@
+:root {
+    /* 背景色 */
+    --background-color: #111;
+    --background-color-transparent: #111111aa;
+    --background-darker: #0d0d0d;
+    --background-overlay: #00000026;
+    --background-overlay-light: #00000020;
+    
+    /* 前景色 */
+    --frontground-color: #222;
+    --background-button-color: #333;
+    --background-button-hover-color: #444;
+    
+    /* 模态框 */
+    --modal-background: #2a2a2a;
+    --modal-border: #3a3a3a;
+    --modal-title: #3c3c3c;
+    --modal-close: #4c4c4c;
+    
+    /* 文字颜色 */
+    --text-color: #eee;
+    --text-color-bright: #fff;
+    --text-muted: #666;
+    --text-dim: #888;
+    --text-label: #aaa;
+    --text-secondary: #c7c7c7;
+    
+    /* 边框颜色 */
+    --border-color: #ffffff1f;
+    --border-color-light: #ffffff33;
+    --border-color-lighter: #ffffff1a;
+    
+    /* 强调色 */
+    --accent-color: #0099ff;
+    --accent-color-transparent: #0099ff50;
+    
+    /* 状态颜色 */
+    --error-color: #ff8f8f;
+    --error-bg: #40000033;
+    --warning-color: #cccc00;
+    --warning-text: #ee0;
+    
+    /* z-index */
+    --modal-background-index: 100;
+    --modal-window-index: 110;
+}
+
+::-webkit-scrollbar {
+    background-color: var(--frontground-color);
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: var(--background-button-color);
+}
+
+::-webkit-scrollbar-thumb:hover{
+    background-color: var(--modal-title);
+}
+
+input{
+    background-color: var(--modal-close);
+    color: var(--text-color);
+    outline: var(--background-color-transparent);
+    border: none;
+    height: 30px;
+    border-radius: 3px;
+    padding-left: 5px;
+}

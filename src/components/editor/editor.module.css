@@ -1,0 +1,274 @@
+.editor {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: flex-start;
+    min-width: 0;
+}
+
+.blocks {
+    height: 100%;
+    overflow: auto;
+    min-width: 0;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+}
+
+.resizer {
+    width: 8px;
+    height: 100%;
+    background: var(--modal-border);
+    cursor: col-resize;
+    transition: background 0.2s;
+    flex-shrink: 0;
+}
+
+.resizer:hover {
+    background: var(--accent-color);
+}
+
+.code {
+    height: 100%;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.codeHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.editorSettingsButton {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 10px;
+    font-size: 14px;
+}
+
+.editorHost {
+    flex: 1;
+    min-height: 0;
+}
+
+.blockPreview {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    padding: 6px 8px;
+}
+
+.blockPreview:hover {
+    background-color: var(--background-overlay);
+}
+
+
+.OnceBlockPreview {
+    margin: 8px 10px 10px;
+    display: inline-block;
+    line-height: 0;
+    transform-origin: top left;
+    zoom: 0.72;
+}
+
+.OnceBlockPreview svg {
+    display: block;
+    max-width: 100%;
+}
+
+.Settings {
+    opacity: 0.5;
+    display: flex;
+    align-items: center;
+    padding-right: 0;
+    margin-top: 8px;
+    flex-shrink: 0;
+}
+
+.Block {
+    display: flex;
+    align-content: flex-start;
+    align-items: center;
+    gap: 10px;
+    padding-right: 0;
+    width: 100%;
+}
+
+.Tabs {
+    display: flex;
+    justify-content: center;
+}
+
+.Button {
+    width: 100%;
+    margin: 0;
+    border-radius: 0;
+    background-color: var(--frontground-color);
+    box-shadow: 0 0 0 var(--accent-color);
+    transition: box-shadow 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+}
+
+.Button:hover {
+    box-shadow: 0 5px 0 var(--accent-color);
+}
+
+.editBlock {
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+    min-height: 100%;
+    box-sizing: border-box;
+}
+
+.FonudTip {
+    font-size: large;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.sectionCard {
+    background-color: var(--background-overlay);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 10px;
+    margin-bottom: 10px;
+}
+
+.TitleOfMain {
+    margin: 0 20px;
+}
+
+.valuePart {
+    background-color: var(--background-overlay);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 10px;
+    margin-bottom: 10px;
+}
+
+.valuePartTitle {
+    background-color: none;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.valuePartIndex {
+    opacity: 0.5;
+    margin-right: 10px;
+    font-size: small;
+}
+
+.valuePartButtons {
+    padding: 10px;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s ease;
+}
+
+.valuePartButtons:hover {
+    background-color: var(--modal-close);
+}
+
+.valuePartSettings {
+    display: flex;
+}
+
+.expandableContent {
+    max-height: 0;
+    overflow: visible;
+    transition: max-height 0.3s ease, opacity 0.3s ease;
+    opacity: 0;
+    visibility: hidden;
+}
+
+.expandableContent.expanded {
+    max-height: 300px;
+    opacity: 1;
+    visibility: visible;
+}
+
+.expandableInner {
+    padding-top: 10px;
+}
+
+.hr {
+    border: none;
+    border-top: 1px solid var(--border-color);
+    margin: 0 0 10px 0;
+    opacity: 0.5;
+}
+
+.idEditor {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 10px;
+}
+
+.idEditor label {
+    font-size: 14px;
+    color: var(--text-label);
+    min-width: 80px;
+}
+
+.idInput {
+    flex: 1;
+    padding: 8px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    background: var(--background-color-transparent);
+    color: var(--text-color-bright);
+    font-size: 14px;
+    font-family: 'JetBrains Mono', 'Cascadia Mono', monospace;
+    outline: none;
+    transition: border-color 0.2s, background 0.2s;
+}
+
+.idInput:focus {
+    border-color: var(--accent-color);
+    background: var(--background-color);
+}
+
+.idInput::placeholder {
+    color: var(--text-muted);
+}
+
+.DoneButtonDiv {
+    position: sticky;
+    bottom: 0;
+    margin-top: auto;
+    padding: 15px 0;
+    display: flex;
+    justify-content: center;
+    background: var(--background-color);
+}
+
+.DoneButton{
+    width: 100%;
+}
+
+.selectTab{
+    display: flex;
+}
+
+.selectTabButton{
+    width: 100%;
+}
+
+.blockConfig{
+    display: flex;
+    flex-direction: column;
+}

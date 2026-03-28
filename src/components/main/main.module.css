@@ -1,0 +1,76 @@
+button {
+    background-color: var(--accent-color);
+    border: none;
+    color: white;
+    padding: 10px 10px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 4px;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+button:hover {
+    filter: brightness(1.2);
+}
+
+button:active {
+    filter: brightness(0.8);
+}
+
+body {
+    background-color: var(--background-color);
+    color: var(--text-color);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+svg{
+    overflow: visible;
+}
+
+/* Public ↑ */
+
+.tab {
+    width: 100%;
+    display: flex;
+    background-color: var(--frontground-color);
+}
+
+.tabButton {
+    padding: 10px;
+    text-align: center;
+    cursor: pointer;
+    background-color: var(--background-button-color);
+    border: none;
+    color: var(--text-color);
+    font-size: 16px;
+    height: 100%;
+    margin: 0;
+}
+
+
+
+.backButton {
+    position: absolute;
+    width: 30px;
+    height: 30px;
+    background-color: var(--accent-color);
+    border: none;
+    border-radius: 100px;
+    padding: 10px;
+    cursor: pointer;
+    margin: 20px;
+}
+
+.editor {
+    width: 100%;
+    height: 100%;
+}
+
+.mainContainer {
+    width: 100%;
+    height: 100vh;
+    overflow: hidden;
+}

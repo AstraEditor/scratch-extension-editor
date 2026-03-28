@@ -1,0 +1,159 @@
+.JSEditor {
+    display: flex;
+    flex-direction: row;
+    height: 100%;
+}
+
+.Manage {
+    min-width: 200px;
+    max-width: 900px;
+    height: 100%;
+    border-right: 1px solid var(--background-button-color);
+    display: flex;
+    flex-direction: column-reverse;
+    padding: 10px;
+    box-sizing: border-box;
+}
+
+.resizer {
+    width: 8px;
+    height: 100%;
+    background: var(--modal-border);
+    cursor: col-resize;
+    transition: background 0.2s;
+    flex-shrink: 0;
+}
+
+.resizer:hover {
+    background: var(--accent-color);
+}
+
+.Editor {
+    flex: 1;
+    min-width: 0;
+    height: 100%;
+    overflow: hidden;
+}
+
+
+.Blocks{
+    flex: 1;
+    width: 100%;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center
+}
+
+.Button {
+    padding: 8px 16px;
+    background: var(--background-button-color);
+    color: var(--text-color-bright);
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    margin-bottom: 10px;
+    flex-shrink: 0;
+}
+
+.Button:hover {
+    background: var(--background-button-hover-color);
+}
+
+.OnceBlockPreview {
+    margin: 20px 10px 10px;
+    display: inline-block;
+    line-height: 0;
+    transform-origin: top left;
+    zoom: 0.72;
+}
+.OnceBlockPreview svg {
+    display: block;
+    max-width: 100%;
+}
+
+.blockPreview{
+    background-color: var(--background-overlay);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 10px;
+    margin-bottom: 10px;
+    cursor: default;
+    width: 90%;
+}
+
+.intro{
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.chevron {
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    transition: background 0.2s;
+}
+
+.chevron:hover {
+    background: var(--background-overlay);
+}
+
+.expandableContent {
+    max-height: 0;
+    overflow: visible;
+    transition: max-height 0.3s ease, opacity 0.3s ease;
+    opacity: 0;
+    visibility: hidden;
+}
+
+.expandableContent.expanded {
+    max-height: 500px;
+    opacity: 1;
+    visibility: visible;
+}
+
+.expandableInner {
+    padding-top: 10px;
+}
+
+.hr {
+    border: none;
+    border-top: 1px solid var(--border-color);
+    margin: 0 0 10px 0;
+}
+
+.codeBlock {
+    margin: 0;
+    padding: 10px;
+    background: var(--background-darker);
+    border-radius: 4px;
+    color: var(--text-secondary);
+    font-family: 'Cascadia Mono', 'JetBrains Mono', monospace;
+    font-size: 12px;
+    white-space: pre-wrap;
+    word-break: break-all;
+    max-height: 500px;
+}
+
+.codeEditorContainer {
+    height: 300px;
+    border-radius: 4px;
+    border: 1px solid var(--border-color);
+}
+
+.Nothing {
+    color: var(--text-muted);
+    font-style: italic;
+    text-align: center;
+    display: block;
+    padding: 20px;
+}
+
+.Nothing{
+    color: var(--text-color);
+    font-size: larger;
+    opacity: 0.5;
+    font-style: italic
+}

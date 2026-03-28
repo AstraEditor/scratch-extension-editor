@@ -1,30 +1,76 @@
-import ExtensionEditor from './components/ExtensionEditor';
-import ExtensionEditorSettingsContent from './components/ExtensionEditorSettingsContent';
-import ExtensionEditorCreateContent from './components/ExtensionEditorCreateContent';
-import ExtensionEditorStorageContent from './components/ExtensionEditorStorageContent';
-import ExtensionEditorWizardPanel from './components/ExtensionEditorWizardPanel';
-import BlockPreview from './components/BlockPreview';
-import extensionEditorStorage from './lib/extension-editor-storage';
 import React from 'react';
-import ReactDOM from 'react-dom';
+import ReactDOM from 'react-dom/client';
+import './index.css';
+import Main from './components/main/main';
+import reportWebVitals from './reportWebVitals';
+import {
+    init,
+    returnValue,
+    getAllValue,
+    setValueTo,
+    setAllValue
+} from './extension/storage'
 
-export default ExtensionEditor;
 
-// 导出所有组件和服务
-export { 
-  ExtensionEditorSettingsContent, 
-  ExtensionEditorCreateContent, 
-  ExtensionEditorStorageContent,
-  ExtensionEditorWizardPanel,
-  BlockPreview,
-  extensionEditorStorage 
+// 配置 Monaco 编辑器加载器（使用本地静态资源，避免 CDN 导致加载失败）
+import { loader } from '@monaco-editor/react';
+
+// 初始化存储
+init();
+
+// 使用 PUBLIC_URL 确保路径在开发和生产环境中都正确
+const publicUrl = process.env.PUBLIC_URL || '';
+const monacoBasePath = `${publicUrl}/vs`;
+
+// 检查 loader 是否存在
+if (loader && typeof loader.config === 'function') {
+    loader.config({
+        paths: {
+            vs: monacoBasePath
+        },
+        'vs/nls': {
+            availableLanguages: {
+                '*': 'zh-cn'
+            }
+        }
+    });
+}
+
+// 忽略 ResizeObserver 循环警告 （世上最铸币警告）
+const debounce = (fn, delay) => {
+    let timer;
+    return function(...args) {
+        clearTimeout(timer);
+        timer = setTimeout(() => fn.apply(this, args), delay);
+    };
 };
 
-// 导出 React 和 ReactDOM 供示例页面使用
-export { React, ReactDOM };
+const _ResizeObserver = window.ResizeObserver;
+window.ResizeObserver = class ResizeObserver extends _ResizeObserver {
+    constructor(callback) {
+        callback = debounce(callback, 16);
+        super(callback);
+    }
+};
 
-// 将 React 和 ReactDOM 挂载到 window 上以便使用
-if (typeof window !== 'undefined') {
-  window.React = React;
-  window.ReactDOM = ReactDOM;
+if (process.env.NODE_ENV === 'development') {
+    window.storage = {
+        get: returnValue,
+        getAll: getAllValue,
+        set: setValueTo,
+        setAll: setAllValue
+    };
 }
+  
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(
+  <React.StrictMode>
+    <Main />
+  </React.StrictMode>
+);
+
+// If you want to start measuring performance in your app, pass a function
+// to log results (for example: reportWebVitals(console.log))
+// or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
+reportWebVitals();
