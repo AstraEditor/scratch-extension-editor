@@ -111,6 +111,10 @@
     background-color: var(--frontground-color);
     box-shadow: 0 0 0 var(--accent-color);
     transition: box-shadow 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
 }
 
 .Button:hover {
@@ -262,4 +266,9 @@
 
 .selectTabButton{
     width: 100%;
+}
+
+.blockConfig{
+    display: flex;
+    flex-direction: column;
 }

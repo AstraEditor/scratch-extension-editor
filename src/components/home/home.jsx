@@ -1,7 +1,7 @@
 import styles from "./home.module.css";
 import { setLanguage, SUPPORTED_LANGUAGES, useTranslation } from "../../i18n";
 import { loadProject } from "../editor/blockUtils";
-import decompile from "../../extension/decompile";
+import {translate, getClass} from "../../extension/decompile";
 
 import logo from './logo.svg';
 
@@ -21,12 +21,21 @@ const Home = props => {
 
                     <input id="file-input-c" type="file" accept=".ab,.json" style={{ display: 'none' }} onChange={(e) => loadProject(e, () => { props.loaded() })} />
                     <input id="file-input-d" type="file" accept=".js" style={{ display: 'none' }} onChange={async (e) => {
-                        try {
-                            await decompile(e);
-                            props.loaded();
-                        } catch (err) {
-                            alert(t('Failed to decompile extension: ') + err.message);
-                        }
+                        const file = e.target.files[0];
+                        if (!file) return;
+
+                        const reader = new FileReader();
+                        reader.onload = async (event) => {
+                            try {
+                                const jsCode = event.target.result;
+                                const className = getClass(jsCode);
+                                translate(jsCode, className);
+                                props.loaded();
+                            } catch (err) {
+                                alert(t('Failed to decompile extension: ') + err.message);
+                            }
+                        };
+                        reader.readAsText(file);
                     }} />
 
                 <div className={styles.footer}>

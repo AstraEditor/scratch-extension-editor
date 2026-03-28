@@ -2,6 +2,7 @@ let comments;
 let blocks;
 let publicJS;
 let translate;
+let dynamicMenus;
 
 export function init() {
     comments = {
@@ -15,6 +16,7 @@ export function init() {
     blocks = {};
     publicJS = "";
     translate = [];
+    dynamicMenus = {};
 }
 
 export function returnValue(value) {
@@ -27,6 +29,8 @@ export function returnValue(value) {
             return publicJS;
         case "translate":
             return translate;
+        case "dynamicMenus":
+            return dynamicMenus;
         default:
             throw new Error("Undefined value to return")
     }
@@ -46,6 +50,9 @@ export function setValueTo(item, value) {
         case "translate":
             translate = value;
             break
+        case "dynamicMenus":
+            dynamicMenus = value;
+            break
         default:
             throw new Error("Undefined value to set")
     }
@@ -57,6 +64,7 @@ export function getAllValue() {
         blocks,
         publicJS,
         translate,
+        dynamicMenus,
     }
 }
 
@@ -65,4 +73,5 @@ export function setAllValue(data) {
     if (data.blocks) blocks = data.blocks;
     if (data.publicJS) publicJS = data.publicJS;
     if (data.translate) translate = data.translate;
+    if (data.dynamicMenus) dynamicMenus = data.dynamicMenus;
 }

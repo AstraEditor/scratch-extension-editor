@@ -669,6 +669,20 @@ const NewBlock = props => {
                                                 </label>
                                             </div>
                                         )}
+                                                                                    <div className={styles.formRow}>
+                                                <label className={styles.formLabel}>
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={blockConfig.isAsync}
+                                                        onChange={e => setBlockConfig({
+                                                            ...blockConfig,
+                                                            isAsync: e.target.checked
+                                                        })}
+                                                    />
+                                                    {t('Async Block')}
+                                                </label>
+                                            </div>
+
                                     </div>
 
                                     <div className={styles.actionsRow}>

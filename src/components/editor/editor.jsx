@@ -21,6 +21,12 @@ import SCRATCH_API_CN from './scratch-api-cn.js';
 import TranslateTab from '../translate/translate.jsx'
 import PublicJSeditor from './publicJS.jsx';
 
+import { IoIosTimer } from "react-icons/io";
+import { MdLoop } from "react-icons/md";
+import { AiOutlineStop } from "react-icons/ai";
+
+
+
 import {
     VSCODE_DARK_PLUS,
     DEFAULT_MONACO_CONFIG,
@@ -232,6 +238,24 @@ const Editor = props => {
                 monaco.languages.typescript.javascriptDefaults.addExtraLib(SCRATCH_API, 'scratch-api.d.ts');
         }
 
+        // 注入 publicJS 以提供自动补全和类型提示
+        const publicJS = returnValue('publicJS') || '';
+        if (publicJS.trim()) {
+            monaco.languages.typescript.javascriptDefaults.addExtraLib(publicJS, 'publicJS.d.ts');
+        }
+
+        // 根据 isAsync 设置诊断选项
+        // 1308: Cannot use 'await' outside async function
+        const isAsync = block.blockConfig?.isAsync;
+        // 1375: 'await' expressions are only allowed at the top level of a file when that file is a module
+        // 1378: Top-level 'await' expressions are only allowed when the 'module' option is set to 'es2022'...
+        const asyncCodes = isAsync ? [1375, 1378] : [];
+        const diagnosticsOptions = {
+            ...monacoConfig.languageService?.diagnosticsOptions,
+            diagnosticCodesToIgnore: [...FUNCTION_BODY_DIAGNOSTIC_CODES, ...asyncCodes]
+        };
+        monaco.languages.typescript.javascriptDefaults.setDiagnosticsOptions(diagnosticsOptions);
+        monaco.languages.typescript.typescriptDefaults.setDiagnosticsOptions(diagnosticsOptions);
 
         // 注册自定义颜色提供器，为 input 变量添加高亮
         registerInputHighlight(monaco, inputIds);
@@ -331,7 +355,7 @@ const Editor = props => {
     // 热重载处理
     const handleHotReload = async () => {
         if (isHotReloading) return;
-        
+
         setHotReloading(true);
         try {
             const result = await hotReloadService.hotReload();
@@ -545,8 +569,8 @@ const Editor = props => {
                             <button className={styles.Button} onClick={() => setOpenTranslate(true)}>
                                 <MdOutlineTranslate /><span>{t('Translate')}</span>
                             </button>
-                            <button 
-                                className={styles.Button} 
+                            <button
+                                className={styles.Button}
                                 onClick={handleHotReload}
                                 disabled={isHotReloading}
                                 title={t('Hot reload extension to Scratch editor')}
@@ -578,6 +602,11 @@ const Editor = props => {
                                             }} title={t("Edit Block")}>
                                                 <VscSettingsGear />
                                             </div>
+                                        </div>
+                                        <div className={styles.blockConfig}>
+                                            {blk.blockConfig.isAsync && <IoIosTimer title={t('Async Block')} />}
+                                            {blk.blockConfig.isLoop && <MdLoop title={t('Loop Block')} />}
+                                            {!blk.blockConfig.hasNextConnection && <AiOutlineStop title={t('Stop Block')} />}
                                         </div>
                                         <div className={styles.OnceBlockPreview} dangerouslySetInnerHTML={{ __html: renderBlockToHTML(prepareBlockForDisplay(blk)) }} />
                                     </div>

@@ -271,6 +271,9 @@ const DefaultBlockConfig = {
 
   // Scratch extension block height rules
   isScratchExtension: true,
+
+  // 是否是异步积木
+  isAsync: false
 };
 
 /**

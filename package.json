@@ -9,6 +9,7 @@
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^13.5.0",
+    "babel": "^6.23.0",
     "monaco-editor": "^0.55.1",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
@@ -19,13 +20,14 @@
   },
   "scripts": {
     "copy:monaco": "node scripts/copyMonacoAssets.js",
-    "start": "npm run copy:monaco && react-scripts start",
-    "build": "npm run copy:monaco && react-scripts build",
+    "start": "npm run copy:monaco && DISABLE_ESLINT_PLUGIN=true react-scripts start",
+    "build": "npm run copy:monaco && DISABLE_ESLINT_PLUGIN=true react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "postinstall": "npm run copy:monaco"
   },
   "eslintConfig": {
+    "root": false,
     "extends": [
       "react-app",
       "react-app/jest"

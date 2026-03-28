@@ -139,22 +139,33 @@ export async function spawnExtension() {
                     case "dropdownReadOnly":
                         argument["type"] = Type.Arguments.String;
                         argument["menu"] = inputID
-                        menu = [];
-                        // 安全处理 dropdown value
-                        if (Array.isArray(data.value)) {
-                            data.value.forEach(item => {
-                                if (item && typeof item === 'object') {
-                                    menu.push({
-                                        text: `Scratch.translate("${item.name || ''}")`,
-                                        value: item.value || ''
-                                    });
-                                }
-                            });
+                        
+                        // 检查是否是动态菜单
+                        if (data.isDynamicMenu && data.dynamicMenuMethod) {
+                            // 动态菜单 - 使用方法名引用
+                            menus[inputID] = {
+                                acceptReporters: (data.inputType === "dropdown"),
+                                items: data.dynamicMenuMethod
+                            };
+                        } else {
+                            // 静态菜单
+                            menu = [];
+                            // 安全处理 dropdown value
+                            if (Array.isArray(data.value)) {
+                                data.value.forEach(item => {
+                                    if (item && typeof item === 'object') {
+                                        menu.push({
+                                            text: `Scratch.translate("${item.name || ''}")`,
+                                            value: item.value || ''
+                                        });
+                                    }
+                                });
+                            }
+                            menus[inputID] = {
+                                acceptReporters: (data.inputType === "dropdown"),
+                                items: menu
+                            };
                         }
-                        menus[inputID] = {
-                            acceptReporters: (data.inputType === "dropdown"), // 关键区别
-                            items: menu
-                        };
                         break;
                     case "boolean":
                         argument["type"] = Type.Arguments.Boolean;
@@ -187,6 +198,10 @@ export async function spawnExtension() {
         });
         return returnList;
     }
+    /**
+     * Spawn JavaScript code for all blocks in the extension.
+     * @returns {Array<string>} An array of strings representing the spawned JavaScript code.
+     */
     const spawnBlockJS = () => {
         const Blocks = Extension.blocks || {};
         const final = [];
@@ -198,7 +213,10 @@ export async function spawnExtension() {
                 // 事件积木的生成不同，参考 https://docs.turbowarp.org/development/extensions/hats
                 // 因此这里忽略
             } else {
-                final.push(`${id} (args) {`)
+                if(blk.blockConfig.isAsync) final.push(`async ${id} (args) {`)
+                else final.push(`${id} (args) {`)
+                // 异步积木
+
                 let indexOfInput = 0;
                 if (blk.parts && Array.isArray(blk.parts)) {
                     blk.parts.forEach(blkPart => {
@@ -222,11 +240,24 @@ export async function spawnExtension() {
         
         Object.keys(blocksData).forEach((name) => {
             const id = (commentsData['id'] || 'extension') + '_' + name;
-            const text = `const ${id} = "${id}"`;
-            ids.push(text);
+            ids.push(`const ${id} = "${id}"`);
         });
 
         return ids.join('\n');
+    }
+
+    // 生成动态菜单方法
+    const spawnDynamicMenuMethods = () => {
+        const dynamicMenusData = returnValue('dynamicMenus') || {};
+        const methods = [];
+        
+        for (const [menuName, menuCode] of Object.entries(dynamicMenusData)) {
+            if (menuCode && typeof menuCode === 'string') {
+                methods.push(`${menuName}() {${menuCode}}`);
+            }
+        }
+        
+        return methods;
     }
 
     const spawnTranslate = () => {
@@ -239,11 +270,11 @@ export async function spawnExtension() {
             if (!value || !value.id) return; // 跳过无效条目
             const langKey = convert[value.id] || value.id;
             returnList[langKey] = {};
-            // 直接使用 string 属性中的 key（原始代码中已包含下划线）
             const stringObj = value.string;
+            console.log(stringObj)
             if (stringObj && typeof stringObj === 'object') {
                 Object.entries(stringObj).forEach(([id, str]) => {
-                    returnList[langKey][id] = str;
+                    returnList[langKey]['_' + id] = str;
                 });
             }
         });
@@ -251,7 +282,6 @@ export async function spawnExtension() {
     }
     console.log(1)
     
-    // 安全获取 comments 数据
     const extComments = Extension.comments || {};
     const extName = extComments.name || 'Untitled Extension';
     const extId = extComments.id || 'untitledExtension';
@@ -295,6 +325,7 @@ Scratch.translate.setup(${JSON.stringify(spawnTranslate())});
             }
         }
         ${spawnBlockJS().join('\n')}
+        ${spawnDynamicMenuMethods().join('\n')}
     }
     Scratch.extensions.register(new ${extId}());
 })(Scratch)
@@ -319,7 +350,7 @@ Scratch.translate.setup(${JSON.stringify(spawnTranslate())});
     try {
         result = await prettier.format(ExtensionText, options);
     } catch (error) {
-        console.error('格式化失败:', error);
+        console.error('Format Failed:', error);
     }
     return result
 }
