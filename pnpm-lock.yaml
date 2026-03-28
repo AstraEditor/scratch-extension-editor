@@ -8,6 +8,15 @@ importers:
 
   .:
     dependencies:
+      '@babel/generator':
+        specifier: ^7.26.0
+        version: 7.29.1
+      '@babel/parser':
+        specifier: ^7.26.0
+        version: 7.29.2
+      '@babel/traverse':
+        specifier: ^7.26.0
+        version: 7.29.0
       '@monaco-editor/react':
         specifier: ^4.7.0
         version: 4.7.0(monaco-editor@0.55.1)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
