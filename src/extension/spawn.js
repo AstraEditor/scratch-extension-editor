@@ -216,7 +216,7 @@ export async function spawnExtension() {
                 if(blk.blockConfig.isAsync) final.push(`async ${id} (args) {`)
                 else final.push(`${id} (args) {`)
                 // 异步积木
-
+                final.push(`try{`)
                 let indexOfInput = 0;
                 if (blk.parts && Array.isArray(blk.parts)) {
                     blk.parts.forEach(blkPart => {
@@ -227,7 +227,7 @@ export async function spawnExtension() {
                     })
                 }
                 final.push(blk.code || '')
-                final.push(`}`)
+                final.push(`} catch(e) {console.error(\`${id} error: e\`);return e}}`)
             }
         })
         return final;
