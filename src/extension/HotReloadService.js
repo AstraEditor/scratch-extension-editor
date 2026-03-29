@@ -1,10 +1,10 @@
 /**
- * 热重载服务 - 通过 postMessage 与 scratch-gui 通信
+ * 热重载服务 - 通过 postMessage 或 Desktop IPC 与 scratch-gui 通信
  * 
  * 使用方式：
  * 1. scratch-gui 打开 scratch-extension-editor 窗口
  * 2. 编辑完成后点击"热重载"按钮
- * 3. 通过 window.opener.postMessage 发送扩展代码
+ * 3. 通过 window.opener.postMessage 或 Desktop IPC 发送扩展代码
  * 4. scratch-gui 接收消息，卸载旧扩展并加载新扩展
  */
 
@@ -14,33 +14,37 @@ import { returnValue } from './storage.js';
 const HOT_RELOAD_MESSAGE_TYPE = 'astra-extension-hot-reload';
 
 class HotReloadService {
-    constructor() {
-        this.targetOrigin = this.detectTargetOrigin();
-    }
-
     /**
-     * 检测目标 origin（scratch-gui 的域名）
+     * 检查是否在 Desktop 环境中
      */
-    detectTargetOrigin() {
-        // 如果 opener 存在，尝试获取其 origin
-        if (window.opener) {
-            // 对于同源页面，可以使用 '*'
-            // 但为了安全，最好指定具体的 origin
-            try {
-                return window.opener.location.origin;
-            } catch (e) {
-                // 跨域时无法访问，使用 '*'
-                return '*';
-            }
-        }
-        return '*';
+    isDesktop() {
+        return typeof window.IsDesktop !== 'undefined' && window.IsDesktop;
     }
 
     /**
-     * 检查是否可以通过 postMessage 与父窗口通信
+     * 检查是否可以与编辑器窗口通信
      */
     canCommunicate() {
+        // Desktop 环境总是可以通信（通过 IPC）
+        if (this.isDesktop()) {
+            return typeof window.DesktopExtensionEditor !== 'undefined';
+        }
+        // Web 环境：通过 window.opener
         return window.opener && !window.opener.closed;
+    }
+
+    /**
+     * 发送热重载消息
+     */
+    sendHotReloadMessage(data) {
+        if (this.isDesktop()) {
+            // Desktop 环境：使用 IPC
+            window.DesktopExtensionEditor.hotReload(data);
+        } else {
+            // Web 环境：使用 postMessage
+            const targetOrigin = window.opener ? window.opener.location.origin : '*';
+            window.opener.postMessage(data, targetOrigin);
+        }
     }
 
     /**
@@ -68,11 +72,11 @@ class HotReloadService {
             }
 
             // 发送热重载消息
-            window.opener.postMessage({
+            this.sendHotReloadMessage({
                 type: HOT_RELOAD_MESSAGE_TYPE,
                 extensionId,
                 code: extensionCode
-            }, this.targetOrigin);
+            });
 
             return { success: true };
         } catch (error) {

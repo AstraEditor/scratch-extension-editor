@@ -46,11 +46,6 @@ jobs:
       - name: Build
         run: pnpm build
 
-      - name: Fix paths for local usage
-        run: |
-          # 将绝对路径替换为相对路径
-          sed -i 's|/scratch-extension-editor/|./|g' build/index.html
-
       - name: Create archive
         run: |
           cd build
