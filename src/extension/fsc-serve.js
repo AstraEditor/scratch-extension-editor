@@ -1,8 +1,22 @@
 export default function fscWS() {
-    if (!("WebSocketServer" in window)) {
+    if (typeof WebSocket === "undefined") {
         return alert("WebSocketServer is not supported in this environment.");
     }
 
-    var ws = new WebSocket("ws://localhost:8000/"); // FSC默认端口
-    ws.onopen = () => {console.log("1")}
+    const url = "localhost:8000"; // FSC默认端口
+    var ws = new WebSocket(`ws://${url}/ws`);
+    ws.onmessage = (event) => {
+        const data = JSON.parse(event.data) || {};
+        if (data.type === "ok") {
+            // 获取扩展
+            fetch(`http://${url}`)
+                .then(url => {
+                    return url.text()
+                }).then(ext => {
+                    console.log(ext)
+                })
+                .catch(err => console.error(err))
+
+        }
+    }
 }
