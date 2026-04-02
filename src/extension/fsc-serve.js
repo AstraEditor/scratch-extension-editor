@@ -1,22 +1,46 @@
+const FSC_URL = "localhost:8000"; // FSC默认端口
+
 export default function fscWS() {
     if (typeof WebSocket === "undefined") {
         return alert("WebSocketServer is not supported in this environment.");
     }
 
-    const url = "localhost:8000"; // FSC默认端口
-    var ws = new WebSocket(`ws://${url}/ws`);
+    var ws = new WebSocket(`ws://${FSC_URL}/ws`);
     ws.onmessage = (event) => {
         const data = JSON.parse(event.data) || {};
         if (data.type === "ok") {
-            // 获取扩展
-            fetch(`http://${url}`)
+            // 获取扩展信息
+            fetch(`http://${FSC_URL}`)
                 .then(url => {
-                    return url.text()
+                    return url.text();
                 }).then(ext => {
-                    console.log(ext)
+                    processFSCUrlasObj(ext);
                 })
-                .catch(err => console.error(err))
+                .catch(err => console.error(err));
 
         }
     }
+}
+
+const processFSCUrlasObj = (url) => {
+    const URL = JSON.parse(url) || "";
+    if (typeof URL === "string") {
+        console.error("bro, 这里的url非彼url,这里是一个对象");
+        return;
+    }
+
+    let extension = ""; 
+    
+    // 处理URL
+    fetch(`http://${FSC_URL}${URL.extensionUrl}`)
+        .then(res => res.text())
+        .then(code => {
+            extension = code;
+            const ProjectObject = {
+                ...URL,
+                extension
+            }
+            console.log(ProjectObject);
+        })
+        .catch(err => console.error(err));
 }
