@@ -14,8 +14,7 @@ import {
 
 // 配置 Monaco 编辑器加载器（使用本地静态资源，避免 CDN 导致加载失败）
 import { loader } from '@monaco-editor/react';
-import fsc from './extension/fsc-serve'
-fsc() //Test
+
 
 // 初始化存储
 init();

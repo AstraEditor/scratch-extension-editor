@@ -16,8 +16,7 @@ export default function fscWS() {
                 }).then(ext => {
                     processFSCUrlasObj(ext);
                 })
-                .catch(err => console.error(err));
-
+                .catch(err => {throw new Error("Failed to fetch extension code: " + err.message)});
         }
     }
 }
@@ -40,7 +39,13 @@ const processFSCUrlasObj = (url) => {
                 ...URL,
                 extension
             }
-            console.log(ProjectObject);
+            
+            window.dispatchEvent( //发送广播
+                new CustomEvent("fsc-extension-loaded", {
+                    detail: ProjectObject
+                })
+            )
+            return "OK!";
         })
-        .catch(err => console.error(err));
+        .catch(err => {throw new Error("Failed to fetch extension code: " + err.message)});
 }

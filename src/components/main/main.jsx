@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import styles from "./main.module.css";
 import '../../style/style.css';
 
@@ -7,10 +7,22 @@ import back from './back.svg';
 import Home from '../home/home'
 import NewProject from '../newProject/newProject';
 import Editor from '../editor/editor'
+import FSCEditor from '../FSCEditor/FSCEditor';
 
 const Main = () => {
     const [activeTab, setActiveTab] = useState('home');
     const [projectVersion, setProjectVersion] = useState(0);
+    const [fscData, setFscData] = useState({});
+    useEffect(() => {
+        const handleFSCEvent = (e) => {
+            setFscData(e.detail);
+            setActiveTab("fsc");
+        }  
+
+        window.addEventListener("fsc-extension-loaded", handleFSCEvent)
+        return () => window.removeEventListener("fsc-extension-loaded", handleFSCEvent)
+    }, []);
+
 
     return (
         <div className={styles.mainContainer}>
@@ -46,7 +58,11 @@ const Main = () => {
                     }}
                 />
             )}
-
+            {activeTab === 'fsc' && (
+                <FSCEditor
+                    fscData={fscData}
+                />
+            )}
 
 
         </div>
