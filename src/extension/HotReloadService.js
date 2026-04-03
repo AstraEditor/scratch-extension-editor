@@ -101,7 +101,8 @@ class HotReloadService {
     }
 
     /**
-     * 执行热重载
+     * 执行热重载(需要传入扩展)
+     * @param {object} ext 传入的扩展
      * @returns {Promise<{success: boolean, error?: string}>}
      */
     async hotReloadFSC(ext) {
