@@ -53,7 +53,7 @@ const FSCEditor = props => {
 
     useEffect(() => {
         const hotreload = async () => {
-            const result = await hotReloadService.hotReload();
+            const result = await hotReloadService.hotReloadFSC(ext);
             console.log(result);
             console.log("refreshed!")
         }

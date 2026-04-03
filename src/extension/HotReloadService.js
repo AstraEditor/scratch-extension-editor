@@ -99,6 +99,36 @@ class HotReloadService {
         const extensionId = returnValue('comments')?.id;
         return { extensionId, code };
     }
+
+    /**
+     * 执行热重载
+     * @returns {Promise<{success: boolean, error?: string}>}
+     */
+    async hotReloadFSC(ext) {
+        if (!this.canCommunicate()) {
+            return {
+                success: false,
+                error: '无法与编辑器窗口通信。请确保从 Scratch 编辑器打开此窗口。'
+            };
+        }
+
+        try {
+            // 发送热重载消息
+            this.sendHotReloadMessage({
+                type: HOT_RELOAD_MESSAGE_TYPE,
+                extensionId: ext.id,
+                code: ext.extension
+            });
+
+            return { success: true };
+        } catch (error) {
+            console.error('Hot reload failed:', error);
+            return {
+                success: false,
+                error: error.message || '热重载失败'
+            };
+        }
+    }
 }
 
 // 导出单例
