@@ -19,14 +19,14 @@ const FSCEditor = props => {
     const ext = props.fscData;
 
     const platform = {
-        tw: { name: "TurboWarp", color: "#ff4c4c" },
-        ae: { name: "AstraEditor", color: "#0099ff" },
-        "02engine": { name: "02Engine", color: "#01b8ac" },
-        clipcc: { name: "ClipCC", color: "#0072F5" },
-        mblock: { name: "mBlock", color: "#1EAAFF" },
-        gandi: { name: "Gandi", color: "#17b6f3" },
-        zerocat: { name: "ZeroCat", color: "#1867c0" },
-        "40code": { name: "40Code", color: "#1867c0" },
+        tw: { name: "TurboWarp", color: "#ff4c4c", logo: tw },
+        ae: { name: "AstraEditor", color: "#0099ff", logo: ae },
+        "02engine": { name: "02Engine", color: "#01b8ac", logo: ZTengine },
+        clipcc: { name: "ClipCC", color: "#0072F5", logo: clipcc },
+        // mblock: { name: "mBlock", color: "#1EAAFF", logo: mblock },
+        gandi: { name: "Gandi", color: "#17b6f3", logo: gandi },
+        zerocat: { name: "ZeroCat", color: "#1867c0", logo: zerocat },
+        "40code": { name: "40Code", color: "#1867c0", logo: FZcode },
     }
     const getPlatform = name => {
         if (platform[name]) return platform[name].name;
@@ -39,15 +39,9 @@ const FSCEditor = props => {
 
     const getPlatformLogo = name => {
         const pfName = getPlatform(name);
-        const img = pf => `<img class=${styles.platformLogo} src="${pf}" alt="${pfName}"/>`;
-        if (name === "tw") return img(tw);
-        if (name === "40code") return img(FZcode);
-        if (name === "gandi") return img(gandi);
-        if (name === "02engine") return img(ZTengine);
-        if (name === "clipcc") return img(clipcc)
-        if (name === "zerocat") return img(zerocat);
-        if (name === "ae") return img(ae);
+        const img = pf => (<img className={styles.platformLogo} src={pf} alt={pfName} />);
 
+        if (platform[name]) return img(platform[name].logo)
         return null;
     }
 
@@ -73,8 +67,8 @@ const FSCEditor = props => {
                     <h3>{t('Supported Platforms')}</h3>
                     {ext.platform.map(name => (
                         <div className={styles.platformDiv} key={name}>
-                            <div dangerouslySetInnerHTML={{ __html: getPlatformLogo(name) }} />
-                            <p style={{ color: getPlatformColor(name) }} key={name}>
+                            {getPlatformLogo(name)}
+                            <p style={{ color: getPlatformColor(name) }}>
                                 {getPlatform(name)}
                             </p>
                         </div>

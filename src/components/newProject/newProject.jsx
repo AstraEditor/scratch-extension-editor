@@ -78,122 +78,154 @@ export default function NewProject(props) {
         props.Done()
     }
     return (
-        <div className={styles.main}>
-            <h1>{t('Create extension')}</h1>
-            <Input
-                setName={value => setNameAndID(value)}
-                nowValue={nowName}
-                placeholder={t('Name')}
-            />
-            <div style={{
-                display: 'flex',
-                alignItems: 'center'
-            }}>
-                <input type="checkbox" checked={useCustomID} onChange={e => {
-                    setUseCustomID(e.target.checked)
-                }} />
-                {t('Custom ID?')}
-            </div>
-            {
-                (nowID.trim() !== "" || useCustomID) ?
-                    <div>
-                        {t('Extension id')}:
-                        {useCustomID ? (<input value={nowID} onChange={e => {
-                            setID(e.target.value)
-                        }} />
-                        ) : (
-                            <p style={{
-                                backgroundColor: "var(--frontground-color)",
-                                width: "200px",
-                                display: "inline-block",
-                            }}>{nowID}</p>
-                        )}
-                    </div> :
-                    <div style={{
-                        width: "200px"
-                    }}>
-                        <Tip title={t('Empty extension id')} />
+        <div className={styles.newProject}>
+            <div className={styles.view}>
+                <h2>{t('Extension Manger')}</h2>
+                <div
+                    style={{
+                        backgroundColor: nowColor[1] == undefined ? nowColor[0] : nowColor[1],
+                        position: 'relative'
+                    }}
+                    className={styles.Extbg}
+                >
+                    <div className={styles.manages}>
+                        <div>
+
+                            <div style={{ position: 'relative', zIndex: '11' }}>
+                                <span className={styles.ExtTitle} style={{
+                                    textShadow: '0 0 3px rgba(0, 0, 0, 0.8), 0 0 6px rgba(0, 0, 0, 0.8), 0 1px 2px rgba(0, 0, 0, 0.5)'
+                                }}>
+                                    {nowName}
+                                </span><br />
+                                <span className={styles.ExtId} style={{
+                                    textShadow: '0 0 3px rgba(0, 0, 0, 0.8), 0 0 6px rgba(0, 0, 0, 0.8), 0 1px 2px rgba(0, 0, 0, 0.5)'
+                                }}>
+                                    {nowID}
+                                </span>
+                            </div>
+                        </div>
                     </div>
-            }
-            <Input
-                setName={value => setDesc(value)}
-                nowValue={nowDesc}
-                placeholder={t('Description')}
-            />
-            <Input
-                setName={value => setAuthor(value)}
-                nowValue={nowAuthor}
-                placeholder={t('Author')}
-            />
-            <select
-                onChange={(e) => {
-                    if (e.target.value === "Custom") {
-                        setCustomLicencse(prompt("What licence do you like?"))
-                        setLicense(nowCustomLicence);
-                    } else {
-                        setLicense(e.target.value)
+                </div>
+
+            </div>
+            <div className={styles.main}>
+                <h1>{t('Create extension')}</h1>
+                <Input
+                    setName={value => setNameAndID(value)}
+                    nowValue={nowName}
+                    placeholder={t('Name')}
+                />
+                <div className={styles.ID}>
+                    {
+                        (nowID.trim() !== "" || useCustomID) ?
+                            <div>
+                                {t('Extension id')}:
+                                {useCustomID ? (<input value={nowID} onChange={e => {
+                                    setID(e.target.value)
+                                }} />
+                                ) : (
+                                    <input value={nowID} readOnly />
+                                )}
+                            </div> :
+                            <div style={{
+                                width: "200px"
+                            }}>
+                                <Tip title={t('Empty extension id')} />
+                            </div>
                     }
-                }}
-                value={nowLicense}
-                placeholder={t('License')}
-                className={styles.input}
-            >
-                <option value="MPL-2.0">MPL-2.0</option>
-                <option value="MIT">MIT</option>
-                <option value="GPL-3.0">GPL-3.0</option>
-                <option value="Apache-2.0">Apache-2.0</option>
-                <option value="CC-BY-SA-4.0">CC-BY-SA-4.0</option>
-                <hr />
-                <option value="Custom">{t('Custom')}({nowCustomLicence})</option>
-            </select>
-            <div>
-                {t('Custom color')}: <input type='checkbox'
-                    checked={!isDisabledCustomColor}
-                    onChange={(e) => setDisabledCustomColor(!e.target.checked)}
-                /><br />
-            </div>
-            <div>
-                <Input
-                    setName={value => {
-                        const newColors = calculateColors(value);
-                        // 更新未自定义的颜色
-                        setColor([
-                            newColors[0],
-                            customColor[1] ? nowColor[1] : newColors[1],
-                            customColor[2] ? nowColor[2] : newColors[2]
-                        ]);
-                    }}
-                    nowValue={nowColor[0]}
-                    type="color"
-                    placeholder="Color"
-                    className={styles.colorInput}
-                />
-                <Input
-                    setName={value => {
-                        setColor([nowColor[0], value, nowColor[2]]);
-                        setCustomColor([customColor[0], true, customColor[2]]);
-                    }}
-                    nowValue={nowColor[1]}
-                    type="color"
-                    placeholder="Color"
-                    className={styles.colorInput}
-                    disabled={isDisabledCustomColor}
+                </div>
+                <div style={{
+                    display: 'flex',
+                    alignItems: 'center'
+                }} className={styles.useCustomID}>
+                    <input type="checkbox" checked={useCustomID} onChange={e => {
+                        setUseCustomID(e.target.checked)
+                    }} />
+                    {t('Custom ID?')}
+                </div>
 
+
+                <Input
+                    setName={value => setDesc(value)}
+                    nowValue={nowDesc}
+                    placeholder={t('Description')}
                 />
                 <Input
-                    setName={value => {
-                        setColor([nowColor[0], nowColor[1], value]);
-                        setCustomColor([customColor[0], customColor[1], true]);
-                    }}
-                    nowValue={nowColor[2]}
-                    type="color"
-                    placeholder="Color"
-                    className={styles.colorInput}
-                    disabled={isDisabledCustomColor}
+                    setName={value => setAuthor(value)}
+                    nowValue={nowAuthor}
+                    placeholder={t('Author')}
                 />
+                <select
+                    onChange={(e) => {
+                        if (e.target.value === "Custom") {
+                            setCustomLicencse(prompt("What licence do you like?"))
+                            setLicense(nowCustomLicence);
+                        } else {
+                            setLicense(e.target.value)
+                        }
+                    }}
+                    value={nowLicense}
+                    placeholder={t('License')}
+                    className={styles.input}
+                >
+                    <option value="MPL-2.0">MPL-2.0</option>
+                    <option value="MIT">MIT</option>
+                    <option value="GPL-3.0">GPL-3.0</option>
+                    <option value="Apache-2.0">Apache-2.0</option>
+                    <option value="CC-BY-SA-4.0">CC-BY-SA-4.0</option>
+                    <hr />
+                    <option value="Custom">{t('Custom')}({nowCustomLicence})</option>
+                </select>
+                <div className={styles.SetColor}>
+                    <span>{t('Custom color')}: </span>
+                    <input type='checkbox'
+                        checked={!isDisabledCustomColor}
+                        onChange={(e) => setDisabledCustomColor(!e.target.checked)}
+                    />
+                </div>
+                <div>
+                    <Input
+                        setName={value => {
+                            const newColors = calculateColors(value);
+                            // 更新未自定义的颜色
+                            setColor([
+                                newColors[0],
+                                customColor[1] ? nowColor[1] : newColors[1],
+                                customColor[2] ? nowColor[2] : newColors[2]
+                            ]);
+                        }}
+                        nowValue={nowColor[0]}
+                        type="color"
+                        placeholder="Color"
+                        className={styles.colorInput}
+                    />
+                    <Input
+                        setName={value => {
+                            setColor([nowColor[0], value, nowColor[2]]);
+                            setCustomColor([customColor[0], true, customColor[2]]);
+                        }}
+                        nowValue={nowColor[1]}
+                        type="color"
+                        placeholder="Color"
+                        className={styles.colorInput}
+                        disabled={isDisabledCustomColor}
 
+                    />
+                    <Input
+                        setName={value => {
+                            setColor([nowColor[0], nowColor[1], value]);
+                            setCustomColor([customColor[0], customColor[1], true]);
+                        }}
+                        nowValue={nowColor[2]}
+                        type="color"
+                        placeholder="Color"
+                        className={styles.colorInput}
+                        disabled={isDisabledCustomColor}
+                    />
+
+                </div>
+                <button onClick={() => setComment()}>{t('Done')}</button>
             </div>
-            <button onClick={() => setComment()}>{t('Done')}</button>
         </div>
     )
 }

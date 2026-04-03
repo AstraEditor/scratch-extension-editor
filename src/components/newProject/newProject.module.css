@@ -1,7 +1,25 @@
-.main{
+.main {
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    flex: 1;
+}
+.newProject {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-around;
+    min-height: 100vh;
+    animation: get_in 0.5s cubic-bezier(0, 0.83, 1, 1.01);
+}
+.view{
+    flex:1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
 }
 
 .input {
@@ -15,15 +33,62 @@
     color: var(--text-color);
 }
 
-.id{
+.id {
     font-size: small;
     margin-bottom: 10px;
 }
 
-.colorInput{
-        background-color: var(--frontground-color);
+.colorInput {
+    background-color: var(--frontground-color);
     border: 0;
     outline: 0;
     color: var(--text-color);
-    
+
+}
+
+.SetColor {
+    display: flex;
+    align-items: center;
+}
+
+.ID{
+    margin: 5px;
+}
+
+.manages {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    min-height: 0;
+}
+.Extbg {
+    margin: 10px auto;
+    width: 90%;
+    min-height: 105px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    overflow: hidden;
+}
+.ExtTitle {
+    font-size: x-large;
+    font-weight: bold;
+    margin-left: 10px;
+    color: white
+}
+.ExtId {
+    margin-left: 10px;
+    color: white
+}
+
+@keyframes get_in {
+    from{
+        opacity: 0;
+        transform: translateY(50px);
+    }
+    to{
+        opacity: 1;
+    }
 }

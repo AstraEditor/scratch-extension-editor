@@ -143,7 +143,8 @@ const translations = {
         'read only': '不接受子积木',
         'Options': '选项',
         'Default Option': "默认选项",
-        "Dropdown Readonly":"不接受子积木的下拉框",
+        "Dropdown Readonly": "不接受子积木的下拉框",
+        "Async Block":"异步积木",
 
         // Output Project
         'Output Project': '输出项目',
