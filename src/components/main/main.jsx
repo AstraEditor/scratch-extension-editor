@@ -16,6 +16,7 @@ const Main = () => {
     useEffect(() => {
         const handleFSCEvent = (e) => {
             setFscData(e.detail);
+            setProjectVersion(v => v + 1);
             setActiveTab("fsc");
         }  
 

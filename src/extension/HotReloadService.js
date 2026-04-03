@@ -18,7 +18,9 @@ class HotReloadService {
      * 检查是否在 Desktop 环境中
      */
     isDesktop() {
-        return typeof window.IsDesktop !== 'undefined' && window.IsDesktop;
+        const isDesktop = typeof window.IsDesktop !== 'undefined' && window.IsDesktop;
+        console.log("IsDesktop:", isDesktop);
+        return isDesktop;
     }
 
     /**

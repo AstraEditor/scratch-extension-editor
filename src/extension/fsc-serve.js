@@ -45,6 +45,7 @@ const processFSCUrlasObj = (url) => {
                     detail: ProjectObject
                 })
             )
+            console.log("Loaded new FSC Extension!");
             return "OK!";
         })
         .catch(err => {throw new Error("Failed to fetch extension code: " + err.message)});
