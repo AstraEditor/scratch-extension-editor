@@ -206,6 +206,9 @@ const translations = {
         'Auto translate': '自动翻译',
         'Translations saved!': '翻译已保存！',
         'Translation failed': '翻译失败',
+
+        // FSC
+        'Supported Platforms': '支持的平台',
     },
 };
 

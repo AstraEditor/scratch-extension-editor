@@ -4,6 +4,17 @@
     align-items: center;
     min-width: 100vw;
     min-height: 100vh;
+    animation: in 0.5s cubic-bezier(0, 0.83, 1, 1.01);
+}
+
+@keyframes in {
+    from{
+        opacity: 0;
+        transform: translateY(50px);
+    }
+    to{
+        opacity: 1;
+    }
 }
 
 .platformLogo{
@@ -16,4 +27,25 @@
     flex-direction: row;
     align-items: center;
     gap: 5px;
+}
+
+.extName{
+    font-weight: bolder;
+    font-size: xx-large;
+}
+
+.extVersion{
+    font-weight: lighter;
+    font-size: small;
+    color: var(--text-dim);
+}
+
+.extId{
+    font-style: italic;
+    font-size: small;
+    color: var(--text-dim);
+}
+
+.extDescription{
+    font-size: medium;
 }

@@ -63,14 +63,14 @@ const FSCEditor = props => {
     return (
         <div className={styles.fscEditor}>
             <div>
-                <h1>{ext.name}</h1>
-                <p>{ext.id}</p>
-                <p>{ext.description}</p>
-                <p>{ext.version}</p>
+                <span className={styles.extName}>{ext.name}</span>
+                <span className={styles.extVersion}>{ext.version}</span><br />
+                <span className={styles.extId}>{ext.id}</span><br /><br />
+                <span className={styles.extDescription}>"{ext.description}"</span>
             </div>
             <div>
                 <div>
-                    <h3>{t('Supported platforms')}</h3>
+                    <h3>{t('Supported Platforms')}</h3>
                     {ext.platform.map(name => (
                         <div className={styles.platformDiv} key={name}>
                             <div dangerouslySetInnerHTML={{ __html: getPlatformLogo(name) }} />
