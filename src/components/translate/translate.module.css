@@ -45,9 +45,6 @@
     gap: 16px;
     flex-wrap: wrap;
     padding: 10px 12px;
-    background: var(--background-overlay);
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
 }
 
 .langSelect {
@@ -65,7 +62,6 @@
 .langSelect select {
     padding: 6px 12px;
     border-radius: 6px;
-    border: 1px solid var(--border-color-light);
     background: var(--background-color);
     color: var(--text-color);
     font-size: 14px;
@@ -84,8 +80,7 @@
     width: 100%;
     padding: 8px 12px;
     border-radius: 6px;
-    border: 1px solid var(--border-color-light);
-    background: var(--background-color);
+    background: var(--frontground-color);
     color: var(--text-color);
     font-size: 14px;
 }
@@ -461,4 +456,15 @@
 .textList::-webkit-scrollbar-thumb:hover,
 .blockList::-webkit-scrollbar-thumb:hover {
     background: var(--border-color-light);
+}
+
+.backButton {
+    width: 30px;
+    height: 30px;
+    background-color: var(--accent-color);
+    border: none;
+    border-radius: 100px;
+    padding: 10px;
+    cursor: pointer;
+    margin: 5px;
 }

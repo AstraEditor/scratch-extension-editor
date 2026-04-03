@@ -80,7 +80,7 @@ export default function NewProject(props) {
     return (
         <div className={styles.newProject}>
             <div className={styles.view}>
-                <h2>{t('Extension Manger')}</h2>
+                <h2>{t('Extension Manager')}</h2>
                 <div
                     style={{
                         backgroundColor: nowColor[1] == undefined ? nowColor[0] : nowColor[1],

@@ -4,6 +4,7 @@ import { InputType, renderBlockToHTML, renderConstList } from "../../lib/blockSv
 import { prepareBlockForDisplay } from '../editor/blockUtils.js';
 import { useTranslation } from '../../i18n';
 import styles from './translate.module.css';
+import back from '../main/back.svg';
 
 // 支持的翻译目标语言 (MyMemory API)
 const TRANSLATE_LANGUAGES = [
@@ -33,26 +34,26 @@ const TRANSLATE_LANGUAGES = [
 // 文档：https://mymemory.translated.net/doc/spec.php
 const translateText = async (text, targetLang) => {
     if (!text || text.trim() === '') return text;
-    
+
     try {
         const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=en|${targetLang}`;
         const response = await fetch(url);
-        
+
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
-        
+
         const data = await response.json();
-        
+
         if (data && data.responseStatus === 200 && data.responseData) {
             return data.responseData.translatedText;
         }
-        
+
         // 配额用完时返回提示
         if (data && data.responseStatus === 403) {
             throw new Error('Translation quota exceeded');
         }
-        
+
         return text;
     } catch (error) {
         console.error('Translation error:', error);
@@ -62,7 +63,7 @@ const translateText = async (text, targetLang) => {
 
 const Translate = props => {
     const { t } = useTranslation();
-    
+
     // 状态
     const [targetLang, setTargetLang] = useState('zh-CN');
     const [translations, setTranslations] = useState({}); // { "original text": "translated text" }
@@ -75,7 +76,7 @@ const Translate = props => {
     const [searchFilter, setSearchFilter] = useState('');
     const [showOnlyUntranslated, setShowOnlyUntranslated] = useState(false);
     const [editingTexts, setEditingTexts] = useState(new Set()); // 正在编辑的文本
-    
+
     // 获取所有需要翻译的文本
     const getAllTexts = useCallback(() => {
         const textSet = new Set();
@@ -151,7 +152,7 @@ const Translate = props => {
     const extractTranslateCalls = (code) => {
         const texts = [];
         if (!code) return texts;
-        
+
         // 匹配 Scratch.translate("...") 和 Scratch.translate('...')
         const translateRegex = /Scratch\.translate\s*\(\s*(['"`])((?:\\.|(?!\1)[^\\])*?)\1\s*\)/g;
         let match;
@@ -177,7 +178,7 @@ const Translate = props => {
         setBlockTextMap(blockMap);
         setJsTexts(extractedJsTexts || []);
         setBlockCodeTexts(extractedBlockCodeTexts || {});
-        
+
         // 加载已有的翻译
         const savedTranslate = returnValue('translate') || [];
         const savedMap = {};
@@ -196,10 +197,8 @@ const Translate = props => {
             string: strings
         }));
         setValueTo('translate', translateData);
-        
-        // 显示保存成功提示
-        alert(t('Translations saved!') || '翻译已保存！');
     };
+
 
     // 翻译单个文本
     const handleTranslateOne = async (originalText) => {
@@ -223,10 +222,10 @@ const Translate = props => {
     const handleTranslateAll = async () => {
         setIsTranslating(true);
         setTranslateProgress(0);
-        
+
         const newTranslations = { ...translations[targetLang] };
         const total = allTexts.length;
-        
+
         for (let i = 0; i < total; i++) {
             const text = allTexts[i];
             if (!newTranslations[text]) {
@@ -245,7 +244,7 @@ const Translate = props => {
             }
             setTranslateProgress(Math.round((i + 1) / total * 100));
         }
-        
+
         setIsTranslating(false);
     };
 
@@ -289,7 +288,7 @@ const Translate = props => {
     // 准备带有翻译的积木数据用于显示
     const prepareBlockWithTranslations = (blockData) => {
         const translatedBlock = JSON.parse(JSON.stringify(blockData));
-        
+
         const translatePart = (part) => {
             if (typeof part === 'string') {
                 return getTranslatedText(part);
@@ -346,11 +345,11 @@ const Translate = props => {
     const renderBlockPreview = (blockId, blockData) => {
         const translatedBlock = prepareBlockWithTranslations(blockData);
         return (
-            <div 
+            <div
                 key={blockId}
                 className={styles.blockPreview}
-                dangerouslySetInnerHTML={{ 
-                    __html: renderBlockToHTML(prepareBlockForDisplay(translatedBlock)) 
+                dangerouslySetInnerHTML={{
+                    __html: renderBlockToHTML(prepareBlockForDisplay(translatedBlock))
                 }}
             />
         );
@@ -364,9 +363,7 @@ const Translate = props => {
         <div className={styles.translateContainer}>
             {/* 头部 */}
             <div className={styles.header}>
-                <button className={styles.backBtn} onClick={() => props.close()}>
-                    {t('Back')}
-                </button>
+                <img className={styles.backButton} onClick={() => { props.close(); saveTranslations() }} src={back} alt="Back" />
                 <h2>{t('Translation Manager')}</h2>
             </div>
 
@@ -374,8 +371,8 @@ const Translate = props => {
             <div className={styles.toolbar}>
                 <div className={styles.langSelect}>
                     <label>{t('Target Language')}:</label>
-                    <select 
-                        value={targetLang} 
+                    <select
+                        value={targetLang}
                         onChange={e => setTargetLang(e.target.value)}
                     >
                         {TRANSLATE_LANGUAGES.map(lang => (
@@ -409,7 +406,7 @@ const Translate = props => {
                 <div className={styles.progressInfo}>
                     {translatedCount} / {totalCount} {t('translated')}
                     <div className={styles.progressBar}>
-                        <div 
+                        <div
                             className={styles.progressFill}
                             style={{ width: `${(translatedCount / totalCount) * 100}%` }}
                         />
@@ -419,21 +416,15 @@ const Translate = props => {
 
             {/* 操作按钮 */}
             <div className={styles.actionBar}>
-                <button 
+                <button
                     className={styles.translateAllBtn}
                     onClick={handleTranslateAll}
                     disabled={isTranslating || allTexts.length === 0}
                 >
-                    {isTranslating 
+                    {isTranslating
                         ? `${t('Translating...')} ${translateProgress}%`
                         : t('Translate All')
                     }
-                </button>
-                <button 
-                    className={styles.saveBtn}
-                    onClick={saveTranslations}
-                >
-                    {t('Save')}
                 </button>
             </div>
 
@@ -508,11 +499,11 @@ const Translate = props => {
                     <div className={styles.blockList}>
                         {Object.entries(returnValue('blocks')).map(([blockId, blockData]) => {
                             const blockTexts = blockTextMap[blockId] || [];
-                            const hasMatchingText = blockTexts.some(text => 
+                            const hasMatchingText = blockTexts.some(text =>
                                 typeof text === 'string' && text.toLowerCase().includes(searchFilter.toLowerCase())
                             );
                             if (searchFilter && !hasMatchingText) return null;
-                            
+
                             return (
                                 <div key={blockId} className={styles.blockItem}>
                                     <div className={styles.blockId}>
@@ -544,7 +535,7 @@ const Translate = props => {
 // 翻译图标组件
 const TranslateIcon = () => (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-        <path d="M5 8l6 6M4 14l6-6 2-3M2 5h12M7 2v3M22 22l-5-10-5 10M14 18h6"/>
+        <path d="M5 8l6 6M4 14l6-6 2-3M2 5h12M7 2v3M22 22l-5-10-5 10M14 18h6" />
     </svg>
 );
 
