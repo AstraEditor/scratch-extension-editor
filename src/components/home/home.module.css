@@ -22,12 +22,26 @@
     justify-content: center;
     gap: 10px;
     padding: 10px;
+    color: var(--text-dim);
+}
+
+.themeButton {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--frontground-color);
+    color: var(--text-color);
+    padding: 8px 12px;
+}
+
+.themeButton:hover {
+    background: var(--background-button-hover-color);
 }
 
 .logo{
     max-height: 150px;
     width: 100%;
-    color: #09f;
+    color: var(--accent-color);
     font-size: 60px;
     font-weight: bolder;
     display: flex;
@@ -61,6 +75,8 @@
     align-items: center;
     justify-content: center;
     font-size: large;
+    color: var(--text-color-bright);
+    border-radius: 0
 }
 .actionButton:hover{
     background-color: var(--frontground-color);

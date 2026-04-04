@@ -13,6 +13,7 @@
     flex-direction: column-reverse;
     padding: 10px;
     box-sizing: border-box;
+    background: var(--background-color);
 }
 
 .resizer {
@@ -42,7 +43,8 @@
     overflow-y: auto;
     display: flex;
     flex-direction: column;
-    align-items: center
+    align-items: center;
+    gap: 4px;
 }
 
 .Button {
@@ -76,24 +78,28 @@
 .blockPreview{
     background-color: var(--background-overlay);
     border: 1px solid var(--border-color);
-    border-radius: 8px;
+    border-radius: 12px;
     padding: 10px;
     margin-bottom: 10px;
     cursor: default;
     width: 90%;
+    box-shadow: var(--shadow-card);
 }
 
 .intro{
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
+    gap: 12px;
+    color: var(--text-secondary);
 }
 
 .chevron {
     cursor: pointer;
-    padding: 4px;
-    border-radius: 4px;
-    transition: background 0.2s;
+    padding: 6px;
+    border-radius: 8px;
+    transition: background 0.2s, transform 0.2s;
+    color: var(--text-color);
 }
 
 .chevron:hover {
@@ -139,8 +145,9 @@
 
 .codeEditorContainer {
     height: 300px;
-    border-radius: 4px;
+    border-radius: 10px;
     border: 1px solid var(--border-color);
+    overflow: hidden;
 }
 
 .Nothing {

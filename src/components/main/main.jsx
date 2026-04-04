@@ -64,8 +64,6 @@ const Main = () => {
                     fscData={fscData}
                 />
             )}
-
-
         </div>
     )
 }

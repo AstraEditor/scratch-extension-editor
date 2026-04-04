@@ -139,7 +139,7 @@
     border-radius: 6px;
     border: none;
     background: var(--accent-color);
-    color: var(--text-color);
+    color: #fff;
     font-size: 14px;
     font-weight: 500;
     cursor: pointer;
@@ -148,7 +148,6 @@
 
 .translateAllBtn:hover:not(:disabled) {
     opacity: 0.9;
-    transform: translateY(-1px);
 }
 
 .translateAllBtn:disabled {
@@ -208,7 +207,7 @@
 .countBadge {
     padding: 2px 8px;
     background: var(--accent-color);
-    color: var(--text-color);
+    color: #fff;
     border-radius: 10px;
     font-size: 12px;
     font-weight: 500;
@@ -325,7 +324,7 @@
 
 .translateBtn:hover:not(:disabled) {
     background: var(--accent-color);
-    color: var(--text-color);
+    color: #fff;
     border-color: var(--accent-color);
 }
 
@@ -375,7 +374,7 @@
 .blockPreview {
     margin-bottom: 10px;
     padding: 10px;
-    background: rgba(0, 0, 0, 0.2);
+    background: var(--background-overlay-light);
     border-radius: 6px;
     overflow-x: auto;
     line-height: 0;
@@ -459,12 +458,12 @@
 }
 
 .backButton {
-    width: 30px;
-    height: 30px;
+    width: 40px;
+    height: 40px;
     background-color: var(--accent-color);
     border: none;
     border-radius: 100px;
-    padding: 10px;
+    padding: 7px;
     cursor: pointer;
     margin: 5px;
 }

@@ -1,15 +1,20 @@
 {
   "files": {
-    "main.css": "/scratch-extension-editor/static/css/main.9cd116c8.css",
-    "main.js": "/scratch-extension-editor/static/js/main.e57351c1.js",
+    "main.css": "/scratch-extension-editor/static/css/main.841ac41c.css",
+    "main.js": "/scratch-extension-editor/static/js/main.7bb5ced4.js",
     "static/js/430.6029e2f1.chunk.js": "/scratch-extension-editor/static/js/430.6029e2f1.chunk.js",
     "static/media/logo.svg": "/scratch-extension-editor/static/media/logo.f1edf30bd4e380bae00fd04685f4736f.svg",
+    "static/media/ae.svg": "/scratch-extension-editor/static/media/ae.207237a33ba119f7782381167b0a51fb.svg",
+    "static/media/40code.png": "/scratch-extension-editor/static/media/40code.9e9a0c27cec5825b0f5e.png",
+    "static/media/zerocat.png": "/scratch-extension-editor/static/media/zerocat.98745932b32f966e110d.png",
+    "static/media/tw.svg": "/scratch-extension-editor/static/media/tw.1343a5a7c145fbf85d41e1334ae6990c.svg",
+    "static/media/clipcc.svg": "/scratch-extension-editor/static/media/clipcc.5f8afdc009195e3724357ab79e3177f0.svg",
     "static/media/close.svg": "/scratch-extension-editor/static/media/close.cd35b81315588bc5c130ace057fa2d6c.svg",
     "static/media/back.svg": "/scratch-extension-editor/static/media/back.9e70da906caec2ae2f47d26155822f54.svg",
     "index.html": "/scratch-extension-editor/index.html"
   },
   "entrypoints": [
-    "static/css/main.9cd116c8.css",
-    "static/js/main.e57351c1.js"
+    "static/css/main.841ac41c.css",
+    "static/js/main.7bb5ced4.js"
   ]
 }

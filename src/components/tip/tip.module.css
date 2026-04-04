@@ -1,11 +1,11 @@
 .Tip {
     width: calc(100% - 20px);
-    background-color: #cccc0055;
-    border-color: #ee0;
+    background-color: color-mix(in srgb, var(--warning-color) 30%, #ffffff00 60%);
+    border-color: var(--warning-text);
     border-radius: 5px;
     border-width: 1px;
     border-style: solid;
-    color: #ee0;
+    color: var(--warning-text);
     padding: 10px;
     gap: 10px;
 }
@@ -16,5 +16,5 @@
 }
 
 a{
-    color: #ee0;
+    color: var(--warning-text);
 }

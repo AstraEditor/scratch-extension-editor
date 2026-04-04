@@ -2,21 +2,26 @@ import { useState, useRef, useEffect } from 'react';
 import styles from './editor.module.css'
 import MonacoEditor from '@monaco-editor/react';
 import NewBlock from '../newBlock/newBlock';
+import NewProject from '../newProject/newProject';
 import OutputProject from '../outputProject/outputProject.jsx';
+import Modal from '../modal/modal';
 import MonacoSettingsModal from './monacoSettingsModal.jsx';
 import InputPart from './InputPart';
-import { BlockType, InputType, renderBlockToHTML } from '../../lib/blockSvgRenderer.js';
-import { getAllValue, setValueTo, returnValue } from '../../extension/storage.js';
+import { BlockType, renderBlockToHTML } from '../../lib/blockSvgRenderer.js';
+import {
+    getAllValue,
+    getHistoryState,
+    redo,
+    returnValue,
+    setValueTo,
+    undo
+} from '../../extension/storage.js';
 import { useTranslation, BLOCK_TYPE_ID } from '../../i18n';
-import { VscSettingsGear, VscEdit, VscClose, VscAdd, VscFileCode, VscGitFetch, VscArchive, VscJson, VscRefresh } from "react-icons/vsc";
+import { VscSettingsGear, VscEdit, VscClose, VscAdd, VscFileCode, VscGitFetch, VscArchive, VscJson, VscRefresh, VscArrowLeft, VscArrowRight, VscGrabber, VscColorMode } from "react-icons/vsc";
 import { MdOutlineTranslate } from "react-icons/md";
 import { Block } from './publicJS.jsx';
 
 import Tip from '../tip/tip.jsx';
-import VMAPI from './vm-api.js';
-import VMAPI_CN from './vm-api-cn.js';
-import SCRATCH_API from './scratch-api.js';
-import SCRATCH_API_CN from './scratch-api-cn.js';
 
 import TranslateTab from '../translate/translate.jsx'
 import PublicJSeditor from './publicJS.jsx';
@@ -28,39 +33,28 @@ import { AiOutlineStop } from "react-icons/ai";
 
 
 import {
-    VSCODE_DARK_PLUS,
     DEFAULT_MONACO_CONFIG,
     loadMonacoConfig,
     normalizeMonacoConfig,
-    applyLanguageServiceSettings,
     MONACO_SETTINGS_KEY
 } from './monacoConfig.js';
+import {
+    FUNCTION_BODY_DIAGNOSTIC_CODES,
+    ASYNC_FUNCTION_BODY_DIAGNOSTIC_CODES,
+    applyEditorDiagnostics,
+    buildSharedMonacoLibs,
+    defineEditorTheme,
+    disposeExtraLibs,
+    syncExtraLibs,
+    updateIdentifierDecorations
+} from './monacoHelpers.js';
 import { prepareBlockForDisplay, saveProject, loadProject } from './blockUtils.js';
 import hotReloadService from '../../extension/HotReloadService.js';
-
-const FUNCTION_BODY_DIAGNOSTIC_CODES = [1108];
-
-const mergeFunctionBodyDiagnostics = (diagnosticsOptions = {}) => {
-    const currentCodes = Array.isArray(diagnosticsOptions.diagnosticCodesToIgnore)
-        ? diagnosticsOptions.diagnosticCodesToIgnore
-        : [];
-    return {
-        ...diagnosticsOptions,
-        diagnosticCodesToIgnore: Array.from(new Set([...currentCodes, ...FUNCTION_BODY_DIAGNOSTIC_CODES]))
-    };
-};
-
-const applyBlockLanguageServiceSettings = (monaco, monacoConfig) => {
-    applyLanguageServiceSettings(monaco, monacoConfig);
-    const diagnosticsOptions = mergeFunctionBodyDiagnostics(
-        monacoConfig.languageService?.diagnosticsOptions || {}
-    );
-    monaco.languages.typescript.javascriptDefaults.setDiagnosticsOptions(diagnosticsOptions);
-    monaco.languages.typescript.typescriptDefaults.setDiagnosticsOptions(diagnosticsOptions);
-};
+import { useTheme } from '../../lib/theme.js';
 
 const Editor = props => {
     const { t } = useTranslation();
+    const { theme, toggleTheme } = useTheme();
 
     // 布局状态
     const [leftWidth, setLeftWidth] = useState(50);
@@ -77,6 +71,7 @@ const Editor = props => {
     // 积木编辑状态
     const [isCreatingBlock, setCreatBlock] = useState(false);
     const [isSaveBlock, setSaveBlock] = useState(false);
+    const [isProjectInfoOpen, setProjectInfoOpen] = useState(false);
     const [isOpenPublicJSeditor, setOpenPublicJSeditor] = useState(false);
     const [isOpenTranslate, setOpenTranslate] = useState(false);
     const [editingIndex, setEditingIndex] = useState(null);
@@ -86,6 +81,9 @@ const Editor = props => {
     const [isEditingBlock, setEditingBlock] = useState(null);
     const [editingBlockName, setEditingBlockName] = useState(null);  // 当前编辑的 block 名称
     const [blockCode, setBlockCode] = useState('');  // Monaco 中的代码
+    const [historyState, setHistoryState] = useState(() => getHistoryState());
+    const [draggingBlockName, setDraggingBlockName] = useState(null);
+    const [dragOverBlockName, setDragOverBlockName] = useState(null);
 
     // 输入框高亮状态
     const [highlightedInput, setHighlightedInput] = useState(null);
@@ -94,6 +92,7 @@ const Editor = props => {
     // Input ID 列表用于语法高亮
     const inputIdsRef = useRef([]);
     const decorationsRef = useRef([]);
+    const extraLibRegistryRef = useRef([]);
 
     // 展开状态
     const [isHideIndex, setHideIndex] = useState(null);
@@ -106,8 +105,38 @@ const Editor = props => {
     // 应用 Monaco 语言服务配置
     useEffect(() => {
         if (!monacoApiRef.current) return;
-        applyBlockLanguageServiceSettings(monacoApiRef.current, monacoConfig);
-    }, [monacoConfig]);
+        const ignoredCodes = [
+            ...FUNCTION_BODY_DIAGNOSTIC_CODES,
+            ...(isEditingBlock?.blockConfig?.isAsync ? ASYNC_FUNCTION_BODY_DIAGNOSTIC_CODES : [])
+        ];
+        applyEditorDiagnostics(monacoApiRef.current, monacoConfig, { ignoredCodes });
+    }, [monacoConfig, isEditingBlock?.blockConfig?.isAsync]);
+
+    const syncEditorStateFromStorage = () => {
+        setHistoryState(getHistoryState());
+        setBlockVersion(v => v + 1);
+
+        if (!editingBlockName) return;
+
+        const currentBlock = returnValue('blocks')?.[editingBlockName];
+        if (currentBlock) {
+            setEditingBlock(currentBlock);
+            setBlockCode(currentBlock.code || '');
+        } else {
+            setEditingBlock(null);
+            setEditingBlockName(null);
+            setBlockCode('');
+        }
+    };
+
+    useEffect(() => {
+        const handleHistoryChange = () => {
+            syncEditorStateFromStorage();
+        };
+        window.addEventListener('astra-storage-history-change', handleHistoryChange);
+        return () => window.removeEventListener('astra-storage-history-change', handleHistoryChange);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [editingBlockName]);
 
 
     // 拖拽调整宽度
@@ -158,175 +187,98 @@ const Editor = props => {
         e.preventDefault();
     };
 
+    const getBlockTypeLabel = (inputType) => t(BLOCK_TYPE_ID[inputType] || inputType);
+
     const handleMonacoBeforeMount = (monaco) => {
-        monaco.editor.defineTheme('vscode-dark-plus', VSCODE_DARK_PLUS);
-        applyBlockLanguageServiceSettings(monaco, monacoConfig);
-    };
-
-    // 为 Monaco 注入 input 变量定义
-    const injectInputDefinitions = (monaco, block) => {
-        if (!block || !block.parts) return;
-
-        // 收集所有 input 并生成类型定义
-        const inputDefs = [];
-        const inputIds = [];  // 收集所有 input ID 用于高亮
-        const ids = [];
-
-        let inputIdx = 0;
-        block.parts.forEach(part => {
-            if (typeof part === 'object' && part !== null) {
-                const inputId = part.id || `input_${inputIdx}`;
-                const inputType = part.inputType;
-
-                // 收集 ID 用于语法高亮
-                inputIds.push(inputId);
-
-                // 根据类型生成不同的类型定义
-                let typeStr = 'any';
-                if (inputType === InputType.NUMBER) {
-                    typeStr = 'number';
-                } else if (inputType === InputType.TEXT || inputType === InputType.TEXT_NUMBER) {
-                    typeStr = 'string';
-                } else if (inputType === InputType.BOOLEAN) {
-                    typeStr = 'boolean';
-                } else if (inputType === InputType.DROPDOWN || inputType === InputType.DROPDOWN_READONLY) {
-                    typeStr = 'scratchDropdown'
-                }
-                inputDefs.push(`/**`);
-                inputDefs.push(`* Type: ${t(BLOCK_TYPE_ID[part.inputType])}`);
-                inputDefs.push(`* `);
-                if (inputType !== InputType.BOOLEAN) inputDefs.push(`* Default Value: ${part.value}`);
-                inputDefs.push(`*/`);
-                inputDefs.push(`declare let ${inputId}: ${typeStr};`);
-                inputIdx++;
-            }
+        defineEditorTheme(monaco);
+        applyEditorDiagnostics(monaco, monacoConfig, {
+            ignoredCodes: FUNCTION_BODY_DIAGNOSTIC_CODES
         });
-
-
-        Object.entries(returnValue('blocks')).forEach(([name, blk]) => {
-            const id = returnValue('comments')['id'] + '_' + name;
-            inputDefs.push(`/**`);
-            inputDefs.push(`* Return the opcode of the block`);
-            inputDefs.push(`* @returns {string} "${id}"`);
-            inputDefs.push(`*/`);
-            inputDefs.push(`declare const ${id}: "${id}";`)
-            delete ids[id];
-            ids.push(id);
-        });
-        inputDefs.push(`/**`);
-        inputDefs.push(`* This Block Inputs`);
-        inputDefs.push(`*/`);
-        inputDefs.push(`declare const args;`)
-
-        // 保存 input IDs 用于装饰器
-        inputIdsRef.current = [...inputIds, ...ids];
-
-        // 注入 input 变量定义
-        if (inputDefs.length > 0) {
-            const inputDts = inputDefs.join('\n');
-            monaco.languages.typescript.javascriptDefaults.addExtraLib(inputDts, 'inputs.d.ts');
-        }
-
-        // 注入完整的 VM API 类型定义（包含 JSDoc 注释）
-        switch (localStorage.getItem("app_language")) {
-            case "zh":
-                monaco.languages.typescript.javascriptDefaults.addExtraLib(VMAPI_CN, 'vm-api.d.ts');
-                monaco.languages.typescript.javascriptDefaults.addExtraLib(SCRATCH_API_CN, 'scratch-api.d.ts');
-                break
-            default:
-                monaco.languages.typescript.javascriptDefaults.addExtraLib(VMAPI, 'vm-api.d.ts');
-                monaco.languages.typescript.javascriptDefaults.addExtraLib(SCRATCH_API, 'scratch-api.d.ts');
-        }
-
-        // 注入 publicJS 以提供自动补全和类型提示
-        const publicJS = returnValue('publicJS') || '';
-        if (publicJS.trim()) {
-            monaco.languages.typescript.javascriptDefaults.addExtraLib(publicJS, 'publicJS.d.ts');
-        }
-
-        // 根据 isAsync 设置诊断选项
-        // 1308: Cannot use 'await' outside async function
-        const isAsync = block.blockConfig?.isAsync;
-        // 1375: 'await' expressions are only allowed at the top level of a file when that file is a module
-        // 1378: Top-level 'await' expressions are only allowed when the 'module' option is set to 'es2022'...
-        const asyncCodes = isAsync ? [1375, 1378] : [];
-        const diagnosticsOptions = {
-            ...monacoConfig.languageService?.diagnosticsOptions,
-            diagnosticCodesToIgnore: [...FUNCTION_BODY_DIAGNOSTIC_CODES, ...asyncCodes]
-        };
-        monaco.languages.typescript.javascriptDefaults.setDiagnosticsOptions(diagnosticsOptions);
-        monaco.languages.typescript.typescriptDefaults.setDiagnosticsOptions(diagnosticsOptions);
-
-        // 注册自定义颜色提供器，为 input 变量添加高亮
-        registerInputHighlight(monaco, inputIds);
-    };
-
-    // 注册 input 变量的自定义高亮
-    const registerInputHighlight = (monaco, inputIds) => {
-        if (!editorRef.current || inputIds.length === 0) return;
-
-        const editor = editorRef.current;
-        const model = editor.getModel();
-        if (!model) return;
-
-        // 创建装饰器：为所有 input 变量添加高亮
-        const decorations = [];
-        const text = model.getValue();
-
-        // 为每个 input ID 找到所有出现的位置并添加装饰
-        inputIds.forEach(inputId => {
-            // 使用正则匹配变量名（单词边界）
-            const regex = new RegExp(`\\b${inputId}\\b`, 'g');
-            let match;
-            while ((match = regex.exec(text)) !== null) {
-                const startPos = model.getPositionAt(match.index);
-                const endPos = model.getPositionAt(match.index + match[0].length);
-
-                decorations.push({
-                    range: new monaco.Range(
-                        startPos.lineNumber,
-                        startPos.column,
-                        endPos.lineNumber,
-                        endPos.column
-                    ),
-                    options: {
-                        className: 'scratch-input-highlight',
-                        inlineClassName: 'scratch-input-inline',
-                        hoverMessage: { value: `**Scratch Input**: ${inputId}` },
-                        color: '#4fc3f7',  // 青色
-                        inlineClassNameAffectsLetterSpacing: true,
-                    }
-                });
-            }
-        });
-
-        // 应用装饰器
-        decorationsRef.current = editor.deltaDecorations(decorationsRef.current, decorations);
     };
 
     // 更新装饰器（内容变化时）
     const updateDecorations = () => {
         if (monacoApiRef.current && editorRef.current && inputIdsRef.current.length > 0) {
-            registerInputHighlight(monacoApiRef.current, inputIdsRef.current);
+            updateIdentifierDecorations({
+                monaco: monacoApiRef.current,
+                editor: editorRef.current,
+                decorationsRef,
+                identifiers: inputIdsRef.current,
+                hoverLabel: 'Scratch Input'
+            });
         }
     };
 
     const handleMonacoMount = (editor, monaco) => {
         monacoApiRef.current = monaco;
         editorRef.current = editor;
-        applyBlockLanguageServiceSettings(monaco, monacoConfig);
+        const ignoredCodes = [
+            ...FUNCTION_BODY_DIAGNOSTIC_CODES,
+            ...(isEditingBlock?.blockConfig?.isAsync ? ASYNC_FUNCTION_BODY_DIAGNOSTIC_CODES : [])
+        ];
+        applyEditorDiagnostics(monaco, monacoConfig, { ignoredCodes });
         // 应用主题（确保自定义主题生效）
         monaco.editor.setTheme(monacoConfig.theme || 'vscode-dark-plus');
         setIsMonacoMounted(true);  // 标记 Monaco 已挂载
     };
 
-    // 切换 block 时重新注入 input 变量定义
+    const handleReadonlyMonacoBeforeMount = (monaco, block) => {
+        defineEditorTheme(monaco);
+        applyEditorDiagnostics(monaco, monacoConfig, {
+            ignoredCodes: [
+                ...FUNCTION_BODY_DIAGNOSTIC_CODES,
+                ...(block?.blockConfig?.isAsync ? ASYNC_FUNCTION_BODY_DIAGNOSTIC_CODES : [])
+            ],
+            baseDiagnosticsOptions: {
+                noSemanticValidation: true,
+                noSuggestionDiagnostics: true
+            }
+        });
+    };
+
     useEffect(() => {
-        if (isEditingBlock && isMonacoMounted && monacoApiRef.current) {
-            injectInputDefinitions(monacoApiRef.current, isEditingBlock);
-        }
+        if (!isMonacoMounted || !monacoApiRef.current || !isEditingBlock) return;
+
+        const blocks = returnValue('blocks') || {};
+        const extensionId = returnValue('comments')?.id || 'extension';
+        const inputIds = [];
+        let inputIdx = 0;
+
+        (isEditingBlock.parts || []).forEach(part => {
+            if (typeof part === 'object' && part !== null) {
+                inputIds.push(part.id || `input_${inputIdx}`);
+                inputIdx += 1;
+            }
+        });
+
+        const opcodeIds = Object.keys(blocks).map(name => `${extensionId}_${name}`);
+        inputIdsRef.current = [...inputIds, ...opcodeIds];
+
+        syncExtraLibs(
+            monacoApiRef.current,
+            extraLibRegistryRef,
+            buildSharedMonacoLibs({
+                block: isEditingBlock,
+                blocks,
+                extensionId,
+                translateType: getBlockTypeLabel,
+                includeBlockInputs: true,
+                publicJS: returnValue('publicJS') || ''
+            })
+        );
+
+        const ignoredCodes = [
+            ...FUNCTION_BODY_DIAGNOSTIC_CODES,
+            ...(isEditingBlock.blockConfig?.isAsync ? ASYNC_FUNCTION_BODY_DIAGNOSTIC_CODES : [])
+        ];
+        applyEditorDiagnostics(monacoApiRef.current, monacoConfig, { ignoredCodes });
+        updateDecorations();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isEditingBlock, isMonacoMounted]);
+    }, [isMonacoMounted, isEditingBlock, monacoConfig]);
+
+    useEffect(() => () => {
+        disposeExtraLibs(extraLibRegistryRef);
+    }, []);
 
     // 当 blockCode 变化时更新高亮（处理初始加载的情况）
     useEffect(() => {
@@ -371,6 +323,38 @@ const Editor = props => {
         }
     };
 
+    const handleUndoProject = () => {
+        undo();
+    };
+
+    const handleRedoProject = () => {
+        redo();
+    };
+
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            const activeElement = document.activeElement;
+            if (activeElement?.closest?.('.monaco-editor')) {
+                return;
+            }
+
+            const modifierPressed = e.ctrlKey || e.metaKey;
+            if (!modifierPressed) return;
+
+            const key = e.key.toLowerCase();
+            if (key === 'z' && !e.shiftKey) {
+                e.preventDefault();
+                undo();
+            } else if ((key === 'z' && e.shiftKey) || key === 'y') {
+                e.preventDefault();
+                redo();
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, []);
+
     // 开始编辑 block，读取代码到 Monaco
     const handleStartEditBlock = (name, block) => {
         setEditingBlock(block);
@@ -394,7 +378,8 @@ const Editor = props => {
 
     // Monaco 内容变化时更新状态和存储
     const handleCodeChange = (value) => {
-        setBlockCode(value);
+        const nextValue = value ?? '';
+        setBlockCode(nextValue);
         // 更新装饰器高亮
         updateDecorations();
         // 自动保存（防抖可以后续添加）
@@ -403,7 +388,7 @@ const Editor = props => {
             if (blocks[editingBlockName]) {
                 blocks[editingBlockName] = {
                     ...blocks[editingBlockName],
-                    code: value
+                    code: nextValue
                 };
                 setValueTo("blocks", blocks);
             }
@@ -518,6 +503,43 @@ const Editor = props => {
         setExpandBlockIndex(prev => prev === index ? -1 : index);
     };
 
+    const handleBlockDragStart = (e, name) => {
+        setDraggingBlockName(name);
+        setDragOverBlockName(name);
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', name);
+    };
+
+    const handleBlockDragOver = (e, name) => {
+        e.preventDefault();
+        if (dragOverBlockName !== name) {
+            setDragOverBlockName(name);
+        }
+    };
+
+    const handleBlockDrop = (e, targetName) => {
+        e.preventDefault();
+        const sourceName = draggingBlockName || e.dataTransfer.getData('text/plain');
+        setDraggingBlockName(null);
+        setDragOverBlockName(null);
+        if (!sourceName || sourceName === targetName) return;
+
+        const entries = Object.entries(returnValue('blocks') || {});
+        const fromIndex = entries.findIndex(([name]) => name === sourceName);
+        const toIndex = entries.findIndex(([name]) => name === targetName);
+        if (fromIndex < 0 || toIndex < 0) return;
+
+        const nextEntries = [...entries];
+        const [movedEntry] = nextEntries.splice(fromIndex, 1);
+        nextEntries.splice(toIndex, 0, movedEntry);
+        setValueTo('blocks', Object.fromEntries(nextEntries));
+    };
+
+    const handleBlockDragEnd = () => {
+        setDraggingBlockName(null);
+        setDragOverBlockName(null);
+    };
+
 
     return (
         <div className={styles.editor} ref={containerRef}>
@@ -537,6 +559,25 @@ const Editor = props => {
             {isSaveBlock && (
                 <OutputProject close={() => setSaveBlock(false)} />
             )}
+            {isProjectInfoOpen && (
+                <Modal
+                    title={t('Edit extension info')}
+                    width="min(1080px, 94vw)"
+                    height="min(760px, 90vh)"
+                    close={() => setProjectInfoOpen(false)}
+                >
+                    <NewProject
+                        variant="modal"
+                        initialData={returnValue('comments')}
+                        initializeStorage={false}
+                        formTitle={t('Edit extension info')}
+                        submitLabel={t('Save')}
+                        showPreviewHeading={false}
+                        close={() => setProjectInfoOpen(false)}
+                        Done={() => setProjectInfoOpen(false)}
+                    />
+                </Modal>
+            )}
             {isMonacoSettingsOpen && (
                 <MonacoSettingsModal
                     close={() => setMonacoSettingsOpen(false)}
@@ -552,31 +593,81 @@ const Editor = props => {
                     <>
                         {/* 工具栏 */}
                         <div className={styles.Tabs}>
-                            <button className={styles.Button} onClick={() => {
-                                setEditingIndex(null);
-                                setCreatBlock(true);
-                            }}><VscAdd />{t('Create new Block')}</button>
-                            <button className={styles.Button} onClick={() => setSaveBlock(true)}><VscFileCode />{t('Output')}</button>
-                            <button className={styles.Button} onClick={saveProject}><VscGitFetch />{t('Save')}</button>
-                            <button className={styles.Button} onClick={() => document.getElementById('file-input').click()}><VscArchive />{t('Load')}</button>
-                            <button className={styles.Button} onClick={() => setOpenPublicJSeditor(true)}>
-                                <VscJson /><span>{t('Public JS')}</span>
-                            </button>
-                            <input id="file-input" type="file" accept=".ab,.json" style={{ display: 'none' }} onChange={(e) => loadProject(e, () => { props.loaded() })} />
-                            <button className={styles.Button} onClick={() => setMonacoSettingsOpen(true)}>
-                                <VscSettingsGear /><span>{t('Editor Settings')}</span>
-                            </button>
-                            <button className={styles.Button} onClick={() => setOpenTranslate(true)}>
-                                <MdOutlineTranslate /><span>{t('Translate')}</span>
-                            </button>
                             <button
-                                className={styles.Button}
-                                onClick={handleHotReload}
-                                disabled={isHotReloading}
-                                title={t('Hot reload extension to Scratch editor')}
+                                className={styles.projectInfoButton}
+                                onClick={() => setProjectInfoOpen(true)}
+                                title={t('Edit extension info')}
+                                aria-label={t('Edit extension info')}
                             >
-                                <VscRefresh /><span>{isHotReloading ? t('Reloading...') : t('Hot Reload')}</span>
+                                <div className={styles.topBarTitle}>
+                                    <span className={styles.projectName}>{returnValue('comments')?.name || 'Astra Blocktory'}</span>
+                                    <span className={styles.projectId}>{returnValue('comments')?.id || 'extension'}</span>
+                                </div>
+                                <VscEdit className={styles.projectInfoIcon} />
                             </button>
+                            <div className={styles.toolbarGroups}>
+                                <div className={styles.toolGroup}>
+                                    <button
+                                        className={styles.Button}
+                                        onClick={handleUndoProject}
+                                        disabled={!historyState.canUndo}
+                                        title={`${t('Undo')} Ctrl+Z`}
+                                    >
+                                        <VscArrowLeft /><span>{t('Undo')}</span>
+                                    </button>
+                                    <button
+                                        className={styles.Button}
+                                        onClick={handleRedoProject}
+                                        disabled={!historyState.canRedo}
+                                        title={`${t('Redo')} Ctrl+Y`}
+                                    >
+                                        <VscArrowRight /><span>{t('Redo')}</span>
+                                    </button>
+                                </div>
+                                <div className={styles.toolGroup}>
+                                    <button className={styles.Button} onClick={() => {
+                                        setEditingIndex(null);
+                                        setCreatBlock(true);
+                                    }}><VscAdd /><span>{t('Create new Block')}</span></button>
+                                    <button className={styles.Button} onClick={() => setSaveBlock(true)}><VscFileCode /><span>{t('Output')}</span></button>
+                                    <button className={styles.Button} onClick={saveProject}><VscGitFetch /><span>{t('Save')}</span></button>
+                                    <button className={styles.Button} onClick={() => document.getElementById('file-input').click()}><VscArchive /><span>{t('Load')}</span></button>
+                                    <button className={styles.Button} onClick={() => setOpenPublicJSeditor(true)}>
+                                        <VscJson /><span>{t('Public JS')}</span>
+                                    </button>
+                                </div>
+                                <div className={styles.toolGroup}>
+                                    <input id="file-input" type="file" accept=".ab,.json" style={{ display: 'none' }} onChange={(e) => loadProject(e, () => { props.loaded() })} />
+                                    <button className={styles.Button} onClick={() => setMonacoSettingsOpen(true)}>
+                                        <VscSettingsGear /><span>{t('Editor Settings')}</span>
+                                    </button>
+                                    <button className={styles.Button} onClick={() => setOpenTranslate(true)}>
+                                        <MdOutlineTranslate /><span>{t('Translate')}</span>
+                                    </button>
+                                    <button
+                                        className={styles.Button}
+                                        onClick={() => {
+                                            const nextTheme = toggleTheme();
+                                            setMonacoConfig(prev => ({
+                                                ...prev,
+                                                theme: nextTheme === 'light' ? 'vs' : 'vscode-dark-plus'
+                                            }));
+                                        }}
+                                        title={t(theme === 'dark' ? 'Dark Mode' : 'Light Mode')}
+                                    >
+                                        <VscColorMode />
+                                        <span>{t(theme === 'dark' ? 'Dark Mode' : 'Light Mode')}</span>
+                                    </button>
+                                    <button
+                                        className={styles.Button}
+                                        onClick={handleHotReload}
+                                        disabled={isHotReloading}
+                                        title={t('Hot reload extension to Scratch editor')}
+                                    >
+                                        <VscRefresh /><span>{isHotReloading ? t('Reloading...') : t('Hot Reload')}</span>
+                                    </button>
+                                </div>
+                            </div>
                         </div>
 
                         {/* 积木列表 */}
@@ -586,10 +677,22 @@ const Editor = props => {
                         </div>
                         <div>
                             {Object.entries(getAllValue().blocks || {}).map(([name, blk]) => (
-                                <div key={name} className={styles.blockPreview} style={{ marginBottom: '24px', cursor: 'pointer' }}>
+                                <div
+                                    key={name}
+                                    className={`${styles.blockPreview} ${draggingBlockName === name ? styles.blockDragging : ''} ${dragOverBlockName === name && draggingBlockName !== name ? styles.blockDragOver : ''}`}
+                                    style={{ marginBottom: '24px' }}
+                                    draggable
+                                    onDragStart={e => handleBlockDragStart(e, name)}
+                                    onDragOver={e => handleBlockDragOver(e, name)}
+                                    onDrop={e => handleBlockDrop(e, name)}
+                                    onDragEnd={handleBlockDragEnd}
+                                >
                                     <div style={{ fontSize: '22px', color: '#666' }}>opcode: "{name}"</div>
                                     <div className={styles.Block}>
                                         <div>
+                                            <div className={styles.dragHandle} title={t('Drag to sort')}>
+                                                <VscGrabber />
+                                            </div>
                                             <div className={styles.Settings} onClick={() => handleDeleteBlock(name)} title={t("Remove")}>
                                                 <VscClose />
                                             </div>
@@ -604,9 +707,9 @@ const Editor = props => {
                                             </div>
                                         </div>
                                         <div className={styles.blockConfig}>
-                                            {blk.blockConfig.isAsync && <IoIosTimer title={t('Async Block')} />}
-                                            {blk.blockConfig.isLoop && <MdLoop title={t('Loop Block')} />}
-                                            {!blk.blockConfig.hasNextConnection && <AiOutlineStop title={t('Stop Block')} />}
+                                            {(blk.blockConfig.isAsync || false) && <IoIosTimer title={t('Async Block')} />}
+                                            {blk.blockConfig.isLoop || false && <MdLoop title={t('Loop Block')} />}
+                                            {!blk.blockConfig.hasNextConnection || false && <AiOutlineStop title={t('Stop Block')} />}
                                         </div>
                                         <div className={styles.OnceBlockPreview} dangerouslySetInnerHTML={{ __html: renderBlockToHTML(prepareBlockForDisplay(blk)) }} />
                                     </div>
@@ -665,7 +768,9 @@ const Editor = props => {
                                         <MonacoEditor
                                             height="300px"
                                             defaultLanguage="javascript"
+                                            path={`file:///readonly-blocks/${name}.js`}
                                             theme={monacoConfig.theme || 'vscode-dark-plus'}
+                                            beforeMount={(monaco) => handleReadonlyMonacoBeforeMount(monaco, blk)}
                                             loading={<div style={{ color: '#888', padding: '20px' }}>{t('Loading editor...')}</div>}
                                             options={{ ...monacoConfig.options, readOnly: true, minimap: { enabled: false }, fixedOverflowWidgets: true }}
                                             value={value}
@@ -690,6 +795,7 @@ const Editor = props => {
                             <MonacoEditor
                                 height="100%"
                                 defaultLanguage="javascript"
+                                path={`file:///active-block/${editingBlockName || 'block'}.js`}
                                 theme={monacoConfig.theme || 'vscode-dark-plus'}
                                 value={blockCode}
                                 onChange={handleCodeChange}

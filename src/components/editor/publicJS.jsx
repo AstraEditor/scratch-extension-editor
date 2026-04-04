@@ -1,7 +1,5 @@
 import {
-    loadMonacoConfig,
-    applyLanguageServiceSettings,
-    VSCODE_DARK_PLUS
+    loadMonacoConfig
 } from './monacoConfig.js';
 import MonacoEditor from '@monaco-editor/react';
 import { useState, useRef, useEffect } from 'react';
@@ -11,10 +9,16 @@ import styles from './publicJS.module.css'
 import { BlockType, renderBlockToHTML } from '../../lib/blockSvgRenderer.js';
 import { prepareBlockForDisplay } from './blockUtils.js';
 import { VscChevronUp, VscRunBelow } from "react-icons/vsc";
-import VMAPI from './vm-api.js';
-import VMAPI_CN from './vm-api-cn.js';
-import SCRATCH_API from './scratch-api.js';
-import SCRATCH_API_CN from './scratch-api-cn.js';
+import {
+    FUNCTION_BODY_DIAGNOSTIC_CODES,
+    ASYNC_FUNCTION_BODY_DIAGNOSTIC_CODES,
+    applyEditorDiagnostics,
+    buildSharedMonacoLibs,
+    defineEditorTheme,
+    disposeExtraLibs,
+    syncExtraLibs,
+    updateIdentifierDecorations
+} from './monacoHelpers.js';
 
 
 export const Block = props => {
@@ -79,9 +83,10 @@ const Editor = props => {
     // Monaco 编辑器状态
     const monacoApiRef = useRef(null);
     const editorRef = useRef(null);  // Monaco editor 实例
-    const [, setIsMonacoMounted] = useState(false);  // 追踪 Monaco 是否挂载
+    const [isMonacoMounted, setIsMonacoMounted] = useState(false);  // 追踪 Monaco 是否挂载
     const inputIdsRef = useRef([]);
     const decorationsRef = useRef([]);
+    const extraLibRegistryRef = useRef([]);
 
     const [expandBlockIndex, setExpandBlockIndex] = useState(-1);
 
@@ -162,95 +167,36 @@ const Editor = props => {
         e.preventDefault();
     };
 
-    // 注册 input 变量的自定义高亮
-    const registerInputHighlight = (monaco, inputIds) => {
-        if (!editorRef.current || inputIds.length === 0) return;
-
-        const editor = editorRef.current;
-        const model = editor.getModel();
-        if (!model) return;
-
-        // 创建装饰器：为所有 input 变量添加高亮
-        const decorations = [];
-        const text = model.getValue();
-
-        // 为每个 input ID 找到所有出现的位置并添加装饰
-        inputIds.forEach(inputId => {
-            // 使用正则匹配变量名（单词边界）
-            const regex = new RegExp(`\\b${inputId}\\b`, 'g');
-            let match;
-            while ((match = regex.exec(text)) !== null) {
-                const startPos = model.getPositionAt(match.index);
-                const endPos = model.getPositionAt(match.index + match[0].length);
-
-                decorations.push({
-                    range: new monaco.Range(
-                        startPos.lineNumber,
-                        startPos.column,
-                        endPos.lineNumber,
-                        endPos.column
-                    ),
-                    options: {
-                        className: 'scratch-input-highlight',
-                        inlineClassName: 'scratch-input-inline',
-                        hoverMessage: { value: `**Scratch Input**: ${inputId}` },
-                        color: '#4fc3f7',  // 青色
-                        inlineClassNameAffectsLetterSpacing: true,
-                    }
-                });
-            }
-        });
-
-        // 应用装饰器
-        decorationsRef.current = editor.deltaDecorations(decorationsRef.current, decorations);
-    };
-
     const updateDecorations = () => {
         if (monacoApiRef.current && editorRef.current && inputIdsRef.current.length > 0) {
-            registerInputHighlight(monacoApiRef.current, inputIdsRef.current);
+            updateIdentifierDecorations({
+                monaco: monacoApiRef.current,
+                editor: editorRef.current,
+                decorationsRef,
+                identifiers: inputIdsRef.current,
+                hoverLabel: 'Scratch Opcode'
+            });
         }
     };
 
     // Monaco 内容变化时更新状态和存储
     const handleCodeChange = (value) => {
-        setBlockCode(value);
+        const nextValue = value ?? '';
+        setBlockCode(nextValue);
         updateDecorations();
-        setValueTo("publicJS", value);
-    };
-
-    const FUNCTION_BODY_DIAGNOSTIC_CODES = [1108];
-    const mergeFunctionBodyDiagnostics = (diagnosticsOptions = {}) => {
-        const currentCodes = Array.isArray(diagnosticsOptions.diagnosticCodesToIgnore)
-            ? diagnosticsOptions.diagnosticCodesToIgnore
-            : [];
-        return {
-            ...diagnosticsOptions,
-            diagnosticCodesToIgnore: Array.from(new Set([...currentCodes, ...FUNCTION_BODY_DIAGNOSTIC_CODES]))
-        };
-    };
-
-    const applyBlockLanguageServiceSettings = (monaco, monacoConfig) => {
-        applyLanguageServiceSettings(monaco, monacoConfig);
-        const baseDiagnosticsOptions = {
-            noSemanticValidation: true,
-            noSyntaxValidation: false,
-            noSuggestionDiagnostics: true
-        };
-
-        const userOptions = monacoConfig.languageService?.diagnosticsOptions || {};
-        const diagnosticsOptions = mergeFunctionBodyDiagnostics({
-            ...baseDiagnosticsOptions,
-            ...userOptions,
-            noSemanticValidation: true
-        });
-        monaco.languages.typescript.javascriptDefaults.setDiagnosticsOptions(diagnosticsOptions);
-        monaco.languages.typescript.typescriptDefaults.setDiagnosticsOptions(diagnosticsOptions);
+        setValueTo("publicJS", nextValue);
     };
 
     const handleMonacoMount = (editor, monaco) => {
         monacoApiRef.current = monaco;
         editorRef.current = editor;
-        applyBlockLanguageServiceSettings(monaco, monacoConfig);
+        applyEditorDiagnostics(monaco, monacoConfig, {
+            ignoredCodes: FUNCTION_BODY_DIAGNOSTIC_CODES,
+            baseDiagnosticsOptions: {
+                noSemanticValidation: true,
+                noSuggestionDiagnostics: true
+            }
+        });
         // 应用主题
         const theme = monacoConfig.theme || 'vscode-dark-plus';
         monaco.editor.setTheme(theme);
@@ -258,56 +204,57 @@ const Editor = props => {
     };
 
     const handleMonacoBeforeMount = (monaco) => {
-        monaco.languages.typescript.javascriptDefaults.setDiagnosticsOptions({
-            noSemanticValidation: true,
-            noSyntaxValidation: false
+        defineEditorTheme(monaco);
+        applyEditorDiagnostics(monaco, monacoConfig, {
+            ignoredCodes: FUNCTION_BODY_DIAGNOSTIC_CODES,
+            baseDiagnosticsOptions: {
+                noSemanticValidation: true,
+                noSuggestionDiagnostics: true
+            }
         });
-        monaco.editor.defineTheme('vscode-dark-plus', VSCODE_DARK_PLUS);
-        applyBlockLanguageServiceSettings(monaco, monacoConfig);
     };
 
-    // 为 Monaco 注入 input 变量定义
-    const injectInputDefinitions = (monaco) => {
-        // 收集所有 input 并生成类型定义
-        const inputDefs = [];
-
-        inputIdsRef.current.forEach(value => {
-            inputDefs.push(`/**`);
-            inputDefs.push(`* a block opcode: ${value}`);
-            inputDefs.push(`*/`);
-            inputDefs.push(`declare const ${value}: string`);
-        })
-
-        // 注入 input 变量定义
-        if (inputDefs.length > 0) {
-            const inputDts = inputDefs.join('\n');
-            monaco.languages.typescript.javascriptDefaults.addExtraLib(inputDts, 'inputs.d.ts');
-        }
-
-        // 注入完整的 VM API 类型定义（包含 JSDoc 注释）
-        switch (localStorage.getItem("app_language")) {
-            case "zh":
-                monaco.languages.typescript.javascriptDefaults.addExtraLib(VMAPI_CN, 'vm-api.d.ts');
-                monaco.languages.typescript.javascriptDefaults.addExtraLib(SCRATCH_API_CN, 'scratch-api.d.ts');
-
-                break
-            default:
-                monaco.languages.typescript.javascriptDefaults.addExtraLib(VMAPI, 'vm-api.d.ts');
-                monaco.languages.typescript.javascriptDefaults.addExtraLib(SCRATCH_API, 'scratch-api.d.ts');
-
-        }
-
-        // 注册自定义颜色提供器，为 input 变量添加高亮
-        registerInputHighlight(monaco, inputIdsRef.current);
-    };
-
-    // 切换 block 时重新注入 input 变量定义
     useEffect(() => {
-        if (monacoApiRef.current) {
-            injectInputDefinitions(monacoApiRef.current);
-        }
+        if (!isMonacoMounted || !monacoApiRef.current) return;
+
+        const timer = window.setTimeout(() => {
+            const blocks = returnValue('blocks') || {};
+            const extensionId = returnValue('comments')?.id || 'extension';
+            inputIdsRef.current = Object.keys(blocks).map(name => `${extensionId}_${name}`);
+
+            syncExtraLibs(
+                monacoApiRef.current,
+                extraLibRegistryRef,
+                buildSharedMonacoLibs({
+                    blocks,
+                    extensionId,
+                    publicJS: BlockCode
+                })
+            );
+            updateDecorations();
+        }, 120);
+
+        return () => window.clearTimeout(timer);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [BlockCode]);
+    }, [BlockCode, isMonacoMounted]);
+
+    useEffect(() => () => {
+        disposeExtraLibs(extraLibRegistryRef);
+    }, []);
+
+    const handleReadonlyMonacoBeforeMount = (monaco, block) => {
+        defineEditorTheme(monaco);
+        applyEditorDiagnostics(monaco, monacoConfig, {
+            ignoredCodes: [
+                ...FUNCTION_BODY_DIAGNOSTIC_CODES,
+                ...(block?.blockConfig?.isAsync ? ASYNC_FUNCTION_BODY_DIAGNOSTIC_CODES : [])
+            ],
+            baseDiagnosticsOptions: {
+                noSemanticValidation: true,
+                noSuggestionDiagnostics: true
+            }
+        });
+    };
 
 
     return (
@@ -332,7 +279,9 @@ const Editor = props => {
                                 <MonacoEditor
                                     height="300px"
                                     defaultLanguage="javascript"
+                                    path={`file:///public-preview/${name}.js`}
                                     theme={monacoConfig.theme || 'vscode-dark-plus'}
+                                    beforeMount={(monaco) => handleReadonlyMonacoBeforeMount(monaco, blk)}
                                     loading={<div style={{ color: '#888', padding: '20px' }}>{t('Loading editor...')}</div>}
                                     options={{ ...monacoConfig.options, readOnly: true, minimap: { enabled: false }, fixedOverflowWidgets: true }}
                                     value={value}
@@ -347,6 +296,7 @@ const Editor = props => {
                 <MonacoEditor
                     height="100%"
                     defaultLanguage="javascript"
+                    path="file:///public-editor/public-js.js"
                     theme={monacoConfig.theme || 'vscode-dark-plus'}
                     loading={<div style={{ color: '#888', padding: '20px' }}>{t('Loading editor...')}</div>}
                     options={{ ...monacoConfig.options, fixedOverflowWidgets: true }}

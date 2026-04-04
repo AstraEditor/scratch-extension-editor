@@ -1,5 +1,6 @@
 import styles from "./home.module.css";
 import { setLanguage, SUPPORTED_LANGUAGES, useTranslation } from "../../i18n";
+import { useTheme } from "../../lib/theme.js";
 import { loadProject } from "../editor/blockUtils";
 import { translate, getClass } from "../../extension/decompile";
 import fscWS from "../../extension/fsc-serve";
@@ -9,11 +10,13 @@ import logo from './logo.svg';
 import { FaDownload } from "react-icons/fa6";
 import { IoMdAdd } from "react-icons/io";
 import { SiCompilerexplorer } from "react-icons/si";
+import { VscColorMode } from "react-icons/vsc";
 
 
 
 const Home = props => {
     const { t, language } = useTranslation();
+    const { theme, toggleTheme } = useTheme();
 
     return (
         <div>
@@ -61,6 +64,10 @@ const Home = props => {
                     }} />
                 </div>
                 <div className={styles.footer}>
+                    <button className={styles.themeButton} onClick={toggleTheme}>
+                        <VscColorMode />
+                        {t(theme === 'dark' ? 'Dark Mode' : 'Light Mode')}
+                    </button>
                     <select onChange={e => {
                         setLanguage(e.target.value);
                     }} value={language}>

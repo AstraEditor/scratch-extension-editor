@@ -172,6 +172,11 @@ const LOOP_ARROW_SVG = `<?xml version="1.0" encoding="utf-8"?>
 	c0.3,0.3,0.4,0.6,0.3,0.9S22,11,21.8,11z"/>
 </svg>
 `;
+
+// ============== 图片字段常量 ==============
+// 参考 scratch-blocks/core/field_image.js
+const DEFAULT_IMAGE_WIDTH = 40;
+const DEFAULT_IMAGE_HEIGHT = 40;
 // ============== 文本宽度测量 ==============
 function measureTextWidth(text) {
   if (typeof document === "undefined") {
@@ -233,9 +238,16 @@ const InputType = {
   NUMBER: "number",
   TEXT_NUMBER: "textNumber", // 兼容历史数据
   BOOLEAN: "boolean",
+  ANGLE: "angle",
+  COLOR: "color",
+  MATRIX: "matrix",
+  NOTE: "note",
   DROPDOWN: "dropdown",           // 可填入积木的下拉框
   DROPDOWN_READONLY: "dropdownReadOnly",  // 不可填入积木的下拉框
   VARIABLE: "variable",
+  IMAGE: "image",                 // 图片字段
+  COSTUME: "costume",
+  SOUND: "sound",
 };
 
 // 分支分隔标记 - 用于 parts 数组中标记内容分配到不同分支
@@ -273,7 +285,16 @@ const DefaultBlockConfig = {
   isScratchExtension: true,
 
   // 是否是异步积木
-  isAsync: false
+  isAsync: false,
+
+  // 是否在 worker 环境下阻塞所有线程
+  blockAllThreads: false,
+
+  // 积木显示目标过滤；undefined/空表示同时显示到角色和舞台
+  filter: [],
+
+  // 积木图标 URI (data URI 或 URL)
+  blockIconURI: null            // 显示在积木左侧边缘的图标
 };
 
 /**
@@ -352,7 +373,49 @@ function normalizeInputType(inputType) {
   if (inputType === InputType.TEXT_NUMBER) {
     return InputType.NUMBER;
   }
+  if (inputType === InputType.ANGLE || inputType === InputType.NOTE) {
+    return InputType.NUMBER;
+  }
+  if (inputType === InputType.COLOR || inputType === InputType.MATRIX) {
+    return InputType.TEXT;
+  }
+  if (inputType === InputType.COSTUME || inputType === InputType.SOUND) {
+    return InputType.DROPDOWN_READONLY;
+  }
   return inputType;
+}
+
+function isDropdownLikeInput(inputType) {
+  const normalizedInputType = normalizeInputType(inputType);
+  return (
+    normalizedInputType === InputType.DROPDOWN ||
+    normalizedInputType === InputType.DROPDOWN_READONLY ||
+    normalizedInputType === InputType.VARIABLE
+  );
+}
+
+function getColorInputBgColor(value, fallback = "#FFFFFF") {
+  if (typeof value !== "string") return fallback;
+  const color = value.trim();
+  if (/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(color)) {
+    return color;
+  }
+  return fallback;
+}
+
+function getContrastingTextColor(color) {
+  const normalized = color.replace("#", "");
+  const expanded = normalized.length === 3
+    ? normalized.split("").map(char => char + char).join("")
+    : normalized;
+  if (!/^[0-9a-fA-F]{6}$/.test(expanded)) {
+    return "#575E75";
+  }
+  const r = parseInt(expanded.slice(0, 2), 16);
+  const g = parseInt(expanded.slice(2, 4), 16);
+  const b = parseInt(expanded.slice(4, 6), 16);
+  const luminance = (0.299 * r) + (0.587 * g) + (0.114 * b);
+  return luminance > 186 ? "#575E75" : "#FFFFFF";
 }
 
 // ============== 默认颜色 ==============
@@ -673,10 +736,74 @@ function getInputMinWidth(inputType) {
       return INPUT_SHAPE_SQUARE_WIDTH;
     case InputType.TEXT:
       return INPUT_SHAPE_SQUARE_WIDTH;
+    case InputType.IMAGE:
+      return DEFAULT_IMAGE_WIDTH;
     case InputType.NUMBER:
     default:
       return INPUT_SHAPE_ROUND_WIDTH;
   }
+}
+
+/**
+ * 创建图片字段 SVG 元素
+ * 参考 scratch-blocks/core/field_image.js
+ * @param {Object} imageData - 图片数据 { dataURI, width, height, alt, flipRTL }
+ * @param {number} x - X 坐标
+ * @param {number} y - Y 坐标
+ * @returns {SVGElement} SVG image 元素
+ */
+function createImageField(imageData, x, y) {
+  const width = imageData.width || DEFAULT_IMAGE_WIDTH;
+  const height = imageData.height || DEFAULT_IMAGE_HEIGHT;
+  const dataURI = imageData.dataURI || imageData.value || '';
+  const alt = imageData.alt || '';
+  
+  const image = createSvgElement("image", {
+    x: x,
+    y: y - height / 2,  // 垂直居中
+    width: width,
+    height: height,
+    alt: alt,
+  });
+  
+  if (dataURI) {
+    image.setAttributeNS('http://www.w3.org/1999/xlink', 'xlink:href', dataURI);
+  }
+  
+  return image;
+}
+
+/**
+ * 解析图片数据
+ * @param {any} value - 可能是图片数据
+ * @returns {Object|null} 标准化的图片数据
+ */
+function parseImageData(value) {
+  if (!value) return null;
+  
+  // 已经是标准格式
+  if (typeof value === 'object' && (value.dataURI || value.value)) {
+    return {
+      dataURI: value.dataURI || value.value,
+      width: value.width || DEFAULT_IMAGE_WIDTH,
+      height: value.height || DEFAULT_IMAGE_HEIGHT,
+      alt: value.alt || '',
+      flipRTL: value.flipRTL || false,
+    };
+  }
+  
+  // 字符串格式（直接是 dataURI）
+  if (typeof value === 'string' && value.startsWith('data:')) {
+    return {
+      dataURI: value,
+      width: DEFAULT_IMAGE_WIDTH,
+      height: DEFAULT_IMAGE_HEIGHT,
+      alt: '',
+      flipRTL: false,
+    };
+  }
+  
+  return null;
 }
 
 function getOutputShapeCode(blockType, outputShape) {
@@ -702,6 +829,7 @@ function getInnerShapeCodeForComponent(component) {
     case InputType.DROPDOWN:
     case InputType.DROPDOWN_READONLY:
     case InputType.VARIABLE:
+    case InputType.IMAGE:
     default:
       return OUTPUT_SHAPE_SQUARE;
   }
@@ -715,8 +843,12 @@ function getInnerShapeCodeForComponent(component) {
  * @param {string} tertiary - 第三色
  * @returns {string} 背景色
  */
-function getInputBgColor(inputType, primary, secondary, tertiary) {
+function getInputBgColor(inputType, primary, secondary, tertiary, value = null) {
   const normalizedInputType = normalizeInputType(inputType);
+
+  if (inputType === InputType.COLOR) {
+    return getColorInputBgColor(value);
+  }
 
   switch (normalizedInputType) {
     case InputType.TEXT:
@@ -739,7 +871,11 @@ function getInputBgColor(inputType, primary, secondary, tertiary) {
  * @param {string} inputType - 输入框类型
  * @returns {string} 文字颜色
  */
-function getInputTextColor(inputType) {
+function getInputTextColor(inputType, value = null) {
+  if (inputType === InputType.COLOR) {
+    return getContrastingTextColor(getColorInputBgColor(value));
+  }
+
   const normalizedInputType = normalizeInputType(inputType);
 
   switch (normalizedInputType) {
@@ -764,6 +900,16 @@ function normalizeInputValue(value) {
 
 function calculateInputWidth(inputType, value) {
   const normalizedInputType = normalizeInputType(inputType);
+  
+  // 图片类型使用固定宽度
+  if (normalizedInputType === InputType.IMAGE) {
+    const imageData = value;
+    if (imageData && typeof imageData === 'object') {
+      return imageData.width || DEFAULT_IMAGE_WIDTH;
+    }
+    return DEFAULT_IMAGE_WIDTH;
+  }
+  
   const textValue = normalizeInputValue(value);
   const textWidth = getTextWidth(textValue);
 
@@ -836,6 +982,7 @@ function renderBlock(blockData, options = {}) {
     branchLabels = [],
     isLoop = false,
     outputShape = null,
+    blockIconURI = null,
   } = finalConfig;
 
   // branches 需要是可变的（可能被自动分支检测逻辑更新）
@@ -901,6 +1048,18 @@ function renderBlock(blockData, options = {}) {
   let cursorX = 0;
   const components = [];
 
+  // 如果有 blockIconURI，在最前面添加图标组件
+  if (blockIconURI) {
+    const iconSize = 24; // 图标大小
+    components.push({
+      type: 'blockIcon',
+      content: blockIconURI,
+      width: iconSize,
+      x: cursorX,
+    });
+    cursorX += iconSize + SEP_SPACE_X;
+  }
+
   for (const part of topParts) {
     let comp;
 
@@ -917,8 +1076,9 @@ function renderBlock(blockData, options = {}) {
     } else {
       // 输入框组件
       const inputType = normalizeInputType(part.inputType);
-      const value = normalizeInputValue(part.value);
-      const inputWidth = calculateInputWidth(inputType, value);
+      // IMAGE 类型保持原始值对象，不进行 normalize
+      const value = inputType === InputType.IMAGE ? part.value : normalizeInputValue(part.value);
+      const inputWidth = calculateInputWidth(inputType, part.value);
 
       comp = {
         type: 'input',
@@ -1161,7 +1321,7 @@ function renderBlock(blockData, options = {}) {
           const inputBg = createSvgElement("path", {
             class: "blocklyInput",
             d: inputPath,
-            fill: getInputBgColor(inputType, primary, secondary, tertiary),
+            fill: getInputBgColor(inputType, primary, secondary, tertiary, part.value),
             stroke: secondary,
             "stroke-width": 1,
             "data-input-index": inputIndex++,
@@ -1172,7 +1332,7 @@ function renderBlock(blockData, options = {}) {
           // 输入框文本
           if (inputType !== InputType.BOOLEAN) {
             let textX;
-            if (inputType === InputType.DROPDOWN || inputType === InputType.DROPDOWN_READONLY || inputType === InputType.VARIABLE) {
+            if (isDropdownLikeInput(inputType)) {
               const arrowWidth = 12 + DROPDOWN_ARROW_PADDING;
               textX = currentBranchX + (inputWidth - arrowWidth) / 2;
             } else {
@@ -1185,7 +1345,7 @@ function renderBlock(blockData, options = {}) {
               "text-anchor": "middle",
               "dominant-baseline": "middle",
               dy: 0,
-              fill: getInputTextColor(inputType),
+              fill: getInputTextColor(inputType, part.value),
               "font-family": TEXT_STYLE.fontFamily,
               "font-size": `${TEXT_STYLE.fontSize}${TEXT_STYLE.fontSizeUnit}`,
               "font-weight": TEXT_STYLE.fontWeight,
@@ -1196,7 +1356,7 @@ function renderBlock(blockData, options = {}) {
 
 
           // 下拉箭头
-          if (inputType === InputType.DROPDOWN || inputType === InputType.DROPDOWN_READONLY || inputType === InputType.VARIABLE) {
+          if (isDropdownLikeInput(inputType)) {
             const arrowX = currentBranchX + BOX_FIELD_PADDING + textWidth + EDITABLE_FIELD_PADDING + DROPDOWN_ARROW_PADDING / 2;
             const arrowY = inputY + (INPUT_SHAPE_HEIGHT - 8.79) / 2;
             const arrow = createSvgElement("image", {
@@ -1206,7 +1366,7 @@ function renderBlock(blockData, options = {}) {
               height: 8.79,
             });
 
-            const arrowData = inputType === InputType.DROPDOWN_READONLY
+            const arrowData = normalizeInputType(inputType) === InputType.DROPDOWN_READONLY
               ? DROPDOWN_ARROW_DARK_SVG
               : DROPDOWN_ARROW_SVG;
             const dataUri = 'data:image/svg+xml;base64,' + btoa(arrowData);
@@ -1229,7 +1389,22 @@ function renderBlock(blockData, options = {}) {
     : blockHeight / 2;
 
   for (const comp of components) {
-    if (comp.type === 'text') {
+    if (comp.type === 'blockIcon') {
+      // 渲染积木图标
+      const iconSize = comp.width || 24;
+      const iconY = contentY - iconSize / 2;
+      
+      const iconEl = createSvgElement("image", {
+        x: currentX,
+        y: iconY,
+        width: iconSize,
+        height: iconSize,
+      });
+      iconEl.setAttributeNS('http://www.w3.org/1999/xlink', 'xlink:href', comp.content);
+      container.appendChild(iconEl);
+      
+      currentX += comp.width + SEP_SPACE_X;
+    } else if (comp.type === 'text') {
       // 文本垂直居中
       const text = createSvgElement("text", {
         class: "blocklyText",
@@ -1247,6 +1422,20 @@ function renderBlock(blockData, options = {}) {
 
       currentX += comp.width + SEP_SPACE_X;
     } else if (comp.type === 'input') {
+      // 图片类型特殊处理
+      if (comp.inputType === InputType.IMAGE) {
+        const imageData = parseImageData(comp.value);
+        if (imageData) {
+          const imageEl = createImageField(imageData, currentX, contentY);
+          container.appendChild(imageEl);
+          currentX += imageData.width + SEP_SPACE_X;
+        } else {
+          // 无效图片数据，跳过
+          currentX += DEFAULT_IMAGE_WIDTH + SEP_SPACE_X;
+        }
+        continue;
+      }
+      
       // 输入框位置 - 对于C型积木在顶部行居中
       // 如果是第一个元素且需要避开凹槽，应用偏移
       if (notchOffset > 0 && currentX === startX) {
@@ -1257,8 +1446,8 @@ function renderBlock(blockData, options = {}) {
       const inputPath = generateInputPath(comp.inputType, comp.width);
 
       // 输入框颜色
-      const bgColor = getInputBgColor(comp.inputType, primary, secondary, tertiary);
-      const textColor = getInputTextColor(comp.inputType);
+      const bgColor = getInputBgColor(comp.inputType, primary, secondary, tertiary, comp.value);
+      const textColor = getInputTextColor(comp.inputType, comp.value);
 
       // 创建输入框背景
       const inputBg = createSvgElement("path", {
@@ -1285,7 +1474,7 @@ function renderBlock(blockData, options = {}) {
         let textX;
 
         // 参考 scratch-blocks: centerTextX = (width - arrowWidth) / 2
-        if (comp.inputType === InputType.DROPDOWN || comp.inputType === InputType.DROPDOWN_READONLY || comp.inputType === InputType.VARIABLE) {
+        if (isDropdownLikeInput(comp.inputType)) {
           const arrowWidth = 12 + DROPDOWN_ARROW_PADDING;  // 20
           textX = currentX + (comp.width - arrowWidth) / 2;
         } else {
@@ -1311,7 +1500,7 @@ function renderBlock(blockData, options = {}) {
       }
 
       // 下拉框箭头
-      if (comp.inputType === InputType.DROPDOWN || comp.inputType === InputType.DROPDOWN_READONLY || comp.inputType === InputType.VARIABLE) {
+      if (isDropdownLikeInput(comp.inputType)) {
         // 参考 scratch-blocks field_dropdown.js positionArrow
         // arrowX = BOX_FIELD_PADDING + textWidth + EDITABLE_FIELD_PADDING + DROPDOWN_ARROW_PADDING / 2
         const textWidth = getTextWidth(comp.value);
@@ -1326,7 +1515,7 @@ function renderBlock(blockData, options = {}) {
         });
 
         // 使用 data URI 内嵌 SVG
-        const arrowData = comp.inputType === InputType.DROPDOWN_READONLY
+        const arrowData = normalizeInputType(comp.inputType) === InputType.DROPDOWN_READONLY
           ? DROPDOWN_ARROW_DARK_SVG
           : DROPDOWN_ARROW_SVG;
         const dataUri = 'data:image/svg+xml;base64,' + btoa(arrowData);
@@ -1414,6 +1603,8 @@ export {
   getTextWidth,
   createSvgElement,
   generateCBlockPath,
+  createImageField,
+  parseImageData,
   // 常量
   GRID_UNIT,
   SEP_SPACE_X,
@@ -1433,6 +1624,9 @@ export {
   // 循环图标
   LOOP_ICON_SIZE,
   LOOP_ARROW_SVG,
+  // 图片字段常量
+  DEFAULT_IMAGE_WIDTH,
+  DEFAULT_IMAGE_HEIGHT,
 };
 
 export default renderBlock;

@@ -21,27 +21,92 @@ function moveUp(array, index, pos = 1) {
     return newArray;
 }
 
+const DEFAULT_DROPDOWN_OPTIONS = [{ name: "Option 1", value: "1" }];
+const DEFAULT_IMAGE_VALUE = {
+    dataURI: "",
+    width: 40,
+    height: 40,
+    alt: "Image",
+    flipRTL: false
+};
+const ALL_FILTER_TARGETS = ['sprite', 'stage'];
+
 
 const NewInput = props => {
     const { t } = useTranslation();
     const [inputType, setInputType] = useState(InputType.TEXT)
-    const [inputValue, setInputValue] = useState(
-        { TEXT: "Text", NUMBER: "0", DROPDOWN: [{ name: "Option 1", value: "1" }] }
-    )
+    const [inputValue, setInputValue] = useState({
+        TEXT: "Text",
+        NUMBER: "0",
+        ANGLE: "90",
+        COLOR: "#ff8c1a",
+        MATRIX: "0101010101010101010101010",
+        NOTE: "60",
+        COSTUME: "costume1",
+        SOUND: "sound1",
+        DROPDOWN: [...DEFAULT_DROPDOWN_OPTIONS],
+        IMAGE: { ...DEFAULT_IMAGE_VALUE }
+    })
 
     const [inputTypeREADONLY, setInputTypeREADONLY] = useState(false);
     useEffect(() => {
         if (props.isEditingBlock) {
-            setInputType(props.blockPart.inputType); //这里是固定文本，但定义它的类型是从InputType读取的，所以直接读
+            const part = props.blockPart;
+            if (!part) return;
+            setInputType(part.inputType); //这里是固定文本，但定义它的类型是从InputType读取的，所以直接读
             switch (props.blockPart.inputType) {
                 //我们没有找到更好的方法来添加...
                 case InputType.DROPDOWN:
                 case InputType.DROPDOWN_READONLY:
                     setInputType("DropDown");
+                    setInputTypeREADONLY(props.blockPart.inputType === InputType.DROPDOWN_READONLY);
                     setInputValue({
-                        ...inputType,
-                        DROPDOWN: props.blockPart.value
+                        TEXT: "Text",
+                        NUMBER: "0",
+                        ANGLE: "90",
+                        COLOR: "#ff8c1a",
+                        MATRIX: "0101010101010101010101010",
+                        NOTE: "60",
+                        COSTUME: "costume1",
+                        SOUND: "sound1",
+                        DROPDOWN: Array.isArray(props.blockPart.value) && props.blockPart.value.length > 0
+                            ? props.blockPart.value
+                            : [...DEFAULT_DROPDOWN_OPTIONS],
+                        IMAGE: { ...DEFAULT_IMAGE_VALUE }
                     })
+                    break;
+                case InputType.IMAGE:
+                    setInputValue(prev => ({
+                        ...prev,
+                        IMAGE: {
+                            ...DEFAULT_IMAGE_VALUE,
+                            ...(props.blockPart.value || {})
+                        }
+                    }));
+                    break;
+                case InputType.TEXT:
+                    setInputValue(prev => ({ ...prev, TEXT: props.blockPart.value || "" }));
+                    break;
+                case InputType.NUMBER:
+                    setInputValue(prev => ({ ...prev, NUMBER: String(props.blockPart.value ?? "0") }));
+                    break;
+                case InputType.ANGLE:
+                    setInputValue(prev => ({ ...prev, ANGLE: String(props.blockPart.value ?? "90") }));
+                    break;
+                case InputType.COLOR:
+                    setInputValue(prev => ({ ...prev, COLOR: props.blockPart.value || "#ff8c1a" }));
+                    break;
+                case InputType.MATRIX:
+                    setInputValue(prev => ({ ...prev, MATRIX: props.blockPart.value || "" }));
+                    break;
+                case InputType.NOTE:
+                    setInputValue(prev => ({ ...prev, NOTE: String(props.blockPart.value ?? "60") }));
+                    break;
+                case InputType.COSTUME:
+                    setInputValue(prev => ({ ...prev, COSTUME: props.blockPart.value || "costume1" }));
+                    break;
+                case InputType.SOUND:
+                    setInputValue(prev => ({ ...prev, SOUND: props.blockPart.value || "sound1" }));
                     break;
                 default:
                     break;
@@ -78,9 +143,23 @@ const NewInput = props => {
                 return inputValue.TEXT
             case InputType.NUMBER:
                 return inputValue.NUMBER
+            case InputType.ANGLE:
+                return inputValue.ANGLE
+            case InputType.COLOR:
+                return inputValue.COLOR
+            case InputType.MATRIX:
+                return inputValue.MATRIX
+            case InputType.NOTE:
+                return inputValue.NOTE
+            case InputType.COSTUME:
+                return inputValue.COSTUME
+            case InputType.SOUND:
+                return inputValue.SOUND
             case InputType.DROPDOWN:
             case InputType.DROPDOWN_READONLY:
                 return inputValue.DROPDOWN
+            case InputType.IMAGE:
+                return inputValue.IMAGE
             case InputType.BOOLEAN:
                 return "" //布尔没有储存值
             default:
@@ -100,9 +179,23 @@ const NewInput = props => {
                 return inputValue.TEXT
             case InputType.NUMBER:
                 return inputValue.NUMBER
+            case InputType.ANGLE:
+                return inputValue.ANGLE
+            case InputType.COLOR:
+                return inputValue.COLOR
+            case InputType.MATRIX:
+                return inputValue.MATRIX
+            case InputType.NOTE:
+                return inputValue.NOTE
+            case InputType.COSTUME:
+                return inputValue.COSTUME
+            case InputType.SOUND:
+                return inputValue.SOUND
             case InputType.DROPDOWN:
             case InputType.DROPDOWN_READONLY:
-                return inputValue.DROPDOWN[0].name || ""
+                return inputValue.DROPDOWN[0]?.name || ""
+            case InputType.IMAGE:
+                return inputValue.IMAGE
             case InputType.BOOLEAN:
                 return "" //布尔没有储存值
             default:
@@ -111,14 +204,22 @@ const NewInput = props => {
         }
     }
 
+    const preservedPartMeta = props.isEditingBlock && props.blockPart
+        ? Object.fromEntries(
+            Object.entries(props.blockPart).filter(([key]) => key !== 'inputType' && key !== 'value')
+        )
+        : {};
+
     // 构建当前输入框对象
     const currentInput = {
+        ...preservedPartMeta,
         inputType: getRealInputType(inputType),
         value: getInputValue(inputType)
     };
 
     // 用于 SVG 预览显示的输入框（value 用显示值）
     const displayInput = {
+        ...preservedPartMeta,
         inputType: getRealInputType(inputType),
         value: getDisplayInputValue(inputType)
     };
@@ -137,14 +238,15 @@ const NewInput = props => {
 
     // 添加下拉选项
     const addDropdownOption = () => {
-        const nowDropDown = inputValue.DROPDOWN;
-        const length = nowDropDown.length;
-        nowDropDown.push({});
-        nowDropDown[length]["name"] = `Option ${length + 1}`;
-        nowDropDown[length]["value"] = `${length + 1}`;
         setInputValue(prev => ({
             ...prev,
-            DROPDOWN: nowDropDown
+            DROPDOWN: [
+                ...prev.DROPDOWN,
+                {
+                    name: `Option ${prev.DROPDOWN.length + 1}`,
+                    value: `${prev.DROPDOWN.length + 1}`
+                }
+            ]
         }));
     };
 
@@ -158,12 +260,38 @@ const NewInput = props => {
 
     // 修改下拉选项
     const updateDropdownOption = (idx, name, newValue) => {
-        const nowDropDown = inputValue.DROPDOWN;
-        nowDropDown[idx][name] = newValue;
         setInputValue(prev => ({
             ...prev,
-            DROPDOWN: nowDropDown
+            DROPDOWN: prev.DROPDOWN.map((item, itemIndex) => (
+                itemIndex === idx ? { ...item, [name]: newValue } : item
+            ))
         }));
+    };
+
+    const updateImageValue = (key, value) => {
+        setInputValue(prev => ({
+            ...prev,
+            IMAGE: {
+                ...prev.IMAGE,
+                [key]: value
+            }
+        }));
+    };
+
+    const uploadImage = () => {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/*';
+        input.onchange = e => {
+            const file = e.target.files?.[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = event => {
+                updateImageValue('dataURI', event.target?.result || '');
+            };
+            reader.readAsDataURL(file);
+        };
+        input.click();
     };
 
     return (
@@ -186,6 +314,13 @@ const NewInput = props => {
                         >
                             <option value={InputType.TEXT}>{t('Text')}</option>
                             <option value={InputType.NUMBER}>{t('Number')}</option>
+                            <option value={InputType.ANGLE}>{t('Angle')}</option>
+                            <option value={InputType.COLOR}>{t('Color')}</option>
+                            <option value={InputType.MATRIX}>{t('Matrix')}</option>
+                            <option value={InputType.NOTE}>{t('Note')}</option>
+                            <option value={InputType.IMAGE}>{t('Image')}</option>
+                            <option value={InputType.COSTUME}>{t('Costume')}</option>
+                            <option value={InputType.SOUND}>{t('Sound')}</option>
                             <option value="DropDown">{t('Dropdown')}</option>
                             <option value={InputType.BOOLEAN}>{t('Boolean')}</option>
                         </select>
@@ -195,16 +330,59 @@ const NewInput = props => {
                             title={t("Unknown Mode")}
                         />
                     )}
-                    {(inputType === InputType.TEXT || inputType === InputType.NUMBER) && (
+                    {[
+                        InputType.TEXT,
+                        InputType.NUMBER,
+                        InputType.ANGLE,
+                        InputType.COLOR,
+                        InputType.MATRIX,
+                        InputType.NOTE,
+                        InputType.COSTUME,
+                        InputType.SOUND
+                    ].includes(inputType) && (
                         <div className={styles.formRow}>
                             <label className={styles.formLabel}>
                                 {returnValue("comments").translate ? "Default Input Translate ID" : t('Default Input')}
                             </label>
                             <input
-                                value={inputType === InputType.NUMBER ? inputValue.NUMBER : inputValue.TEXT}
+                                type={inputType === InputType.COLOR ? "color" : "text"}
+                                value={
+                                    inputType === InputType.NUMBER ? inputValue.NUMBER :
+                                        inputType === InputType.ANGLE ? inputValue.ANGLE :
+                                            inputType === InputType.COLOR ? inputValue.COLOR :
+                                                inputType === InputType.MATRIX ? inputValue.MATRIX :
+                                                    inputType === InputType.NOTE ? inputValue.NOTE :
+                                                        inputType === InputType.COSTUME ? inputValue.COSTUME :
+                                                            inputType === InputType.SOUND ? inputValue.SOUND :
+                                                                inputValue.TEXT
+                                }
                                 onChange={e => {
                                     if (inputType === InputType.NUMBER) {
                                         setInputValue({ ...inputValue, NUMBER: e.target.value })
+                                        return;
+                                    }
+                                    if (inputType === InputType.ANGLE) {
+                                        setInputValue({ ...inputValue, ANGLE: e.target.value })
+                                        return;
+                                    }
+                                    if (inputType === InputType.COLOR) {
+                                        setInputValue({ ...inputValue, COLOR: e.target.value })
+                                        return;
+                                    }
+                                    if (inputType === InputType.MATRIX) {
+                                        setInputValue({ ...inputValue, MATRIX: e.target.value })
+                                        return;
+                                    }
+                                    if (inputType === InputType.NOTE) {
+                                        setInputValue({ ...inputValue, NOTE: e.target.value })
+                                        return;
+                                    }
+                                    if (inputType === InputType.COSTUME) {
+                                        setInputValue({ ...inputValue, COSTUME: e.target.value })
+                                        return;
+                                    }
+                                    if (inputType === InputType.SOUND) {
+                                        setInputValue({ ...inputValue, SOUND: e.target.value })
                                         return;
                                     }
                                     setInputValue({ ...inputValue, TEXT: e.target.value })
@@ -255,6 +433,59 @@ const NewInput = props => {
                             <button onClick={addDropdownOption}>+</button>
                         </div>
                     )}
+
+                    {inputType === InputType.IMAGE && (
+                        <div className={styles.formRow}>
+                            <label className={styles.formLabel}>{t('Image settings')}</label>
+                            <div className={styles.optionList}>
+                                <div className={styles.optionRow}>
+                                    <button onClick={uploadImage}>{t('Upload')}</button>
+                                </div>
+                                <div className={styles.optionRow}>
+                                    <input
+                                        value={inputValue.IMAGE.alt}
+                                        placeholder={t('Image alt text')}
+                                        onChange={e => updateImageValue('alt', e.target.value)}
+                                    />
+                                </div>
+                                <div className={styles.optionRow}>
+                                    <input
+                                        type="number"
+                                        value={inputValue.IMAGE.width}
+                                        placeholder={t('Image width')}
+                                        onChange={e => updateImageValue('width', Number(e.target.value) || 40)}
+                                    />
+                                    <input
+                                        type="number"
+                                        value={inputValue.IMAGE.height}
+                                        placeholder={t('Image height')}
+                                        onChange={e => updateImageValue('height', Number(e.target.value) || 40)}
+                                    />
+                                </div>
+                                <label className={styles.formLabel}>
+                                    <span>{t('Flip image in RTL')}</span>
+                                    <input
+                                        type="checkbox"
+                                        checked={!!inputValue.IMAGE.flipRTL}
+                                        onChange={e => updateImageValue('flipRTL', e.target.checked)}
+                                    />
+                                </label>
+                                {inputValue.IMAGE.dataURI ? (
+                                    <img
+                                        src={inputValue.IMAGE.dataURI}
+                                        alt={inputValue.IMAGE.alt || 'preview'}
+                                        style={{
+                                            width: `${Math.min(inputValue.IMAGE.width || 40, 120)}px`,
+                                            height: `${Math.min(inputValue.IMAGE.height || 40, 120)}px`,
+                                            objectFit: 'contain'
+                                        }}
+                                    />
+                                ) : (
+                                    <span>{t('No icon selected')}</span>
+                                )}
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 <div className={styles.sectionCard} style={{
@@ -288,6 +519,9 @@ const NewBlock = props => {
     
     // 积木配置状态
     const [blockConfig, setBlockConfig] = useState({ ...DefaultBlockConfig });
+    const effectiveFilterTargets = Array.isArray(blockConfig.filter) && blockConfig.filter.length > 0
+        ? blockConfig.filter
+        : ALL_FILTER_TARGETS;
 
     const [EditBlockIndex, setEditBlockIndex] = useState(0);
     const [isEditingBlock, setEditingBlock] = useState(false);
@@ -536,9 +770,14 @@ const NewBlock = props => {
 
     const renderPartSummary = (item) => {
         if (typeof item === "object") {
+            const summaryValue = Array.isArray(item.value)
+                ? `${item.value[0]?.name || ''}...`
+                : item.inputType === InputType.IMAGE
+                    ? (item.value?.alt || t('Image'))
+                    : item.value;
             return (
                 <code className={styles.partCode}>
-                    {getTypeName(item.inputType)}{item.inputType !== BlockType.BOOLEAN && ":"} {Array.isArray(item.value) ? (item.value[0] + '...') : item.value}
+                    {getTypeName(item.inputType)}{item.inputType !== InputType.BOOLEAN && ":"} {summaryValue}
                 </code>
             );
         }
@@ -565,12 +804,26 @@ const NewBlock = props => {
                 return t("Text")
             case "number":
                 return t("Number")
+            case "angle":
+                return t("Angle")
+            case "color":
+                return t("Color")
+            case "matrix":
+                return t("Matrix")
+            case "note":
+                return t("Note")
             case "dropdown":
                 return t("Dropdown")
             case "dropdownReadOnly":
                 return t("Read Only Dropdown")
             case "boolean":
                 return t("Boolean")
+            case "image":
+                return t("Image")
+            case "costume":
+                return t("Costume")
+            case "sound":
+                return t("Sound")
             default:
                 return value
         }
@@ -669,19 +922,112 @@ const NewBlock = props => {
                                                 </label>
                                             </div>
                                         )}
-                                                                                    <div className={styles.formRow}>
+                                        <div className={styles.formRow}>
+                                            <label className={styles.formLabel}>
+                                                <input
+                                                    type="checkbox"
+                                                    checked={blockConfig.isAsync}
+                                                    onChange={e => setBlockConfig({
+                                                        ...blockConfig,
+                                                        isAsync: e.target.checked
+                                                    })}
+                                                />
+                                                {t('Async Block')}
+                                            </label>
+                                        </div>
+
+                                        <div className={styles.formRow}>
+                                            <label className={styles.formLabel}>
+                                                <input
+                                                    type="checkbox"
+                                                    checked={!!blockConfig.blockAllThreads}
+                                                    onChange={e => setBlockConfig({
+                                                        ...blockConfig,
+                                                        blockAllThreads: e.target.checked
+                                                    })}
+                                                />
+                                                {t('Block all threads')}
+                                            </label>
+                                        </div>
+
+                                        <div className={styles.formRow}>
+                                            <label className={styles.formLabel}>{t('Target Filter')}</label>
+                                            <div className={styles.optionList}>
                                                 <label className={styles.formLabel}>
                                                     <input
                                                         type="checkbox"
-                                                        checked={blockConfig.isAsync}
-                                                        onChange={e => setBlockConfig({
-                                                            ...blockConfig,
-                                                            isAsync: e.target.checked
-                                                        })}
+                                                        checked={effectiveFilterTargets.includes('sprite')}
+                                                        onChange={e => {
+                                                            const next = e.target.checked
+                                                                ? Array.from(new Set([...effectiveFilterTargets, 'sprite']))
+                                                                : effectiveFilterTargets.filter(target => target !== 'sprite');
+                                                            if (next.length === 0) return;
+                                                            setBlockConfig({
+                                                                ...blockConfig,
+                                                                filter: next.length === ALL_FILTER_TARGETS.length ? [] : next
+                                                            });
+                                                        }}
                                                     />
-                                                    {t('Async Block')}
+                                                    {t('Show on Sprite')}
+                                                </label>
+                                                <label className={styles.formLabel}>
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={effectiveFilterTargets.includes('stage')}
+                                                        onChange={e => {
+                                                            const next = e.target.checked
+                                                                ? Array.from(new Set([...effectiveFilterTargets, 'stage']))
+                                                                : effectiveFilterTargets.filter(target => target !== 'stage');
+                                                            if (next.length === 0) return;
+                                                            setBlockConfig({
+                                                                ...blockConfig,
+                                                                filter: next.length === ALL_FILTER_TARGETS.length ? [] : next
+                                                            });
+                                                        }}
+                                                    />
+                                                    {t('Show on Stage')}
                                                 </label>
                                             </div>
+                                        </div>
+
+                                        {/* 积木图标 */}
+                                        <div className={styles.formRow}>
+                                            <button
+                                                onClick={() => {
+                                                    const input = document.createElement('input');
+                                                    input.type = 'file';
+                                                    input.accept = 'image/*';
+                                                    input.onchange = e => {
+                                                        const file = e.target.files[0];
+                                                        if (file) {
+                                                            const reader = new FileReader();
+                                                            reader.onload = event => {
+                                                                setBlockConfig({
+                                                                    ...blockConfig,
+                                                                    blockIconURI: event.target.result
+                                                                });
+                                                            };
+                                                            reader.readAsDataURL(file);
+                                                        }
+                                                    };
+                                                    input.click();
+                                                }}
+                                                style={{ marginRight: '8px' }}
+                                            >
+                                                {t('Block Icon')}
+                                            </button>
+                                            {blockConfig.blockIconURI && (
+                                                <button
+                                                    onClick={() => setBlockConfig({
+                                                        ...blockConfig,
+                                                        blockIconURI: null
+                                                    })}
+                                                    style={{ fontSize: '12px' }}
+                                                >
+                                                    {t('Clear')}
+                                                </button>
+                                            )}
+                                        </div>
 
                                     </div>
 
@@ -740,7 +1086,7 @@ const NewBlock = props => {
                                                         <div className={styles.partContent}>
                                                             {typeof item === "object" ? (
                                                                 <code className={styles.partCode}>
-                                                                    {getTypeName(item.inputType)}{item.inputType !== BlockType.BOOLEAN && ":"} {Array.isArray(item.value) ? (item.value[0].name + '...') : item.value}
+                                                                    {getTypeName(item.inputType)}{item.inputType !== InputType.BOOLEAN && ":"} {Array.isArray(item.value) ? ((item.value[0]?.name || '') + '...') : (item.inputType === InputType.IMAGE ? (item.value?.alt || 'Image') : item.value)}
                                                                 </code>
                                                             ) : (
                                                                 item === "_NextBrach_" ? (

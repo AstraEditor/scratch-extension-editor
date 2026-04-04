@@ -10,6 +10,9 @@ import Tip from '../tip/tip.jsx';
 
 import styles from './newProject.module.css';
 
+const DEFAULT_COLORS = ['#0099ff', '#0066ff', '#0033ff'];
+const BUILTIN_LICENSES = ['MPL-2.0', 'MIT', 'GPL-3.0', 'Apache-2.0', 'CC-BY-SA-4.0'];
+
 const Input = props => (
     <input placeholder={props.placeholder} className={styles.input}
         type={props.type || "text"}
@@ -18,20 +21,45 @@ const Input = props => (
         {...props}
     />
 )
+
+const normalizeCommentData = (comment = {}) => ({
+    name: comment.name || '',
+    id: comment.id || '',
+    description: comment.description || '',
+    author: comment.author || '',
+    license: comment.license || 'MPL-2.0',
+    docsURI: comment.docsURI || '',
+    menuIconURI: comment.menuIconURI || '',
+    blockIconURI: comment.blockIconURI || '',
+    color: [
+        comment.color?.[0] || DEFAULT_COLORS[0],
+        comment.color?.[1] || DEFAULT_COLORS[1],
+        comment.color?.[2] || DEFAULT_COLORS[2]
+    ]
+});
+
 export default function NewProject(props) {
     const { t } = useTranslation();
+    const isModal = props.variant === 'modal';
+    const initialCommentData = normalizeCommentData(props.initialData);
+    const customLicenseLabel = BUILTIN_LICENSES.includes(initialCommentData.license)
+        ? 'Custom'
+        : initialCommentData.license;
 
-    const [nowName, setName] = useState("");
-    const [nowID, setID] = useState("");
-    const [nowDesc, setDesc] = useState("");
-    const [nowAuthor, setAuthor] = useState("");
-    const [nowLicense, setLicense] = useState("MPL-2.0");
-    const [useCustomID, setUseCustomID] = useState(false);
+    const [nowName, setName] = useState(initialCommentData.name);
+    const [nowID, setID] = useState(initialCommentData.id);
+    const [nowDesc, setDesc] = useState(initialCommentData.description);
+    const [nowAuthor, setAuthor] = useState(initialCommentData.author);
+    const [nowLicense, setLicense] = useState(initialCommentData.license);
+    const [nowDocsURI, setDocsURI] = useState(initialCommentData.docsURI);
+    const [nowMenuIconURI, setMenuIconURI] = useState(initialCommentData.menuIconURI);
+    const [nowBlockIconURI, setBlockIconURI] = useState(initialCommentData.blockIconURI);
+    const [useCustomID, setUseCustomID] = useState(Boolean(props.initialData));
 
-    const [nowCustomLicence, setCustomLicencse] = useState('Custom');
-    const [nowColor, setColor] = useState(["#0099ff", "#0066ff", "#0033ff"]);
-    const [isDisabledCustomColor, setDisabledCustomColor] = useState(true)
-    const [customColor, setCustomColor] = useState([false, false, false]); // 追踪每个颜色是否被自定义
+    const [nowCustomLicence, setCustomLicencse] = useState(customLicenseLabel);
+    const [nowColor, setColor] = useState(initialCommentData.color);
+    const [isDisabledCustomColor, setDisabledCustomColor] = useState(!props.initialData);
+    const [customColor, setCustomColor] = useState(props.initialData ? [true, true, true] : [false, false, false]); // 追踪每个颜色是否被自定义
 
     // 这个函数是AI来的，AI太好用了你知道吗
     const calculateColors = (baseColor) => {
@@ -54,12 +82,50 @@ export default function NewProject(props) {
         setName(Name);
         if (!useCustomID) setID(Name ? spawnExtID(Name) : "");
     }
+
     useEffect(() => {
-        init() //扩展初始化
-    }, [])
+        if (props.initializeStorage !== false) {
+            init(); // 扩展初始化
+        }
+    }, [props.initializeStorage])
+
+    useEffect(() => {
+        if (!useCustomID) {
+            setID(nowName ? spawnExtID(nowName) : "");
+        }
+    }, [useCustomID, nowName])
+
+    const uploadImage = (setter) => {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/*';
+        input.onchange = e => {
+            const file = e.target.files?.[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = event => setter(event.target?.result || "");
+            reader.readAsDataURL(file);
+        };
+        input.click();
+    };
+
+    const handleLicenseChange = (value) => {
+        if (value === 'Custom') {
+            const customLicense = prompt(t('What licence do you like?'), nowLicense || nowCustomLicence);
+            if (customLicense && customLicense.trim()) {
+                const nextLicense = customLicense.trim();
+                setCustomLicencse(nextLicense);
+                setLicense(nextLicense);
+            }
+            return;
+        }
+        setLicense(value);
+    };
 
     const setComment = () => {
-        const newComment = returnValue("comments");
+        const newComment = {
+            ...(returnValue("comments") || {})
+        };
         if (!(nowName && nowName.trim().length > 0)) {
             alert(t('Invalid extension name!'));
             return;
@@ -74,13 +140,20 @@ export default function NewProject(props) {
         newComment.author = nowAuthor || "";
         newComment.license = nowLicense || "MPL-2.0";
         newComment.color = nowColor || ["#0099ff", "#0066ff", "#0033ff"];
+        newComment.docsURI = nowDocsURI || "";
+        newComment.menuIconURI = nowMenuIconURI || "";
+        newComment.blockIconURI = nowBlockIconURI || "";
         setValueTo("comments", newComment);
-        props.Done()
+        props.Done?.(newComment)
     }
+    const rootClassName = isModal ? `${styles.newProject} ${styles.newProjectModal}` : styles.newProject;
+    const previewClassName = isModal ? `${styles.view} ${styles.viewModal}` : styles.view;
+    const formClassName = isModal ? `${styles.main} ${styles.mainModal}` : styles.main;
+    const selectValue = BUILTIN_LICENSES.includes(nowLicense) ? nowLicense : 'Custom';
+
     return (
-        <div className={styles.newProject}>
-            <div className={styles.view}>
-                <h2>{t('Extension Manager')}</h2>
+        <div className={rootClassName}>
+            <div className={previewClassName}>
                 <div
                     style={{
                         backgroundColor: nowColor[1] == undefined ? nowColor[0] : nowColor[1],
@@ -108,8 +181,8 @@ export default function NewProject(props) {
                 </div>
 
             </div>
-            <div className={styles.main}>
-                <h1>{t('Create extension')}</h1>
+            <div className={formClassName}>
+                {props.showFormHeading !== false && <h1>{props.formTitle || t('Create extension')}</h1>}
                 <Input
                     setName={value => setNameAndID(value)}
                     nowValue={nowName}
@@ -155,16 +228,16 @@ export default function NewProject(props) {
                     nowValue={nowAuthor}
                     placeholder={t('Author')}
                 />
+                <Input
+                    setName={value => setDocsURI(value)}
+                    nowValue={nowDocsURI}
+                    placeholder={t('Docs URL')}
+                />
                 <select
                     onChange={(e) => {
-                        if (e.target.value === "Custom") {
-                            setCustomLicencse(prompt("What licence do you like?"))
-                            setLicense(nowCustomLicence);
-                        } else {
-                            setLicense(e.target.value)
-                        }
+                        handleLicenseChange(e.target.value)
                     }}
-                    value={nowLicense}
+                    value={selectValue}
                     placeholder={t('License')}
                     className={styles.input}
                 >
@@ -224,7 +297,36 @@ export default function NewProject(props) {
                     />
 
                 </div>
-                <button onClick={() => setComment()}>{t('Done')}</button>
+                <div className={styles.iconSection}>
+                    <div className={styles.iconSectionCard}>
+                        <div className={styles.iconLabel}>{t('Menu Icon')}</div>
+                        <div className={styles.iconPickerRow}>
+                            <button onClick={() => uploadImage(setMenuIconURI)}>{t('Upload')}</button>
+                            {nowMenuIconURI ? (
+                                <img className={styles.iconPreview} src={nowMenuIconURI} alt="menu icon" />
+                            ) : (
+                                <span className={styles.iconPlaceholder}>{t('No icon selected')}</span>
+                            )}
+                        </div>
+                    </div>
+                    <div className={styles.iconSectionCard}>
+                        <div className={styles.iconLabel}>{t('Block Icon')}</div>
+                        <div className={styles.iconPickerRow}>
+                            <button onClick={() => uploadImage(setBlockIconURI)}>{t('Upload')}</button>
+                            {nowBlockIconURI ? (
+                                <img className={styles.iconPreview} src={nowBlockIconURI} alt="block icon" />
+                            ) : (
+                                <span className={styles.iconPlaceholder}>{t('No icon selected')}</span>
+                            )}
+                        </div>
+                    </div>
+                </div>
+                <div className={styles.actions}>
+                    {props.close && (
+                        <button type="button" className={styles.secondaryButton} onClick={props.close}>{t('Cancel')}</button>
+                    )}
+                    <button type="button" onClick={() => setComment()}>{props.submitLabel || t('Done')}</button>
+                </div>
             </div>
         </div>
     )

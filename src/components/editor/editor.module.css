@@ -13,6 +13,7 @@
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
+    background: var(--background-color);
 }
 
 .resizer {
@@ -60,11 +61,43 @@
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
-    padding: 6px 8px;
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--border-color-lighter);
+    transition: background-color 0.16s ease, border-color 0.16s ease, opacity 0.16s ease;
+    cursor: grab;
 }
 
 .blockPreview:hover {
     background-color: var(--background-overlay);
+}
+
+.blockDragging {
+    opacity: 0.55;
+    cursor: grabbing;
+}
+
+.blockDragOver {
+    background-color: var(--accent-color-transparent);
+    border-color: var(--accent-color);
+}
+
+.dragHandle {
+    opacity: 0.55;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    margin-top: 8px;
+    border-radius: 8px;
+    color: var(--text-dim);
+    cursor: grab;
+}
+
+.dragHandle:hover {
+    opacity: 1;
+    background-color: var(--background-overlay);
+    color: var(--text-color);
 }
 
 
@@ -85,9 +118,19 @@
     opacity: 0.5;
     display: flex;
     align-items: center;
-    padding-right: 0;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
     margin-top: 8px;
     flex-shrink: 0;
+    cursor: pointer;
+    transition: opacity 0.16s ease, background-color 0.16s ease, transform 0.16s ease;
+}
+
+.Settings:hover {
+    opacity: 1;
+    background-color: var(--background-overlay);
 }
 
 .Block {
@@ -101,24 +144,133 @@
 
 .Tabs {
     display: flex;
-    justify-content: center;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    min-height: 48px;
+    padding: 0 12px;
+    background: var(--frontground-color);
+    overflow-x: auto;
+}
+
+.topBarTitle {
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+    min-width: 160px;
+    max-width: 240px;
+    flex-shrink: 0;
+    overflow: hidden;
+}
+
+.projectInfoButton {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+    max-width: 320px;
+    margin: 0;
+    padding: 7px 10px;
+    border-radius: 12px;
+    background: transparent;
+    color: inherit;
+    flex-shrink: 0;
+}
+
+.projectInfoButton:hover {
+    background: var(--background-overlay);
+    transform: none;
+    filter: none;
+}
+
+.projectInfoButton:focus-visible {
+    outline: none;
+}
+
+.projectInfoIcon {
+    flex-shrink: 0;
+    color: var(--text-muted);
+}
+
+.projectInfoButton:hover .projectInfoIcon,
+.projectInfoButton:focus-visible .projectInfoIcon {
+    color: var(--text-color-bright);
+}
+
+.projectInfoButton:active {
+    transform: none;
+    filter: none;
+}
+
+.projectName {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-color-bright);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.projectId {
+    font-size: 11px;
+    color: var(--text-dim);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.toolbarGroups {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: auto;
+}
+
+.toolGroup {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding-right: 8px;
+    margin-right: 4px;
+    border-right: 1px solid var(--border-color);
+}
+
+.toolGroup:last-child {
+    border-right: none;
+    margin-right: 0;
+    padding-right: 0;
 }
 
 .Button {
-    width: 100%;
+    width: auto;
     margin: 0;
-    border-radius: 0;
-    background-color: var(--frontground-color);
-    box-shadow: 0 0 0 var(--accent-color);
-    transition: box-shadow 0.2s ease;
+    border-radius: 8px;
+    padding: 7px 10px;
+    background-color: transparent;
+    color: var(--text-secondary);
+    box-shadow: none;
+    transition: background-color 0.16s ease, border-color 0.16s ease, color 0.16s ease;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 5px;
+    gap: 6px;
+    min-height: 32px;
+    font-size: 13px;
+    white-space: nowrap;
 }
 
 .Button:hover {
-    box-shadow: 0 5px 0 var(--accent-color);
+    background-color: var(--background-overlay);
+    color: var(--text-color-bright);
+}
+
+.Button:disabled {
+    color: var(--text-muted);
+    background-color: transparent;
+    transform: none;
 }
 
 .editBlock {
@@ -137,20 +289,24 @@
 
 .sectionCard {
     background-color: var(--background-overlay);
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
+    border-radius: 12px;
     padding: 10px;
     margin-bottom: 10px;
 }
 
 .TitleOfMain {
-    margin: 0 20px;
+    margin: 16px 20px 8px;
+}
+
+.TitleOfMain h1,
+.TitleOfMain h3 {
+    margin: 0 0 8px;
 }
 
 .valuePart {
     background-color: var(--background-overlay);
     border: 1px solid var(--border-color);
-    border-radius: 8px;
+    border-radius: 12px;
     padding: 10px;
     margin-bottom: 10px;
 }
@@ -258,17 +414,42 @@
 
 .DoneButton{
     width: 100%;
+    border-radius: 10px;
+    min-height: 42px;
 }
 
 .selectTab{
     display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
 }
 
 .selectTabButton{
     width: 100%;
+    background: var(--background-button-color);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+}
+
+.selectTabButton:hover {
+    background: var(--background-button-hover-color);
 }
 
 .blockConfig{
     display: flex;
     flex-direction: column;
+    color: var(--text-dim);
+    gap: 6px;
+    font-size: 16px;
+}
+
+@media (max-width: 900px) {
+    .topBarTitle {
+        min-width: 120px;
+        max-width: 160px;
+    }
+
+    .Button span {
+        display: none;
+    }
 }

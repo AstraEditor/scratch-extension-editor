@@ -159,34 +159,51 @@ function parseTextWithInputs(text, args, parts) {
         const argInfo = args ? args[inputId] : null;
 
         if (argInfo && typeof argInfo === 'object') {
+            const inputType = mapInputType(argInfo.type);
             const inputPart = {
                 id: inputId,
-                inputType: mapInputType(argInfo.type),
+                inputType: inputType,
                 value: '',
             };
             
-            // 处理 defaultValue
-            if (argInfo.defaultValue !== undefined) {
-                if (typeof argInfo.defaultValue === 'string') {
-                    inputPart.value = argInfo.defaultValue;
-                } else if (argInfo.defaultValue && argInfo.defaultValue.type === 'translate') {
-                    inputPart.value = argInfo.defaultValue.text;
-                } else {
-                    inputPart.value = String(argInfo.defaultValue);
+            // 处理图片类型参数
+            if (inputType === 'image') {
+                inputPart.value = {
+                    dataURI: argInfo.dataURI || '',
+                    width: argInfo.width || 40,
+                    height: argInfo.height || 40,
+                    alt: argInfo.alt || '',
+                    flipRTL: argInfo.flipRTL || false,
+                };
+                parts.push(inputPart);
+            } else {
+                // 处理 defaultValue
+                if (argInfo.defaultValue !== undefined) {
+                    if (typeof argInfo.defaultValue === 'string') {
+                        inputPart.value = argInfo.defaultValue;
+                    } else if (argInfo.defaultValue && argInfo.defaultValue.type === 'translate') {
+                        inputPart.value = argInfo.defaultValue.text;
+                    } else {
+                        inputPart.value = String(argInfo.defaultValue);
+                    }
                 }
-            }
 
-            // 处理 menu - 可能是字符串或 identifier 引用
-            if (argInfo.menu) {
-                inputPart.inputType = 'dropdown';
-                if (typeof argInfo.menu === 'string') {
-                    inputPart.menuId = argInfo.menu;
-                } else if (argInfo.menu.type === 'identifier') {
-                    inputPart.menuId = argInfo.menu.name;
+                // 处理 menu - 可能是字符串或 identifier 引用
+                if (argInfo.menu) {
+                    inputPart.inputType = 'dropdown';
+                    const mappedArgumentType = mapInputType(argInfo.type);
+                    if (mappedArgumentType && mappedArgumentType !== 'text') {
+                        inputPart.argumentType = mappedArgumentType;
+                    }
+                    if (typeof argInfo.menu === 'string') {
+                        inputPart.menuId = argInfo.menu;
+                    } else if (argInfo.menu.type === 'identifier') {
+                        inputPart.menuId = argInfo.menu.name;
+                    }
                 }
-            }
 
-            parts.push(inputPart);
+                parts.push(inputPart);
+            }
         } else {
             parts.push({
                 id: inputId,
@@ -210,9 +227,16 @@ function mapInputType(scratchType) {
     if (!scratchType) return 'text';
     if (typeof scratchType !== 'string') return 'text';
     
+    if (scratchType.includes('ANGLE') || scratchType === 'angle') return 'angle';
+    if (scratchType.includes('COLOR') || scratchType === 'color') return 'color';
+    if (scratchType.includes('MATRIX') || scratchType === 'matrix') return 'matrix';
+    if (scratchType.includes('NOTE') || scratchType === 'note') return 'note';
+    if (scratchType.includes('COSTUME') || scratchType === 'costume') return 'costume';
+    if (scratchType.includes('SOUND') || scratchType === 'sound') return 'sound';
     if (scratchType.includes('NUMBER')) return 'number';
     if (scratchType.includes('BOOLEAN')) return 'boolean';
     if (scratchType.includes('STRING')) return 'text';
+    if (scratchType.includes('IMAGE')) return 'image';
     
     return 'text';
 }
@@ -285,6 +309,9 @@ export function translate(extension, className = null) {
         color: ['#0099ff', '#0066ff', '#0033ff'],
         author: '',
         license: 'MPL-2.0',
+        docsURI: '',
+        menuIconURI: '',
+        blockIconURI: '',
     };
     const blocks = {};
     const menus = {};
@@ -491,6 +518,9 @@ function parseGetInfoMethod(method, scope, comments, blocks, menus) {
                         infoObj.color3 || '#0033ff',
                     ];
                 }
+                if (infoObj.docsURI) comments.docsURI = infoObj.docsURI;
+                if (infoObj.menuIconURI) comments.menuIconURI = infoObj.menuIconURI;
+                if (infoObj.blockIconURI) comments.blockIconURI = infoObj.blockIconURI;
 
                 const blocksData = infoObj.blocks;
                 if (Array.isArray(blocksData)) {
@@ -519,6 +549,16 @@ function parseGetInfoMethod(method, scope, comments, blocks, menus) {
                             menus[menuName] = {
                                 acceptReporters: false,
                                 items: parseMenuItems(menuData, scope),
+                            };
+                        } else if (typeof menuData === 'string') {
+                            menus[menuName] = {
+                                acceptReporters: false,
+                                items: menuData,
+                            };
+                        } else if (menuData?.type === 'identifier') {
+                            menus[menuName] = {
+                                acceptReporters: false,
+                                items: menuData.name,
                             };
                         } else if (menuData && typeof menuData === 'object') {
                             // 检查是否是 { items: [...] } 格式
@@ -628,9 +668,12 @@ function parseMenuItems(items, scope = {}) {
                 return { name: name.text, value: value };
             }
             
-            return { name: String(name || ''), value: String(value || '') };
+            return {
+                name: name === undefined || name === null ? '' : String(name),
+                value: value === undefined ? '' : value
+            };
         }
-        return { name: String(item), value: String(item) };
+        return { name: String(item), value: item };
     });
 }
 
@@ -646,6 +689,10 @@ function parseBlock(blockInfo) {
             hasNextConnection: true,
             branches: 0,
             isLoop: false,
+            isAsync: false,
+            blockAllThreads: false,
+            filter: [],
+            blockIconURI: null,
         },
     };
 
@@ -677,6 +724,17 @@ function parseBlock(blockInfo) {
     if (blockInfo.isTerminal) {
         block.blockConfig.hasNextConnection = false;
     }
+    if (blockInfo.blockAllThreads) {
+        block.blockConfig.blockAllThreads = true;
+    }
+    if (blockInfo.blockIconURI) {
+        block.blockConfig.blockIconURI = blockInfo.blockIconURI;
+    }
+    if (Array.isArray(blockInfo.filter) && blockInfo.filter.length > 0) {
+        block.blockConfig.filter = [...blockInfo.filter];
+    } else if (typeof blockInfo.filter === 'string') {
+        block.blockConfig.filter = [blockInfo.filter];
+    }
 
     let textValue = blockInfo.text;
     const args = blockInfo.arguments || {};
@@ -686,6 +744,36 @@ function parseBlock(blockInfo) {
     }
     
     block.parts = parseBlockText(textValue, args);
+
+    // 处理图片类型的参数 - 它们可能不在 text 中出现
+    for (const [argId, argInfo] of Object.entries(args)) {
+        if (argInfo && typeof argInfo === 'object') {
+            const argType = argInfo.type || '';
+            if (argType.includes('IMAGE') || argType === 'image') {
+                // 检查这个参数是否已经在 parts 中
+                const alreadyInParts = block.parts.some(part => 
+                    typeof part === 'object' && part.id === argId
+                );
+                
+                if (!alreadyInParts) {
+                    // 图片参数不在 text 中，需要单独添加到 parts 开头
+                    const imagePart = {
+                        id: argId,
+                        inputType: 'image',
+                        value: {
+                            dataURI: argInfo.dataURI || '',
+                            width: argInfo.width || 40,
+                            height: argInfo.height || 40,
+                            alt: argInfo.alt || '',
+                            flipRTL: argInfo.flipRTL || false,
+                        },
+                    };
+                    // 图片通常放在积木开头
+                    block.parts.unshift(imagePart);
+                }
+            }
+        }
+    }
 
     return block;
 }

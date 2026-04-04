@@ -1,68 +1,320 @@
 :root {
-    /* 背景色 */
+    color-scheme: dark;
+
+    /* 背景 */
     --background-color: #111;
     --background-color-transparent: #111111aa;
     --background-darker: #0d0d0d;
     --background-overlay: #00000026;
     --background-overlay-light: #00000020;
-    
-    /* 前景色 */
+
+    /* 表面 */
     --frontground-color: #222;
+    --surface-raised: #2a2a2a;
+    --surface-hover: #333;
     --background-button-color: #333;
     --background-button-hover-color: #444;
-    
+
     /* 模态框 */
     --modal-background: #2a2a2a;
     --modal-border: #3a3a3a;
     --modal-title: #3c3c3c;
     --modal-close: #4c4c4c;
-    
-    /* 文字颜色 */
+
+    /* 文本 */
     --text-color: #eee;
-    --text-color-bright: #fff;
+    --text-color-bright: #ffffff;
     --text-muted: #666;
     --text-dim: #888;
     --text-label: #aaa;
     --text-secondary: #c7c7c7;
-    
-    /* 边框颜色 */
+
+    /* 边框 */
     --border-color: #ffffff1f;
     --border-color-light: #ffffff33;
     --border-color-lighter: #ffffff1a;
-    
+
     /* 强调色 */
     --accent-color: #0099ff;
     --accent-color-transparent: #0099ff50;
-    
-    /* 状态颜色 */
+    --accent-color-soft: #0099ff33;
+
+    /* 状态 */
     --error-color: #ff8f8f;
     --error-bg: #40000033;
     --warning-color: #cccc00;
     --warning-text: #ee0;
-    
+
+    /* 阴影 */
+    --shadow-color: rgba(0, 0, 0, 0.24);
+    --shadow-soft: 0 10px 30px var(--shadow-color);
+    --shadow-card: 0 6px 18px rgba(0, 0, 0, 0.18);
+    --icon-filter: none;
+
     /* z-index */
     --modal-background-index: 100;
     --modal-window-index: 110;
 }
 
+@media (prefers-color-scheme: light) {
+    :root {
+        color-scheme: light;
+
+        --background-color: #f5f5f5;
+        --background-color-transparent: #f5f5f5d9;
+        --background-darker: #ebebeb;
+        --background-overlay: #00000012;
+        --background-overlay-light: #0000000d;
+
+        --frontground-color: #ffffff;
+        --surface-raised: #ffffff;
+        --surface-hover: #f0f0f0;
+        --background-button-color: #efefef;
+        --background-button-hover-color: #e1e1e1;
+
+        --modal-background: #f3f3f3;
+        --modal-border: #d7d7d7;
+        --modal-title: #e9e9e9;
+        --modal-close: #dddddd;
+
+        --text-color: #222;
+        --text-color-bright: #111;
+        --text-muted: #777;
+        --text-dim: #666;
+        --text-label: #555;
+        --text-secondary: #333;
+
+        --border-color: #0000001a;
+        --border-color-light: #00000026;
+        --border-color-lighter: #00000014;
+
+        --accent-color: #0099ff;
+        --accent-color-transparent: #0099ff33;
+        --accent-color-soft: #0099ff1f;
+
+        --error-color: #c25b5b;
+        --error-bg: #ff8f8f33;
+        --warning-color: #fff4a3;
+        --warning-text: #7a6800;
+
+        --shadow-color: rgba(0, 0, 0, 0.14);
+        --shadow-soft: 0 12px 32px rgba(0, 0, 0, 0.16);
+        --shadow-card: 0 6px 18px rgba(0, 0, 0, 0.12);
+        --icon-filter: invert(1) brightness(0.3);
+    }
+}
+
+:root[data-theme='dark'] {
+    color-scheme: dark;
+
+    --background-color: #111;
+    --background-color-transparent: #111111aa;
+    --background-darker: #0d0d0d;
+    --background-overlay: #00000026;
+    --background-overlay-light: #00000020;
+
+    --frontground-color: #222;
+    --surface-raised: #2a2a2a;
+    --surface-hover: #333;
+    --background-button-color: #333;
+    --background-button-hover-color: #444;
+
+    --modal-background: #2a2a2a;
+    --modal-border: #3a3a3a;
+    --modal-title: #3c3c3c;
+    --modal-close: #4c4c4c;
+
+    --text-color: #eee;
+    --text-color-bright: #ffffff;
+    --text-muted: #666;
+    --text-dim: #888;
+    --text-label: #aaa;
+    --text-secondary: #c7c7c7;
+
+    --border-color: #ffffff1f;
+    --border-color-light: #ffffff33;
+    --border-color-lighter: #ffffff1a;
+
+    --accent-color: #0099ff;
+    --accent-color-transparent: #0099ff50;
+    --accent-color-soft: #0099ff33;
+
+    --error-color: #ff8f8f;
+    --error-bg: #40000033;
+    --warning-color: #cccc00;
+    --warning-text: #ee0;
+
+    --shadow-color: rgba(0, 0, 0, 0.24);
+    --shadow-soft: 0 10px 30px var(--shadow-color);
+    --shadow-card: 0 6px 18px rgba(0, 0, 0, 0.18);
+    --icon-filter: none;
+}
+
+:root[data-theme='light'] {
+    color-scheme: light;
+
+    --background-color: #f5f5f5;
+    --background-color-transparent: #f5f5f5d9;
+    --background-darker: #ebebeb;
+    --background-overlay: #00000012;
+    --background-overlay-light: #0000000d;
+
+    --frontground-color: #ffffff;
+    --surface-raised: #ffffff;
+    --surface-hover: #f0f0f0;
+    --background-button-color: #efefef;
+    --background-button-hover-color: #e1e1e1;
+
+    --modal-background: #f3f3f3;
+    --modal-border: #d7d7d7;
+    --modal-title: #e9e9e9;
+    --modal-close: #dddddd;
+
+    --text-color: #222;
+    --text-color-bright: #111;
+    --text-muted: #777;
+    --text-dim: #666;
+    --text-label: #555;
+    --text-secondary: #333;
+
+    --border-color: #0000001a;
+    --border-color-light: #00000026;
+    --border-color-lighter: #00000014;
+
+    --accent-color: #0099ff;
+    --accent-color-transparent: #0099ff33;
+    --accent-color-soft: #0099ff1f;
+
+    --error-color: #c25b5b;
+    --error-bg: #ff8f8f33;
+    --warning-color: #fff4a3;
+    --warning-text: #7a6800;
+
+    --shadow-color: rgba(0, 0, 0, 0.14);
+    --shadow-soft: 0 12px 32px rgba(0, 0, 0, 0.16);
+    --shadow-card: 0 6px 18px rgba(0, 0, 0, 0.12);
+    --icon-filter: invert(1) brightness(0.3);
+}
+
+html,
+body,
+#root {
+    height: 100%;
+}
+
+body {
+    background-color: var(--background-color);
+    color: var(--text-color);
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+::selection {
+    background: var(--accent-color-transparent);
+}
+
 ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
     background-color: var(--frontground-color);
 }
 
 ::-webkit-scrollbar-thumb {
     background-color: var(--background-button-color);
+    border-radius: 999px;
+    border: 2px solid var(--frontground-color);
 }
 
-::-webkit-scrollbar-thumb:hover{
+::-webkit-scrollbar-thumb:hover {
     background-color: var(--modal-title);
 }
 
-input{
-    background-color: var(--modal-close);
+button,
+input,
+select,
+textarea {
+    font: inherit;
+}
+
+button {
+    background-color: var(--accent-color);
+    border: 1px solid transparent;
+    color: #fff;
+    padding: 10px 12px;
+    text-align: center;
+    font-size: 14px;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: filter 0.16s ease, border-color 0.16s ease
+}
+
+button:hover {
+    filter: brightness(1.05);
+}
+
+button:active {
+    filter: brightness(0.97);
+}
+
+button:disabled,
+input:disabled,
+select:disabled,
+textarea:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+input,
+select,
+textarea {
+    background-color: var(--surface-raised);
     color: var(--text-color);
-    outline: var(--background-color-transparent);
-    border: none;
-    height: 30px;
-    border-radius: 3px;
-    padding-left: 5px;
+    outline: none;
+    min-height: 36px;
+    border-radius: 8px;
+    padding: 8px 10px;
+    transition: border-color 0.16s ease, background-color 0.16s ease;
+    border: 0;
+}
+
+textarea {
+    resize: vertical;
+}
+
+input:hover,
+select:hover,
+textarea:hover {
+    filter: brightness(1.2);
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+    border-color: var(--accent-color);
+}
+
+input[type='checkbox'],
+input[type='radio'] {
+    min-height: auto;
+    width: 16px;
+    height: 16px;
+    padding: 0;
+    accent-color: var(--accent-color);
+    box-shadow: none;
+}
+input[type='color']{
+    border: 0;
+    padding: 0;
+    transition: transform 0.2s ease;
+}
+input[type='color']:disabled{
+    border: 0;
+    transform: scale(0.9);
+}
+
+a {
+    color: var(--accent-color);
 }

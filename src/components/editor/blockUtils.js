@@ -19,7 +19,13 @@ export const prepareBlockForDisplay = (blockData) => {
         },
         parts: blockData.parts ? blockData.parts.map(part => {
             if (part && typeof part === 'object' && Array.isArray(part.value)) {
-                return { ...part, value: part.value[0].name || '' }; // 加个name给下拉框
+                const firstValue = part.value[0];
+                return {
+                    ...part,
+                    value: typeof firstValue === 'object' && firstValue !== null
+                        ? (firstValue.name || '')
+                        : (firstValue || '')
+                };
             }
             return part;
         }) : []

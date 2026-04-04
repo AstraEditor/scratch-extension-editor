@@ -10,6 +10,7 @@ import {
     setValueTo,
     setAllValue
 } from './extension/storage'
+import { initTheme } from './lib/theme.js';
 
 
 // 配置 Monaco 编辑器加载器（使用本地静态资源，避免 CDN 导致加载失败）
@@ -18,6 +19,7 @@ import { loader } from '@monaco-editor/react';
 
 // 初始化存储
 init();
+initTheme();
 
 // 使用 PUBLIC_URL 确保路径在开发和生产环境中都正确
 const publicUrl = process.env.PUBLIC_URL || '';

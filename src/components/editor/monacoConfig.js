@@ -94,13 +94,37 @@ export const normalizeMonacoConfig = (config) => {
 
 export const cloneMonacoConfig = (config) => JSON.parse(JSON.stringify(config));
 
+const resolveDefaultTheme = () => {
+    const appTheme = localStorage.getItem('app_theme');
+    if (appTheme === 'light') return 'vs';
+    if (appTheme === 'dark') return DEFAULT_MONACO_CONFIG.theme;
+    if (typeof window === 'undefined' || !window.matchMedia) {
+        return DEFAULT_MONACO_CONFIG.theme;
+    }
+    return window.matchMedia('(prefers-color-scheme: light)').matches
+        ? 'vs'
+        : DEFAULT_MONACO_CONFIG.theme;
+};
+
 export const loadMonacoConfig = () => {
     try {
         const raw = localStorage.getItem(MONACO_SETTINGS_KEY);
-        if (!raw) return cloneMonacoConfig(DEFAULT_MONACO_CONFIG);
-        return normalizeMonacoConfig(JSON.parse(raw));
+        if (!raw) {
+            return {
+                ...cloneMonacoConfig(DEFAULT_MONACO_CONFIG),
+                theme: resolveDefaultTheme()
+            };
+        }
+        const config = normalizeMonacoConfig(JSON.parse(raw));
+        if (!config.theme) {
+            config.theme = resolveDefaultTheme();
+        }
+        return config;
     } catch {
-        return cloneMonacoConfig(DEFAULT_MONACO_CONFIG);
+        return {
+            ...cloneMonacoConfig(DEFAULT_MONACO_CONFIG),
+            theme: resolveDefaultTheme()
+        };
     }
 };
 

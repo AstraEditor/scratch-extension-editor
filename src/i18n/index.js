@@ -18,7 +18,14 @@ export const BLOCK_TYPE_ID = {
     "dropdownReadOnly": "Dropdown Readonly",
     "boolean": "Boolean",
     "text": "Text",
-    "number":"Number"
+    "number": "Number",
+    "angle": "Angle",
+    "color": "Color",
+    "matrix": "Matrix",
+    "note": "Note",
+    "image": "Image",
+    "costume": "Costume",
+    "sound": "Sound"
 }
 
 const translations = {
@@ -37,6 +44,11 @@ const translations = {
         'Description': '描述',
         'Author': '作者',
         'License': '许可证',
+        'Docs URL': '文档链接',
+        'Menu Icon': '分类图标',
+        'Block Icon': '积木图标',
+        'Upload': '上传',
+        'No icon selected': '未选择图标',
         'Custom ID?': '自定义ID?',
         'Extension id': '扩展ID',
         'Custom color': '自定义颜色',
@@ -109,6 +121,12 @@ const translations = {
         'full opcode': '完整opcode',
         'Input ID': "输入 ID",
         "Hot Reload": "热重载",
+        "Undo": "撤回",
+        "Redo": "重做",
+        "Drag to sort": "拖动排序",
+        "Dark Mode": "深色模式",
+        "Light Mode": "亮色模式",
+        "Edit extension info": "编辑扩展信息",
 
         // NewBlock
         'New Block': '新建积木',
@@ -139,12 +157,29 @@ const translations = {
         'Text and Number': '文本和数字',
         'Dropdown': '下拉框',
         'Boolean': '布尔值',
+        'Angle': '角度',
+        'Color': '颜色',
+        'Matrix': '矩阵',
+        'Note': '音符',
+        'Image': '图片',
+        'Costume': '造型',
+        'Sound': '声音',
         'Default Input': '默认输入',
+        'Image settings': '图片设置',
+        'Image alt text': '图片替代文本',
+        'Image width': '图片宽度',
+        'Image height': '图片高度',
+        'Flip image in RTL': 'RTL 时翻转图片',
         'read only': '不接受子积木',
         'Options': '选项',
         'Default Option': "默认选项",
         "Dropdown Readonly": "不接受子积木的下拉框",
         "Async Block":"异步积木",
+        'Allow reporters': '允许插入返回值积木',
+        'Block all threads': '阻塞所有线程',
+        'Target Filter': '目标过滤',
+        'Show on Sprite': '在角色中显示',
+        'Show on Stage': '在舞台中显示',
 
         // Output Project
         'Output Project': '输出项目',
@@ -161,6 +196,7 @@ const translations = {
         // NewBlock additional
         'Text or Number': '文字或数字',
         'Read Only Dropdown': '不接受子积木的下拉框',
+        'Menu-backed input': '菜单输入',
 
         // Common
         'Remove': '删除',

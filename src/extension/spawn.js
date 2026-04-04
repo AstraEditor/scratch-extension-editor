@@ -19,7 +19,14 @@ const Type = {
     Arguments: {
         String: "Scratch.ArgumentType.STRING",
         Number: "Scratch.ArgumentType.NUMBER",
-        Boolean: "Scratch.ArgumentType.BOOLEAN"
+        Angle: "Scratch.ArgumentType.ANGLE",
+        Color: "Scratch.ArgumentType.COLOR",
+        Matrix: "Scratch.ArgumentType.MATRIX",
+        Note: "Scratch.ArgumentType.NOTE",
+        Boolean: "Scratch.ArgumentType.BOOLEAN",
+        Image: "Scratch.ArgumentType.IMAGE",
+        Costume: "Scratch.ArgumentType.COSTUME",
+        Sound: "Scratch.ArgumentType.SOUND",
     }
 
 }
@@ -49,10 +56,18 @@ export async function spawnExtension() {
         let isEvent = false;
         let isEnd = false;
         let isLoop = false;
+        let blockIconURI = null;
+        let blockAllThreads = false;
+        let filter = null;
         
         if (data.blockConfig) { 
             if (!data.blockConfig.hasNextConnection) isEnd = true;
             if (data.blockConfig.isLoop) isLoop = true;
+            if (data.blockConfig.blockIconURI) blockIconURI = data.blockConfig.blockIconURI;
+            if (data.blockConfig.blockAllThreads) blockAllThreads = true;
+            if (Array.isArray(data.blockConfig.filter) && data.blockConfig.filter.length > 0) {
+                filter = data.blockConfig.filter;
+            }
         }
 
         let blockType;
@@ -135,14 +150,62 @@ export async function spawnExtension() {
                             argument["defaultValue"] = Number.isFinite(numericValue) ? numericValue : 0;
                         }
                         break
+                    case "angle":
+                        {
+                            const numericValue = Number(data.value);
+                            argument["type"] = Type.Arguments.Angle;
+                            argument["defaultValue"] = Number.isFinite(numericValue) ? numericValue : 90;
+                        }
+                        break
+                    case "color":
+                        argument["type"] = Type.Arguments.Color;
+                        argument["defaultValue"] = data.value || "#ff8c1a";
+                        break
+                    case "matrix":
+                        argument["type"] = Type.Arguments.Matrix;
+                        argument["defaultValue"] = data.value || "";
+                        break
+                    case "note":
+                        {
+                            const numericValue = Number(data.value);
+                            argument["type"] = Type.Arguments.Note;
+                            argument["defaultValue"] = Number.isFinite(numericValue) ? numericValue : 60;
+                        }
+                        break
+                    case "costume":
+                        argument["type"] = Type.Arguments.Costume;
+                        argument["defaultValue"] = data.value || "";
+                        break
+                    case "sound":
+                        argument["type"] = Type.Arguments.Sound;
+                        argument["defaultValue"] = data.value || "";
+                        break
                     case "dropdown":
                     case "dropdownReadOnly":
-                        argument["type"] = Type.Arguments.String;
+                        switch (data.argumentType) {
+                            case "number":
+                                argument["type"] = Type.Arguments.Number;
+                                break;
+                            case "angle":
+                                argument["type"] = Type.Arguments.Angle;
+                                break;
+                            case "color":
+                                argument["type"] = Type.Arguments.Color;
+                                break;
+                            case "matrix":
+                                argument["type"] = Type.Arguments.Matrix;
+                                break;
+                            case "note":
+                                argument["type"] = Type.Arguments.Note;
+                                break;
+                            default:
+                                argument["type"] = Type.Arguments.String;
+                                break;
+                        }
                         argument["menu"] = inputID
                         
                         // 检查是否是动态菜单
                         if (data.isDynamicMenu && data.dynamicMenuMethod) {
-                            // 动态菜单 - 使用方法名引用
                             menus[inputID] = {
                                 acceptReporters: (data.inputType === "dropdown"),
                                 items: data.dynamicMenuMethod
@@ -156,7 +219,7 @@ export async function spawnExtension() {
                                     if (item && typeof item === 'object') {
                                         menu.push({
                                             text: `Scratch.translate("${item.name || ''}")`,
-                                            value: item.value || ''
+                                            value: item.value ?? ''
                                         });
                                     }
                                 });
@@ -169,7 +232,7 @@ export async function spawnExtension() {
                         break;
                     case "boolean":
                         argument["type"] = Type.Arguments.Boolean;
-                        break
+                        break;
                     default:
                         argument["type"] = Type.Arguments.String;
                         break
@@ -182,9 +245,25 @@ export async function spawnExtension() {
             blockText[blockText.length - 1] = `Scratch.translate("${blockText[blockText.length - 1]}")`;
         }
         //是否是分支
-        if (isCondition) return { opcode: id, blockType, branchCount: brachCount.toString(), isTerminal: isEnd ,text: blockText, arguments: blockValue  }
-        else if (isEvent) return { opcode: id, blockType, isEdgeActivated: false, text: `Scratch.translate("${blockText}")`, isTerminal: isEnd, arguments: blockValue }
-        return { opcode: id, blockType, text: `Scratch.translate("${blockText}")`, isTerminal: isEnd, arguments: blockValue }
+        if (isCondition) {
+            const result = { opcode: id, blockType, branchCount: brachCount.toString(), isTerminal: isEnd, text: blockText, arguments: blockValue };
+            if (blockAllThreads) result.blockAllThreads = true;
+            if (filter) result.filter = filter;
+            if (blockIconURI) result.blockIconURI = blockIconURI;
+            return result;
+        }
+        else if (isEvent) {
+            const result = { opcode: id, blockType, isEdgeActivated: false, text: `Scratch.translate("${blockText}")`, isTerminal: isEnd, arguments: blockValue };
+            if (blockAllThreads) result.blockAllThreads = true;
+            if (filter) result.filter = filter;
+            if (blockIconURI) result.blockIconURI = blockIconURI;
+            return result;
+        }
+        const result = { opcode: id, blockType, text: `Scratch.translate("${blockText}")`, isTerminal: isEnd, arguments: blockValue };
+        if (blockAllThreads) result.blockAllThreads = true;
+        if (filter) result.filter = filter;
+        if (blockIconURI) result.blockIconURI = blockIconURI;
+        return result;
     }
 
     const spawnExtensionBlocks = () => {
@@ -289,6 +368,9 @@ export async function spawnExtension() {
     const extAuthor = extComments.author || '';
     const extLicense = extComments.license || 'MPL-2.0';
     const extColor = extComments.color || ['#0FBD8C', '#0DA57A', '#0B8E69'];
+    const extDocsURI = extComments.docsURI || '';
+    const extMenuIconURI = extComments.menuIconURI || '';
+    const extBlockIconURI = extComments.blockIconURI || '';
     
     let ExtensionText = `
 // Name: ${extName}
@@ -320,6 +402,9 @@ Scratch.translate.setup(${JSON.stringify(spawnTranslate())});
                 color1: "${extColor[0] || '#0FBD8C'}",
                 color2: "${extColor[1] || '#0DA57A'}",
                 color3: "${extColor[2] || '#0B8E69'}",
+                ${extDocsURI ? `docsURI: ${JSON.stringify(extDocsURI)},` : ''}
+                ${extMenuIconURI ? `menuIconURI: ${JSON.stringify(extMenuIconURI)},` : ''}
+                ${extBlockIconURI ? `blockIconURI: ${JSON.stringify(extBlockIconURI)},` : ''}
                 blocks: ${replaceClass(JSON.stringify(spawnExtensionBlocks()))},
                 menus: ${JSON.stringify(menus)}
             }
