@@ -314,13 +314,16 @@ const NewInput = props => {
                         >
                             <option value={InputType.TEXT}>{t('Text')}</option>
                             <option value={InputType.NUMBER}>{t('Number')}</option>
-                            <option value={InputType.ANGLE}>{t('Angle')}</option>
-                            <option value={InputType.COLOR}>{t('Color')}</option>
-                            <option value={InputType.MATRIX}>{t('Matrix')}</option>
-                            <option value={InputType.NOTE}>{t('Note')}</option>
-                            <option value={InputType.IMAGE}>{t('Image')}</option>
-                            <option value={InputType.COSTUME}>{t('Costume')}</option>
-                            <option value={InputType.SOUND}>{t('Sound')}</option>
+                            <optgroup label={t('Special Input')}>
+                                <option value={InputType.ANGLE}>{t('Angle')}</option>
+                                <option value={InputType.NOTE}>{t('Note')}</option>
+                                <option value={InputType.COLOR}>{t('Color')}</option>
+                                <option value={InputType.MATRIX}>{t('Matrix')}</option>
+                            </optgroup>
+                            <optgroup label={t('Sprite Property')}>
+                                <option value={InputType.COSTUME}>{t('Costume')}</option>
+                                <option value={InputType.SOUND}>{t('Sound')}</option>
+                            </optgroup>
                             <option value="DropDown">{t('Dropdown')}</option>
                             <option value={InputType.BOOLEAN}>{t('Boolean')}</option>
                         </select>
@@ -560,7 +563,15 @@ const NewBlock = props => {
         // 合并 type 默认配置和用户自定义配置
         const typeDefaultConfig = getConfigForBlockType(blockType);
         const mergedConfig = { ...typeDefaultConfig, ...blockConfig };
-        
+
+        // 扩展级别的 blockIconURI 作为 fallback
+        if (!mergedConfig.blockIconURI) {
+            const extBlockIconURI = returnValue("comments").blockIconURI;
+            if (extBlockIconURI) {
+                mergedConfig.blockIconURI = extBlockIconURI;
+            }
+        }
+
         const newBlock = {
             type: blockType,
             colors: getColors(),

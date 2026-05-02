@@ -161,6 +161,13 @@ export default function NewProject(props) {
                     }}
                     className={styles.Extbg}
                 >
+                    <img src={nowMenuIconURI} style={{
+                        filter: 'drop-shadow(0px 0px 8px rgba(0, 0, 0, 0.3))',
+                        marginLeft: '20px',
+                        width: '48px',
+                        height: '48px',
+                        zIndex: '11'
+                    }}/>
                     <div className={styles.manages}>
                         <div>
 
@@ -303,7 +310,9 @@ export default function NewProject(props) {
                         <div className={styles.iconPickerRow}>
                             <button onClick={() => uploadImage(setMenuIconURI)}>{t('Upload')}</button>
                             {nowMenuIconURI ? (
-                                <img className={styles.iconPreview} src={nowMenuIconURI} alt="menu icon" />
+                                <img className={styles.iconPreview} src={nowMenuIconURI} alt="menu icon" onClick={() =>
+                                    setMenuIconURI(initialCommentData.menuIconURI)
+                                }/>
                             ) : (
                                 <span className={styles.iconPlaceholder}>{t('No icon selected')}</span>
                             )}
@@ -314,7 +323,9 @@ export default function NewProject(props) {
                         <div className={styles.iconPickerRow}>
                             <button onClick={() => uploadImage(setBlockIconURI)}>{t('Upload')}</button>
                             {nowBlockIconURI ? (
-                                <img className={styles.iconPreview} src={nowBlockIconURI} alt="block icon" />
+                                <img className={styles.iconPreview} src={nowBlockIconURI} alt="block icon" onClick={() =>
+                                    setBlockIconURI(initialCommentData.blockIconURI)
+                                }/>
                             ) : (
                                 <span className={styles.iconPlaceholder}>{t('No icon selected')}</span>
                             )}

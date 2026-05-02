@@ -376,9 +376,6 @@ function normalizeInputType(inputType) {
   if (inputType === InputType.ANGLE || inputType === InputType.NOTE) {
     return InputType.NUMBER;
   }
-  if (inputType === InputType.COLOR || inputType === InputType.MATRIX) {
-    return InputType.TEXT;
-  }
   if (inputType === InputType.COSTUME || inputType === InputType.SOUND) {
     return InputType.DROPDOWN_READONLY;
   }
@@ -712,7 +709,9 @@ function generateInputPath(inputType, width) {
       return `m ${r},0 h ${width - 2 * r} a ${r} ${r} 0 0 1 0 ${h} H ${r} a ${r} ${r} 0 0 1 0 -${h} z`;
 
     case InputType.TEXT:
-      // 文本输入框 - 小圆角矩形
+    case InputType.COLOR:
+    case InputType.MATRIX:
+      // 文本/颜色/矩阵输入框 - 小圆角矩形
       return `m 0,${smallR} a ${smallR} ${smallR} 0 0 1 ${smallR},-${smallR} h ${width - 2 * smallR} a ${smallR} ${smallR} 0 0 1 ${smallR} ${smallR} v ${h - 2 * smallR} a ${smallR} ${smallR} 0 0 1 -${smallR} ${smallR} H ${smallR} a ${smallR} ${smallR} 0 0 1 -${smallR} -${smallR} z`;
     case InputType.NUMBER:
     default:
@@ -735,7 +734,10 @@ function getInputMinWidth(inputType) {
     case InputType.VARIABLE:
       return INPUT_SHAPE_SQUARE_WIDTH;
     case InputType.TEXT:
+    case InputType.COLOR:
       return INPUT_SHAPE_SQUARE_WIDTH;
+    case InputType.MATRIX:
+      return 50;  // 5x5 dot grid + arrow (matching scratch-blocks field_matrix)
     case InputType.IMAGE:
       return DEFAULT_IMAGE_WIDTH;
     case InputType.NUMBER:
@@ -900,7 +902,7 @@ function normalizeInputValue(value) {
 
 function calculateInputWidth(inputType, value) {
   const normalizedInputType = normalizeInputType(inputType);
-  
+
   // 图片类型使用固定宽度
   if (normalizedInputType === InputType.IMAGE) {
     const imageData = value;
@@ -909,7 +911,12 @@ function calculateInputWidth(inputType, value) {
     }
     return DEFAULT_IMAGE_WIDTH;
   }
-  
+
+  // 矩阵类型使用固定宽度（5x5 点阵图）
+  if (normalizedInputType === InputType.MATRIX) {
+    return 50;  // matching scratch-blocks field_matrix: THUMBNAIL_SIZE + ARROW_SIZE + DROPDOWN_ARROW_PADDING
+  }
+
   const textValue = normalizeInputValue(value);
   const textWidth = getTextWidth(textValue);
 
@@ -1058,6 +1065,14 @@ function renderBlock(blockData, options = {}) {
       x: cursorX,
     });
     cursorX += iconSize + SEP_SPACE_X;
+
+    // 图标后的垂直分隔线（参照 scratch-blocks field_vertical_separator）
+    components.push({
+      type: 'verticalSeparator',
+      width: 1,
+      x: cursorX,
+    });
+    cursorX += 1 + SEP_SPACE_X;
   }
 
   for (const part of topParts) {
@@ -1083,6 +1098,7 @@ function renderBlock(blockData, options = {}) {
       comp = {
         type: 'input',
         inputType,
+        originalInputType: part.inputType,
         value,
         width: inputWidth,
         x: cursorX,
@@ -1350,7 +1366,9 @@ function renderBlock(blockData, options = {}) {
               "font-size": `${TEXT_STYLE.fontSize}${TEXT_STYLE.fontSizeUnit}`,
               "font-weight": TEXT_STYLE.fontWeight,
             });
-            inputText.textContent = value;
+            // 角度类型添加度数符号（参照 scratch-blocks field_angle）
+            const displayText = part.inputType === InputType.ANGLE ? value + "°" : value;
+            inputText.textContent = displayText;
             container.appendChild(inputText);
           }
 
@@ -1404,6 +1422,24 @@ function renderBlock(blockData, options = {}) {
       container.appendChild(iconEl);
       
       currentX += comp.width + SEP_SPACE_X;
+    } else if (comp.type === 'verticalSeparator') {
+      // 渲染图标后的垂直分隔线（参照 scratch-blocks field_vertical_separator）
+      const rowHeight = isCBlock ? MIN_BLOCK_Y : blockHeight;
+      const separatorHeight = rowHeight - 2 * GRID_UNIT;
+      const lineY = contentY - separatorHeight / 2;
+
+      const lineEl = createSvgElement("line", {
+        x1: currentX,
+        y1: lineY,
+        x2: currentX,
+        y2: lineY + separatorHeight,
+        stroke: secondary,
+        "stroke-linecap": "round",
+        "stroke-width": 1,
+      });
+      container.appendChild(lineEl);
+
+      currentX += comp.width + SEP_SPACE_X;
     } else if (comp.type === 'text') {
       // 文本垂直居中
       const text = createSvgElement("text", {
@@ -1433,6 +1469,91 @@ function renderBlock(blockData, options = {}) {
           // 无效图片数据，跳过
           currentX += DEFAULT_IMAGE_WIDTH + SEP_SPACE_X;
         }
+        continue;
+      }
+
+      // 颜色类型特殊处理（参照 scratch-blocks field_colour）
+      if (comp.inputType === InputType.COLOR) {
+        const colorValue = String(comp.value || "#FFFFFF").trim();
+        const inputY = contentY - INPUT_SHAPE_HEIGHT / 2;
+        const inputPath = generateInputPath(comp.inputType, comp.width);
+        const textColor = getContrastingTextColor(colorValue);
+
+        const colorBg = createSvgElement("path", {
+          class: "blocklyInput",
+          d: inputPath,
+          fill: colorValue,
+          stroke: secondary,
+          "stroke-width": 1,
+          transform: `translate(${currentX}, ${inputY})`,
+          "data-input-index": inputIndex++,
+        });
+        container.appendChild(colorBg);
+
+        if (colorValue) {
+          const colorText = createSvgElement("text", {
+            class: "blocklyText",
+            x: currentX + comp.width / 2,
+            y: contentY,
+            "text-anchor": "middle",
+            "dominant-baseline": "middle",
+            fill: textColor,
+            "font-family": TEXT_STYLE.fontFamily,
+            "font-size": `${TEXT_STYLE.fontSize}${TEXT_STYLE.fontSizeUnit}`,
+            "font-weight": TEXT_STYLE.fontWeight,
+          });
+          colorText.textContent = colorValue;
+          container.appendChild(colorText);
+        }
+
+        currentX += comp.width + SEP_SPACE_X;
+        continue;
+      }
+
+      // 矩阵类型特殊处理（参照 scratch-blocks field_matrix 5x5 LED 点阵）
+      if (comp.inputType === InputType.MATRIX) {
+        const matrixValue = String(comp.value || "0000000000000000000000000");
+        const inputY = contentY - INPUT_SHAPE_HEIGHT / 2;
+        const inputPath = generateInputPath(comp.inputType, comp.width);
+
+        const matrixBg = createSvgElement("path", {
+          class: "blocklyInput",
+          d: inputPath,
+          fill: "#FFFFFF",
+          stroke: secondary,
+          "stroke-width": 1,
+          transform: `translate(${currentX}, ${inputY})`,
+          "data-input-index": inputIndex++,
+        });
+        container.appendChild(matrixBg);
+
+        // 渲染 5x5 点阵缩略图
+        const cellSize = 4;
+        const cellPadding = 1;
+        const gridSize = (cellSize + cellPadding) * 5 + cellPadding; // 26
+        const gridX = currentX + BOX_FIELD_PADDING;
+        const gridY = contentY - gridSize / 2;
+
+        for (let row = 0; row < 5; row++) {
+          for (let col = 0; col < 5; col++) {
+            const idx = row * 5 + col;
+            const bit = matrixValue[idx] || "0";
+            const cellFill = bit === "0" ? "#FFFFFF" : secondary;
+
+            const cell = createSvgElement("rect", {
+              x: gridX + col * (cellSize + cellPadding) + cellPadding,
+              y: gridY + row * (cellSize + cellPadding) + cellPadding,
+              width: cellSize,
+              height: cellSize,
+              rx: 1,
+              ry: 1,
+              fill: cellFill,
+            });
+            container.appendChild(cell);
+          }
+        }
+
+        currentX += comp.width + SEP_SPACE_X;
         continue;
       }
       
@@ -1494,7 +1615,11 @@ function renderBlock(blockData, options = {}) {
             "font-size": `${TEXT_STYLE.fontSize}${TEXT_STYLE.fontSizeUnit}`,
             "font-weight": TEXT_STYLE.fontWeight,
           });
-          inputText.textContent = comp.value;
+          // 角度类型添加度数符号（参照 scratch-blocks field_angle）
+          const displayText = comp.originalInputType === InputType.ANGLE
+            ? comp.value + "°"
+            : comp.value;
+          inputText.textContent = displayText;
           container.appendChild(inputText);
         }
       }

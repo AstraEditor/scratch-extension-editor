@@ -10,6 +10,16 @@ import {t} from '../../i18n/index.js'
 export const prepareBlockForDisplay = (blockData) => {
     if (!blockData) return blockData;
     const colors = returnValue("comments").color;
+    const extBlockIconURI = returnValue("comments").blockIconURI;
+
+    // 合并 blockConfig，扩展级别的 blockIconURI 作为 fallback
+    const blockConfig = {
+        ...(blockData.blockConfig || {}),
+    };
+    if (!blockConfig.blockIconURI && extBlockIconURI) {
+        blockConfig.blockIconURI = extBlockIconURI;
+    }
+
     return {
         ...blockData,
         colors: {
@@ -17,6 +27,7 @@ export const prepareBlockForDisplay = (blockData) => {
             secondary: colors[1],
             tertiary: colors[2],
         },
+        blockConfig,
         parts: blockData.parts ? blockData.parts.map(part => {
             if (part && typeof part === 'object' && Array.isArray(part.value)) {
                 const firstValue = part.value[0];

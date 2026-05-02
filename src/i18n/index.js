@@ -162,6 +162,8 @@ const translations = {
         'Matrix': '矩阵',
         'Note': '音符',
         'Image': '图片',
+        'Special Input': '特殊输入框',
+        'Sprite Property': '角色属性',
         'Costume': '造型',
         'Sound': '声音',
         'Default Input': '默认输入',
