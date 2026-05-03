@@ -9,6 +9,7 @@ import { useTranslation } from '../../i18n';
 import Tip from '../tip/tip.jsx';
 
 import styles from './newProject.module.css';
+import { toast } from '../toast/toast.jsx';
 
 const DEFAULT_COLORS = ['#0099ff', '#0066ff', '#0033ff'];
 const BUILTIN_LICENSES = ['MPL-2.0', 'MIT', 'GPL-3.0', 'Apache-2.0', 'CC-BY-SA-4.0'];
@@ -127,11 +128,11 @@ export default function NewProject(props) {
             ...(returnValue("comments") || {})
         };
         if (!(nowName && nowName.trim().length > 0)) {
-            alert(t('Invalid extension name!'));
+            toast.error(t('Invalid extension name!'));
             return;
         }
         if (!(nowID && nowID.trim().length > 0)) {
-            alert(t('Invalid extension ID!'));
+            toast.error(t('Invalid extension ID!'));
             return;
         }
         newComment.name = nowName || "";

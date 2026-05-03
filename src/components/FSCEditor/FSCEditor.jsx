@@ -1,6 +1,7 @@
 import styles from "./FSCEditor.module.css";
 
 import { t } from "../../i18n";
+import { toast } from "../toast/toast.jsx";
 
 // 这些平台Logo均不作为商业用处，仅作为展示使用
 import tw from './platform/tw.svg';
@@ -46,11 +47,14 @@ const FSCEditor = props => {
     }
 
     useEffect(() => {
-        console.log(ext)
         const hotreload = async () => {
+            toast.info(t('Hot reloading FSC extension...'));
             const result = await hotReloadService.hotReloadFSC(ext);
-            console.log(result);
-            console.log("refreshed!")
+            if (result.success) {
+                toast.success(t('FSC extension loaded successfully'));
+            } else {
+                toast.error(result.error || t('Failed to load FSC extension'));
+            }
         }
         hotreload();
     }, [ext])

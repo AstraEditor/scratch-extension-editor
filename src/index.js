@@ -66,10 +66,13 @@ if (process.env.NODE_ENV === 'development') {
 }
   
 
+import ToastContainer from './components/toast/toast.jsx';
+
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
     <Main />
+    <ToastContainer />
   </React.StrictMode>
 );
 

@@ -10,7 +10,7 @@ import { prepareBlockForDisplay } from "../editor/blockUtils.js";
 
 
 import { VscClose } from "react-icons/vsc";
-
+import { toast } from "../toast/toast.jsx";
 
 function moveUp(array, index, pos = 1) {
     if (index <= 0 && pos > 0) return array;
@@ -636,7 +636,7 @@ const NewBlock = props => {
             Object.entries(returnValue('blocks')).forEach(([name]) => {
                 console.log(props.editingIndex)
                 if(name === blockName.trim() && props.editingIndex !== name) {
-                    alert(t('Block ID already exists!'))
+                    toast.error(t('Block ID already exists!'))
                     return
                 }
             })
@@ -660,7 +660,7 @@ const NewBlock = props => {
             }
             props.close();
         } else {
-            alert(t('Invalid Block ID!'))
+            toast.error(t('Invalid Block ID!'))
         }
     };
 

@@ -251,6 +251,16 @@ const translations = {
 
         // FSC
         'Supported Platforms': '支持的平台',
+
+        // Toast / FSC
+        'Hot reloading FSC extension...': '正在热重载 FSC 扩展...',
+        'FSC extension loaded successfully': 'FSC 扩展加载成功',
+        'Failed to load FSC extension': 'FSC 扩展加载失败',
+        'WebSocket is not supported in this environment.': '当前环境不支持 WebSocket。',
+        'FSC WebSocket connection failed': 'FSC WebSocket 连接失败',
+        'Fetching FSC extension...': '正在获取 FSC 扩展...',
+        'FSC extension loaded': 'FSC 扩展已加载',
+        'Failed to fetch FSC extension': '获取 FSC 扩展失败',
         "Can't send extension": "无法发送扩展",
         "Can't reload extension": "无法重载扩展"
     },

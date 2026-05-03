@@ -3,6 +3,7 @@
  */
 import { getAllValue, returnValue, setAllValue } from '../../extension/storage.js';
 import {t} from '../../i18n/index.js'
+import { toast } from '../toast/toast.jsx';
 
 /**
  * 预处理积木数据，用于显示（数组类型的 value 取第一项，颜色从 storage 获取）
@@ -75,7 +76,7 @@ export const loadProject = (e, loaded) => {
             setAllValue(data);
             loaded();
         } catch (err) {
-            alert(t('Failed to load project: ') + err.message);
+            toast.error(t('Failed to load project: ') + err.message);
         }
     };
     reader.readAsText(file);

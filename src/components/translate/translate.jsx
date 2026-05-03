@@ -5,6 +5,7 @@ import { prepareBlockForDisplay } from '../editor/blockUtils.js';
 import { useTranslation } from '../../i18n';
 import styles from './translate.module.css';
 import back from '../main/back.svg';
+import { toast } from "../toast/toast.jsx";
 
 // 支持的翻译目标语言 (MyMemory API)
 const TRANSLATE_LANGUAGES = [
@@ -223,7 +224,7 @@ const Translate = props => {
                 }
             }));
         } catch (error) {
-            alert(t('Translation failed') || '翻译失败');
+            toast.error(t('Translation failed') || '翻译失败');
         }
         setIsTranslating(false);
     };

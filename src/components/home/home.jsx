@@ -11,7 +11,7 @@ import { FaDownload } from "react-icons/fa6";
 import { IoMdAdd } from "react-icons/io";
 import { SiCompilerexplorer } from "react-icons/si";
 import { VscColorMode } from "react-icons/vsc";
-
+import { toast } from "../toast/toast.jsx";
 
 
 const Home = props => {
@@ -57,7 +57,7 @@ const Home = props => {
                                 translate(jsCode, className);
                                 props.loaded();
                             } catch (err) {
-                                alert(t('Failed to decompile extension: ') + err.message);
+                                toast.error(t('Failed to decompile extension: ') + err.message);
                             }
                         };
                         reader.readAsText(file);

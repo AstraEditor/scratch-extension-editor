@@ -1,8 +1,12 @@
+import { toast } from "../components/toast/toast";
+import { t } from "../i18n";
+
 const FSC_URL = "localhost:8000"; // FSC默认端口
 
 export default function fscWS() {
     if (typeof WebSocket === "undefined") {
-        return alert("WebSocketServer is not supported in this environment.");
+        toast.error(t('WebSocket is not supported in this environment.'));
+        return;
     }
 
     var ws = new WebSocket(`ws://${FSC_URL}/ws`);
@@ -12,12 +16,16 @@ export default function fscWS() {
             loadFSCExtension();
         }
     }
+    ws.onerror = e => {
+        toast.error(t('FSC WebSocket connection failed'));
+    }
 }
 
 const loadFSCExtension = () => {
     fetch(`http://${FSC_URL}/meta`)
         .then(res => res.json())
         .then(meta => {
+            toast.info(t('Fetching FSC extension...'));
             return fetch(`http://${FSC_URL}${meta.extensionUrl}`)
                 .then(res => res.text())
                 .then(code => ({ ...meta, extension: code }));
@@ -28,7 +36,7 @@ const loadFSCExtension = () => {
                     detail: projectObject
                 })
             );
-            console.log("Loaded new FSC Extension!");
+            toast.success(t('FSC extension loaded'));
         })
-        .catch(err => { throw new Error("Failed to fetch FSC extension: " + err.message) });
+        .catch(err => { toast.error(t('Failed to fetch FSC extension') + ': ' + err.message) });
 }

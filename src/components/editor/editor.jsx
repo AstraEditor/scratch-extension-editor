@@ -51,6 +51,7 @@ import {
 import { prepareBlockForDisplay, saveProject, loadProject } from './blockUtils.js';
 import hotReloadService from '../../extension/HotReloadService.js';
 import { useTheme } from '../../lib/theme.js';
+import { toast } from '../toast/toast.jsx';
 
 const Editor = props => {
     const { t } = useTranslation();
@@ -312,12 +313,12 @@ const Editor = props => {
         try {
             const result = await hotReloadService.hotReload();
             if (result.success) {
-                alert(t('Extension hot reload successful!'));
+                toast.error(t('Extension hot reload successful!'));
             } else {
-                alert(t('Hot reload failed: ') + (result.error || t('Unknown error')));
+                toast.error(t('Hot reload failed: ') + (result.error || t('Unknown error')));
             }
         } catch (error) {
-            alert(t('Hot reload failed: ') + error.message);
+            toast.error(t('Hot reload failed: ') + error.message);
         } finally {
             setHotReloading(false);
         }
