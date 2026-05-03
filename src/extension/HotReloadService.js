@@ -10,6 +10,7 @@
 
 import { spawnExtension } from './spawn.js';
 import { returnValue } from './storage.js';
+import { t } from '../i18n/index.js';
 
 const HOT_RELOAD_MESSAGE_TYPE = 'astra-extension-hot-reload';
 
@@ -57,7 +58,7 @@ class HotReloadService {
         if (!this.canCommunicate()) {
             return {
                 success: false,
-                error: '无法与编辑器窗口通信。请确保从 Scratch 编辑器打开此窗口。'
+                error: t("Can't send extension")
             };
         }
 
@@ -69,7 +70,7 @@ class HotReloadService {
             if (!extensionId) {
                 return {
                     success: false,
-                    error: '扩展 ID 不存在，请先设置扩展信息。'
+                    error: t("Can't send extension")
                 };
             }
 
@@ -85,7 +86,7 @@ class HotReloadService {
             console.error('Hot reload failed:', error);
             return {
                 success: false,
-                error: error.message || '热重载失败'
+                error: error.message || t("Can't reload extension")
             };
         }
     }
@@ -109,7 +110,7 @@ class HotReloadService {
         if (!this.canCommunicate()) {
             return {
                 success: false,
-                error: '无法与编辑器窗口通信。请确保从 Scratch 编辑器打开此窗口。'
+                error: t("Can't send extension")
             };
         }
 
@@ -126,7 +127,7 @@ class HotReloadService {
             console.error('Hot reload failed:', error);
             return {
                 success: false,
-                error: error.message || '热重载失败'
+                error: error.message || t("Can't reload extension")
             };
         }
     }

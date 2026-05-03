@@ -251,6 +251,8 @@ const translations = {
 
         // FSC
         'Supported Platforms': '支持的平台',
+        "Can't send extension": "无法发送扩展",
+        "Can't reload extension": "无法重载扩展"
     },
 };
 

@@ -9,44 +9,26 @@ export default function fscWS() {
     ws.onmessage = (event) => {
         const data = JSON.parse(event.data) || {};
         if (data.type === "ok") {
-            // 获取扩展信息
-            fetch(`http://${FSC_URL}`)
-                .then(url => {
-                    return url.text();
-                }).then(ext => {
-                    processFSCUrlasObj(ext);
-                })
-                .catch(err => {throw new Error("Failed to fetch extension code: " + err.message)});
+            loadFSCExtension();
         }
     }
 }
 
-const processFSCUrlasObj = (url) => {
-    const URL = JSON.parse(url) || "";
-    if (typeof URL === "string") {
-        console.error("bro, 这里的url非彼url,这里是一个对象");
-        return;
-    }
-
-    let extension = ""; 
-    
-    // 处理URL
-    fetch(`http://${FSC_URL}${URL.extensionUrl}`)
-        .then(res => res.text())
-        .then(code => {
-            extension = code;
-            const ProjectObject = {
-                ...URL,
-                extension
-            }
-            
-            window.dispatchEvent( //发送广播
-                new CustomEvent("fsc-extension-loaded", {
-                    detail: ProjectObject
-                })
-            )
-            console.log("Loaded new FSC Extension!");
-            return "OK!";
+const loadFSCExtension = () => {
+    fetch(`http://${FSC_URL}/meta`)
+        .then(res => res.json())
+        .then(meta => {
+            return fetch(`http://${FSC_URL}${meta.extensionUrl}`)
+                .then(res => res.text())
+                .then(code => ({ ...meta, extension: code }));
         })
-        .catch(err => {throw new Error("Failed to fetch extension code: " + err.message)});
+        .then(projectObject => {
+            window.dispatchEvent(
+                new CustomEvent("fsc-extension-loaded", {
+                    detail: projectObject
+                })
+            );
+            console.log("Loaded new FSC Extension!");
+        })
+        .catch(err => { throw new Error("Failed to fetch FSC extension: " + err.message) });
 }
