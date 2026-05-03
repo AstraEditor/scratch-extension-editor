@@ -221,6 +221,9 @@ const translations = {
         'Seek': '查看',
 
         // NewBlock
+        'Divider': '分割线',
+        'Label': '文字',
+        'Label text': '标签文本',
         'Add Brach': '添加分支',
         'Are you sure to remove this block?': '确定要删除这个积木吗？',
         'Write program': '编写程序',

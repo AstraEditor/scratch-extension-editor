@@ -519,7 +519,7 @@ const NewBlock = props => {
     const [blockType, setBlocktype] = useState(BlockType.STACK);
     const [blockPart, setBlockPart] = useState([]);
     const [blockName, setBlockName] = useState("");
-    
+
     // 积木配置状态
     const [blockConfig, setBlockConfig] = useState({ ...DefaultBlockConfig });
     const effectiveFilterTargets = Array.isArray(blockConfig.filter) && blockConfig.filter.length > 0
@@ -529,6 +529,21 @@ const NewBlock = props => {
     const [EditBlockIndex, setEditBlockIndex] = useState(0);
     const [isEditingBlock, setEditingBlock] = useState(false);
     const canEditParts = true;
+
+    // 响应式：窄屏时使用 tab 切换
+    const blockContainerRef = useRef(null);
+    const [isNarrow, setIsNarrow] = useState(false);
+    const [mobileTab, setMobileTab] = useState('block');
+
+    useEffect(() => {
+        const el = blockContainerRef.current;
+        if (!el) return;
+        const check = () => setIsNarrow(el.clientWidth < 650);
+        const ro = new ResizeObserver(check);
+        ro.observe(el);
+        check();
+        return () => ro.disconnect();
+    });
 
     // 拖拽状态
     const [dragIndex, setDragIndex] = useState(null);
@@ -588,19 +603,28 @@ const NewBlock = props => {
 
     useEffect(() => {
         if (props.initialBlock) {
-            setBlocktype(props.initialBlock.type || BlockType.STACK);
-            setBlockPart(props.initialBlock.parts || []);
-            // 加载已有的 blockConfig 或使用默认配置
-            if (props.initialBlock.blockConfig) {
-                setBlockConfig({ ...DefaultBlockConfig, ...props.initialBlock.blockConfig });
+            if (props.initialBlock === "---") {
+                setBlocktype(BlockType.DIVIDER);
+                setBlockPart([]);
+                setBlockConfig(getConfigForBlockType(BlockType.DIVIDER));
+            } else if (props.initialBlock.type === BlockType.LABEL) {
+                setBlocktype(BlockType.LABEL);
+                setBlockPart(props.initialBlock.text ? [props.initialBlock.text] : []);
+                setBlockConfig({ ...DefaultBlockConfig, ...(props.initialBlock.blockConfig || {}) });
             } else {
-                setBlockConfig(getConfigForBlockType(props.initialBlock.type || BlockType.STACK));
+                setBlocktype(props.initialBlock.type || BlockType.STACK);
+                setBlockPart(props.initialBlock.parts || []);
+                if (props.initialBlock.blockConfig) {
+                    setBlockConfig({ ...DefaultBlockConfig, ...props.initialBlock.blockConfig });
+                } else {
+                    setBlockConfig(getConfigForBlockType(props.initialBlock.type || BlockType.STACK));
+                }
+                // 立即更新 svg block
+                setSvgBlock({
+                    ...props.initialBlock,
+                    colors: getColors()
+                });
             }
-            // 立即更新 svg block
-            setSvgBlock({
-                ...props.initialBlock,
-                colors: getColors()
-            });
         }
         if (props.initialBlockName) {
             setBlockName(props.initialBlockName);
@@ -618,12 +642,22 @@ const NewBlock = props => {
             })
             const typeDefaultConfig = getConfigForBlockType(blockType);
             const mergedConfig = { ...typeDefaultConfig, ...blockConfig };
-            
-            props.onSave(blockName.trim(), {
-                type: blockType,
-                parts: blockPart,
-                blockConfig: mergedConfig
-            });
+
+            if (blockType === BlockType.DIVIDER) {
+                props.onSave(blockName.trim(), "---");
+            } else if (blockType === BlockType.LABEL) {
+                props.onSave(blockName.trim(), {
+                    type: BlockType.LABEL,
+                    text: blockPart[0] || "",
+                    blockConfig: mergedConfig
+                });
+            } else {
+                props.onSave(blockName.trim(), {
+                    type: blockType,
+                    parts: blockPart,
+                    blockConfig: mergedConfig
+                });
+            }
             props.close();
         } else {
             alert(t('Invalid Block ID!'))
@@ -848,16 +882,26 @@ const NewBlock = props => {
                 height="75%"
                 width="75%"
             >
-                {activeTab === 'create' && (
+                {activeTab === 'create' && !isNarrow && (
                     <>
-                        <div className={styles.newBlock}>
+                        <div className={styles.newBlock} ref={blockContainerRef}>
                             <div className={styles.blockArea}>
                                 <div className={styles.sectionCard}>
                                     <div className={styles.sectionTitle}>{t('Block Preview')}</div>
-                                    <div className={styles.svgView}>
-                                        <div className={styles.previewOpcode}>{blockName}</div>
-                                        <div dangerouslySetInnerHTML={{ __html: svgHTML }} />
-                                    </div>
+                                    {blockType === BlockType.DIVIDER ? (
+                                        <div className={styles.previewDivider}>
+                                            <span>─── {t('Divider')} ───</span>
+                                        </div>
+                                    ) : blockType === BlockType.LABEL ? (
+                                        <div className={styles.previewLabel}>
+                                            <span className={styles.previewLabelText}>{blockPart[0] || t('Label text')}</span>
+                                        </div>
+                                    ) : (
+                                        <div className={styles.svgView}>
+                                            <div className={styles.previewOpcode}>{blockName}</div>
+                                            <div dangerouslySetInnerHTML={{ __html: svgHTML }} />
+                                        </div>
+                                    )}
                                 </div>
 
                                 <div className={styles.sectionCard}>
@@ -867,7 +911,6 @@ const NewBlock = props => {
                                             type="text"
                                             value={blockName}
                                             onChange={e => {
-                                                // 只允许 a-z A-Z 字符
                                                 const value = e.target.value.replace(/[^a-zA-Z]/g, '');
                                                 setBlockName(value);
                                             }}
@@ -882,7 +925,6 @@ const NewBlock = props => {
                                             onChange={e => {
                                                 const newType = e.target.value;
                                                 setBlocktype(newType);
-                                                // 自动更新配置为该类型的默认配置
                                                 setBlockConfig(getConfigForBlockType(newType));
                                             }}
                                         >
@@ -891,43 +933,49 @@ const NewBlock = props => {
                                             <option value={BlockType.EVENT}>{t('event')}</option>
                                             <option value={BlockType.ROUND}>{t('repoter')}</option>
                                             <option value={BlockType.BOOLEAN}>{t('boolean')}</option>
-                                            <hr />
                                             <option value={BlockType.C_BLOCK}>{t('C block')}</option>
+                                            <hr />
+                                            <option value={BlockType.LABEL}>{t('Label')}</option>
+                                            <option value={BlockType.DIVIDER}>{t('Divider')}</option>
                                         </select>
                                     </div>
 
-                                    {/* 积木配置面板 */}
+                                    {blockType === BlockType.LABEL && (
+                                        <div className={styles.formRow}>
+                                            <label className={styles.formLabel}>{t('Text')}</label>
+                                            <input
+                                                type="text"
+                                                value={blockPart[0] || ""}
+                                                onChange={e => { setBlockPart([e.target.value]) }}
+                                                placeholder={t('Label text')}
+                                            />
+                                        </div>
+                                    )}
+
+                                    {blockType !== BlockType.DIVIDER && blockType !== BlockType.LABEL && (
                                     <div className={styles.configSection}>
                                         <div className={styles.sectionTitle}>{t('Block Config')}</div>
-                                        
-                                        {/* 连接配置 - 仅对非 reporter 类型显示 */}
+
                                         {blockType !== BlockType.ROUND && blockType !== BlockType.BOOLEAN && blockType !== BlockType.HAT && blockType !== BlockType.EVENT && (
                                             <div className={styles.formRow}>
                                                 <label className={styles.formLabel}>
                                                     <input
                                                         type="checkbox"
                                                         checked={!blockConfig.hasNextConnection}
-                                                        onChange={e => setBlockConfig({
-                                                            ...blockConfig,
-                                                            hasNextConnection: !e.target.checked
-                                                        })}
+                                                        onChange={e => setBlockConfig({ ...blockConfig, hasNextConnection: !e.target.checked })}
                                                     />
                                                     {t('End Block')}
                                                 </label>
                                             </div>
                                         )}
-                                        
-                                        {/* C型积木配置 */}
+
                                         {blockType === BlockType.C_BLOCK && (
                                             <div className={styles.formRow}>
                                                 <label className={styles.formLabel}>
                                                     <input
                                                         type="checkbox"
                                                         checked={blockConfig.isLoop}
-                                                        onChange={e => setBlockConfig({
-                                                            ...blockConfig,
-                                                            isLoop: e.target.checked
-                                                        })}
+                                                        onChange={e => setBlockConfig({ ...blockConfig, isLoop: e.target.checked })}
                                                     />
                                                     {t('Loop')}
                                                 </label>
@@ -938,10 +986,7 @@ const NewBlock = props => {
                                                 <input
                                                     type="checkbox"
                                                     checked={blockConfig.isAsync}
-                                                    onChange={e => setBlockConfig({
-                                                        ...blockConfig,
-                                                        isAsync: e.target.checked
-                                                    })}
+                                                    onChange={e => setBlockConfig({ ...blockConfig, isAsync: e.target.checked })}
                                                 />
                                                 {t('Async Block')}
                                             </label>
@@ -952,10 +997,7 @@ const NewBlock = props => {
                                                 <input
                                                     type="checkbox"
                                                     checked={!!blockConfig.blockAllThreads}
-                                                    onChange={e => setBlockConfig({
-                                                        ...blockConfig,
-                                                        blockAllThreads: e.target.checked
-                                                    })}
+                                                    onChange={e => setBlockConfig({ ...blockConfig, blockAllThreads: e.target.checked })}
                                                 />
                                                 {t('Block all threads')}
                                             </label>
@@ -973,10 +1015,7 @@ const NewBlock = props => {
                                                                 ? Array.from(new Set([...effectiveFilterTargets, 'sprite']))
                                                                 : effectiveFilterTargets.filter(target => target !== 'sprite');
                                                             if (next.length === 0) return;
-                                                            setBlockConfig({
-                                                                ...blockConfig,
-                                                                filter: next.length === ALL_FILTER_TARGETS.length ? [] : next
-                                                            });
+                                                            setBlockConfig({ ...blockConfig, filter: next.length === ALL_FILTER_TARGETS.length ? [] : next });
                                                         }}
                                                     />
                                                     {t('Show on Sprite')}
@@ -990,10 +1029,7 @@ const NewBlock = props => {
                                                                 ? Array.from(new Set([...effectiveFilterTargets, 'stage']))
                                                                 : effectiveFilterTargets.filter(target => target !== 'stage');
                                                             if (next.length === 0) return;
-                                                            setBlockConfig({
-                                                                ...blockConfig,
-                                                                filter: next.length === ALL_FILTER_TARGETS.length ? [] : next
-                                                            });
+                                                            setBlockConfig({ ...blockConfig, filter: next.length === ALL_FILTER_TARGETS.length ? [] : next });
                                                         }}
                                                     />
                                                     {t('Show on Stage')}
@@ -1001,7 +1037,6 @@ const NewBlock = props => {
                                             </div>
                                         </div>
 
-                                        {/* 积木图标 */}
                                         <div className={styles.formRow}>
                                             <button
                                                 onClick={() => {
@@ -1012,12 +1047,7 @@ const NewBlock = props => {
                                                         const file = e.target.files[0];
                                                         if (file) {
                                                             const reader = new FileReader();
-                                                            reader.onload = event => {
-                                                                setBlockConfig({
-                                                                    ...blockConfig,
-                                                                    blockIconURI: event.target.result
-                                                                });
-                                                            };
+                                                            reader.onload = event => setBlockConfig({ ...blockConfig, blockIconURI: event.target.result });
                                                             reader.readAsDataURL(file);
                                                         }
                                                     };
@@ -1029,55 +1059,39 @@ const NewBlock = props => {
                                             </button>
                                             {blockConfig.blockIconURI && (
                                                 <button
-                                                    onClick={() => setBlockConfig({
-                                                        ...blockConfig,
-                                                        blockIconURI: null
-                                                    })}
+                                                    onClick={() => setBlockConfig({ ...blockConfig, blockIconURI: null })}
                                                     style={{ fontSize: '12px' }}
                                                 >
                                                     {t('Clear')}
                                                 </button>
                                             )}
                                         </div>
-
                                     </div>
+                                    )}
 
+                                    {blockType !== BlockType.DIVIDER && blockType !== BlockType.LABEL && (
                                     <div className={styles.actionsRow}>
                                         {canEditParts && (
                                             <>
-                                                <button onClick={() => {
-                                                    setBlockPart(
-                                                        [
-                                                            ...blockPart,
-                                                            "Text"
-                                                        ]
-                                                    )
-                                                }}>
+                                                <button onClick={() => { setBlockPart([...blockPart, "Text"]) }}>
                                                     {returnValue("comments").translate ? "Add Text Translate ID" : t('Add Text')}
                                                 </button>
-                                                <button onClick={() => {
-                                                    setEditingBlock(false);
-                                                    setActiveTab("add_input")
-                                                }}>
+                                                <button onClick={() => { setEditingBlock(false); setActiveTab("add_input") }}>
                                                     {t('Add Input')}
                                                 </button>
                                             </>
                                         )}
                                         {blockType === BlockType.C_BLOCK && (
-                                            <button onClick={() => {
-                                                addBrach()
-                                            }}>
-                                                {t('Add Brach')}
-                                            </button>
+                                            <button onClick={() => addBrach()}>{t('Add Brach')}</button>
                                         )}
-                                        <button onClick={() => {
-                                            saveBlock()
-                                        }}>
-                                            {t('Save Block')}
-                                        </button>
+                                    </div>
+                                    )}
+                                    <div className={styles.actionsRow}>
+                                        <button onClick={() => saveBlock()}>{t('Save Block')}</button>
                                     </div>
                                 </div>
                             </div>
+                            {blockType !== BlockType.DIVIDER && blockType !== BlockType.LABEL && (
                             <div className={styles.domView} ref={domViewRef} onScroll={handlePartsScroll}>
                                 <div className={styles.sectionCard}>
                                     <div className={styles.sectionTitle}>{t('Block Parts')}</div>
@@ -1102,41 +1116,26 @@ const NewBlock = props => {
                                                             ) : (
                                                                 item === "_NextBrach_" ? (
                                                                     <>
-                                                                        <code className={styles.partCode}>
-                                                                                {t('New Brach')}
-                                                                        </code>
+                                                                        <code className={styles.partCode}>{t('New Brach')}</code>
                                                                         {!(blockType === BlockType.C_BLOCK || blockType === BlockType.C_BLOCK_END) && (
-                                                                            <Tip
-                                                                                    title={t("This Block can't use New Brach.")}
-                                                                            />
+                                                                            <Tip title={t("This Block can't use New Brach.")} />
                                                                         )}
                                                                     </>
                                                                 ) : (
                                                                     <input
                                                                         type="text"
                                                                         value={item}
-                                                                        onChange={e => {
-                                                                            updateTextPart(index, e.target.value)
-                                                                        }}
+                                                                        onChange={e => { updateTextPart(index, e.target.value) }}
                                                                     />
                                                                 )
                                                             )}
                                                         </div>
                                                         <div className={styles.partActions}>
-                                                            <button onClick={() => {
-                                                                setBlockPart(moveUp(blockPart, index, index))
-                                                            }}>{t('move to top')}</button>
-                                                            <button onClick={() => {
-                                                                removePart(index)
-                                                            }}>{t('Remove')}</button>
+                                                            <button onClick={() => { setBlockPart(moveUp(blockPart, index, index)) }}>{t('move to top')}</button>
+                                                            <button onClick={() => { removePart(index) }}>{t('Remove')}</button>
                                                             {typeof item !== "string" && (
-                                                                <button onClick={() => {
-                                                                    setEditingBlock(true)
-                                                                    setEditBlockIndex(index);
-                                                                    setActiveTab("add_input")
-                                                                }}>{t('Modify')}</button>
+                                                                <button onClick={() => { setEditingBlock(true); setEditBlockIndex(index); setActiveTab("add_input") }}>{t('Modify')}</button>
                                                             )}
-
                                                         </div>
                                                     </div>
                                                     {renderDropGap(index + 1)}
@@ -1146,23 +1145,312 @@ const NewBlock = props => {
                                     )}
                                 </div>
                             </div>
+                            )}
                         </div>
                         {dragIndex !== null && dragPreviewItem !== null && (
                             <div
                                 className={styles.dragPreview}
-                                style={{
-                                    transform: `translate(${dragPreviewPosition.x}px, ${dragPreviewPosition.y}px)`
-                                }}
+                                style={{ transform: `translate(${dragPreviewPosition.x}px, ${dragPreviewPosition.y}px)` }}
                             >
                                 <div className={`${styles.partRow} ${styles.dragPreviewCard}`}>
                                     <div className={styles.partIndex}>#{dragIndex + 1}</div>
-                                    <div className={styles.partContent}>
-                                        {renderPartSummary(dragPreviewItem)}
-                                    </div>
+                                    <div className={styles.partContent}>{renderPartSummary(dragPreviewItem)}</div>
                                 </div>
                             </div>
                         )}
                     </>
+                )
+                }
+                {activeTab === 'create' && isNarrow && (
+                    <div className={styles.narrowLayout} ref={blockContainerRef}>
+                        <div className={styles.tabBar}>
+                            <button
+                                className={mobileTab === 'config' ? styles.tabActive : ''}
+                                onClick={() => setMobileTab('config')}
+                            >{t('Block Config')}</button>
+                            <button
+                                className={mobileTab === 'block' ? styles.tabActive : ''}
+                                onClick={() => setMobileTab('block')}
+                            >{t('Block')}</button>
+                        </div>
+
+                        <div className={styles.narrowContent}>
+                            {mobileTab === 'config' && (
+                                <div className={styles.narrowScroll}>
+                                    <div className={styles.sectionCard}>
+                                        <div className={styles.sectionTitle}>{t('Block Preview')}</div>
+                                        {blockType === BlockType.DIVIDER ? (
+                                            <div className={styles.previewDivider}>
+                                                <span>─── {t('Divider')} ───</span>
+                                            </div>
+                                        ) : blockType === BlockType.LABEL ? (
+                                            <div className={styles.previewLabel}>
+                                                <span className={styles.previewLabelText}>{blockPart[0] || t('Label text')}</span>
+                                            </div>
+                                        ) : (
+                                            <div className={styles.svgView}>
+                                                <div className={styles.previewOpcode}>{blockName}</div>
+                                                <div dangerouslySetInnerHTML={{ __html: svgHTML }} />
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <div className={styles.sectionCard}>
+                                        <div className={styles.formRow}>
+                                            <label className={styles.formLabel}>{t('ID')}</label>
+                                            <input
+                                                type="text"
+                                                value={blockName}
+                                                onChange={e => {
+                                                    const value = e.target.value.replace(/[^a-zA-Z]/g, '');
+                                                    setBlockName(value);
+                                                }}
+                                                placeholder={t('Enter ID (a-z, A-Z only)')}
+                                            />
+                                        </div>
+
+                                        <div className={styles.formRow}>
+                                            <label className={styles.formLabel}>{t('Block Type')}</label>
+                                            <select
+                                                value={blockType}
+                                                onChange={e => {
+                                                    const newType = e.target.value;
+                                                    setBlocktype(newType);
+                                                    setBlockConfig(getConfigForBlockType(newType));
+                                                }}
+                                            >
+                                                <option value={BlockType.STACK}>{t('stack')}</option>
+                                                <option value={BlockType.HAT}>{t('hat')}</option>
+                                                <option value={BlockType.EVENT}>{t('event')}</option>
+                                                <option value={BlockType.ROUND}>{t('repoter')}</option>
+                                                <option value={BlockType.BOOLEAN}>{t('boolean')}</option>
+                                                <option value={BlockType.C_BLOCK}>{t('C block')}</option>
+                                                <hr />
+                                                <option value={BlockType.LABEL}>{t('Label')}</option>
+                                                <option value={BlockType.DIVIDER}>{t('Divider')}</option>
+                                            </select>
+                                        </div>
+
+                                        {blockType === BlockType.LABEL && (
+                                            <div className={styles.formRow}>
+                                                <label className={styles.formLabel}>{t('Text')}</label>
+                                                <input
+                                                    type="text"
+                                                    value={blockPart[0] || ""}
+                                                    onChange={e => { setBlockPart([e.target.value]) }}
+                                                    placeholder={t('Label text')}
+                                                />
+                                            </div>
+                                        )}
+
+                                        {blockType !== BlockType.DIVIDER && blockType !== BlockType.LABEL && (
+                                        <div className={styles.configSection}>
+                                            <div className={styles.sectionTitle}>{t('Block Config')}</div>
+
+                                            {blockType !== BlockType.ROUND && blockType !== BlockType.BOOLEAN && blockType !== BlockType.HAT && blockType !== BlockType.EVENT && (
+                                                <div className={styles.formRow}>
+                                                    <label className={styles.formLabel}>
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={!blockConfig.hasNextConnection}
+                                                            onChange={e => setBlockConfig({ ...blockConfig, hasNextConnection: !e.target.checked })}
+                                                        />
+                                                        {t('End Block')}
+                                                    </label>
+                                                </div>
+                                            )}
+
+                                            {blockType === BlockType.C_BLOCK && (
+                                                <div className={styles.formRow}>
+                                                    <label className={styles.formLabel}>
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={blockConfig.isLoop}
+                                                            onChange={e => setBlockConfig({ ...blockConfig, isLoop: e.target.checked })}
+                                                        />
+                                                        {t('Loop')}
+                                                    </label>
+                                                </div>
+                                            )}
+                                            <div className={styles.formRow}>
+                                                <label className={styles.formLabel}>
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={blockConfig.isAsync}
+                                                        onChange={e => setBlockConfig({ ...blockConfig, isAsync: e.target.checked })}
+                                                    />
+                                                    {t('Async Block')}
+                                                </label>
+                                            </div>
+
+                                            <div className={styles.formRow}>
+                                                <label className={styles.formLabel}>
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={!!blockConfig.blockAllThreads}
+                                                        onChange={e => setBlockConfig({ ...blockConfig, blockAllThreads: e.target.checked })}
+                                                    />
+                                                    {t('Block all threads')}
+                                                </label>
+                                            </div>
+
+                                            <div className={styles.formRow}>
+                                                <label className={styles.formLabel}>{t('Target Filter')}</label>
+                                                <div className={styles.optionList}>
+                                                    <label className={styles.formLabel}>
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={effectiveFilterTargets.includes('sprite')}
+                                                            onChange={e => {
+                                                                const next = e.target.checked
+                                                                    ? Array.from(new Set([...effectiveFilterTargets, 'sprite']))
+                                                                    : effectiveFilterTargets.filter(target => target !== 'sprite');
+                                                                if (next.length === 0) return;
+                                                                setBlockConfig({ ...blockConfig, filter: next.length === ALL_FILTER_TARGETS.length ? [] : next });
+                                                            }}
+                                                        />
+                                                        {t('Show on Sprite')}
+                                                    </label>
+                                                    <label className={styles.formLabel}>
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={effectiveFilterTargets.includes('stage')}
+                                                            onChange={e => {
+                                                                const next = e.target.checked
+                                                                    ? Array.from(new Set([...effectiveFilterTargets, 'stage']))
+                                                                    : effectiveFilterTargets.filter(target => target !== 'stage');
+                                                                if (next.length === 0) return;
+                                                                setBlockConfig({ ...blockConfig, filter: next.length === ALL_FILTER_TARGETS.length ? [] : next });
+                                                            }}
+                                                        />
+                                                        {t('Show on Stage')}
+                                                    </label>
+                                                </div>
+                                            </div>
+
+                                            <div className={styles.formRow}>
+                                                <button
+                                                    onClick={() => {
+                                                        const input = document.createElement('input');
+                                                        input.type = 'file';
+                                                        input.accept = 'image/*';
+                                                        input.onchange = e => {
+                                                            const file = e.target.files[0];
+                                                            if (file) {
+                                                                const reader = new FileReader();
+                                                                reader.onload = event => setBlockConfig({ ...blockConfig, blockIconURI: event.target.result });
+                                                                reader.readAsDataURL(file);
+                                                            }
+                                                        };
+                                                        input.click();
+                                                    }}
+                                                    style={{ marginRight: '8px' }}
+                                                >
+                                                    {t('Block Icon')}
+                                                </button>
+                                                {blockConfig.blockIconURI && (
+                                                    <button
+                                                        onClick={() => setBlockConfig({ ...blockConfig, blockIconURI: null })}
+                                                        style={{ fontSize: '12px' }}
+                                                    >
+                                                        {t('Clear')}
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
+                                    </div>
+                                </div>
+                            )}
+
+                            {mobileTab === 'block' && (
+                                <div className={styles.narrowScroll} ref={domViewRef} onScroll={handlePartsScroll}>
+                                    <div className={styles.blockActionsBar}>
+                                        {canEditParts && (
+                                            <>
+                                                <button onClick={() => { setBlockPart([...blockPart, "Text"]) }}>
+                                                    {returnValue("comments").translate ? "Add Text Translate ID" : t('Add Text')}
+                                                </button>
+                                                <button onClick={() => { setEditingBlock(false); setActiveTab("add_input") }}>
+                                                    {t('Add Input')}
+                                                </button>
+                                            </>
+                                        )}
+                                        {blockType === BlockType.C_BLOCK && (
+                                            <button onClick={() => addBrach()}>{t('Add Brach')}</button>
+                                        )}
+                                    </div>
+                                    <div className={styles.sectionCard}>
+                                        <div className={styles.sectionTitle}>{t('Block Parts')}</div>
+                                        {blockPart.length === 0 ? (
+                                            <div className={styles.emptyParts}>{t('No parts yet. Add text or input to start building.')}</div>
+                                        ) : (
+                                            <div className={styles.partsList}>
+                                                {renderDropGap(0)}
+                                                {blockPart.map((item, index) => (
+                                                    <Fragment key={`${typeof item}-${index}`}>
+                                                        <div
+                                                            className={`${styles.partRow} ${dragIndex === index ? styles.dragging : ''}`}
+                                                            data-part-row="true"
+                                                            onMouseDown={(e) => handlePartMouseDown(e, index)}
+                                                        >
+                                                            <div className={styles.partIndex}>#{index + 1}</div>
+                                                            <div className={styles.partContent}>
+                                                                {typeof item === "object" ? (
+                                                                    <code className={styles.partCode}>
+                                                                        {getTypeName(item.inputType)}{item.inputType !== InputType.BOOLEAN && ":"} {Array.isArray(item.value) ? ((item.value[0]?.name || '') + '...') : (item.inputType === InputType.IMAGE ? (item.value?.alt || 'Image') : item.value)}
+                                                                    </code>
+                                                                ) : (
+                                                                    item === "_NextBrach_" ? (
+                                                                        <>
+                                                                            <code className={styles.partCode}>{t('New Brach')}</code>
+                                                                            {!(blockType === BlockType.C_BLOCK || blockType === BlockType.C_BLOCK_END) && (
+                                                                                <Tip title={t("This Block can't use New Brach.")} />
+                                                                            )}
+                                                                        </>
+                                                                    ) : (
+                                                                        <input
+                                                                            type="text"
+                                                                            value={item}
+                                                                            onChange={e => { updateTextPart(index, e.target.value) }}
+                                                                        />
+                                                                    )
+                                                                )}
+                                                            </div>
+                                                            <div className={styles.partActions}>
+                                                                <button onClick={() => { setBlockPart(moveUp(blockPart, index, index)) }}>{t('move to top')}</button>
+                                                                <button onClick={() => { removePart(index) }}>{t('Remove')}</button>
+                                                                {typeof item !== "string" && (
+                                                                    <button onClick={() => { setEditingBlock(true); setEditBlockIndex(index); setActiveTab("add_input") }}>{t('Modify')}</button>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                        {renderDropGap(index + 1)}
+                                                    </Fragment>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        {dragIndex !== null && dragPreviewItem !== null && (
+                            <div
+                                className={styles.dragPreview}
+                                style={{ transform: `translate(${dragPreviewPosition.x}px, ${dragPreviewPosition.y}px)` }}
+                            >
+                                <div className={`${styles.partRow} ${styles.dragPreviewCard}`}>
+                                    <div className={styles.partIndex}>#{dragIndex + 1}</div>
+                                    <div className={styles.partContent}>{renderPartSummary(dragPreviewItem)}</div>
+                                </div>
+                            </div>
+                        )}
+
+                        <div className={styles.saveBar}>
+                            <button onClick={() => saveBlock()}>{t('Save Block')}</button>
+                        </div>
+                    </div>
                 )
                 }
                 {

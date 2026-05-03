@@ -1,7 +1,7 @@
 {
   "files": {
-    "main.css": "/scratch-extension-editor/static/css/main.841ac41c.css",
-    "main.js": "/scratch-extension-editor/static/js/main.7bb5ced4.js",
+    "main.css": "/scratch-extension-editor/static/css/main.ea574559.css",
+    "main.js": "/scratch-extension-editor/static/js/main.af713879.js",
     "static/js/430.6029e2f1.chunk.js": "/scratch-extension-editor/static/js/430.6029e2f1.chunk.js",
     "static/media/logo.svg": "/scratch-extension-editor/static/media/logo.f1edf30bd4e380bae00fd04685f4736f.svg",
     "static/media/ae.svg": "/scratch-extension-editor/static/media/ae.207237a33ba119f7782381167b0a51fb.svg",
@@ -14,7 +14,7 @@
     "index.html": "/scratch-extension-editor/index.html"
   },
   "entrypoints": [
-    "static/css/main.841ac41c.css",
-    "static/js/main.7bb5ced4.js"
+    "static/css/main.ea574559.css",
+    "static/js/main.af713879.js"
   ]
 }

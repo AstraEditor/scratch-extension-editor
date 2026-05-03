@@ -14,6 +14,7 @@ const Type = {
         Report: "Scratch.BlockType.REPORTER",
         Branches: "Scratch.BlockType.CONDITIONAL",
         Loop: "Scratch.BlockType.LOOP",
+        Label: "Scratch.BlockType.LABEL"
     },
 
     Arguments: {
@@ -51,7 +52,16 @@ export async function spawnExtension() {
 
     const spawnBlock = (id, data) => {
         if (!data) data = {};
-        
+
+        // 文字标签
+        if (data.type === BlockType.LABEL) {
+            return {
+                opcode: id,
+                blockType: Type.Blocks.Label,
+                text: `Scratch.translate("${data.text || ""}")`
+            };
+        }
+
         let isCondition = false;
         let isEvent = false;
         let isEnd = false;
@@ -271,8 +281,10 @@ export async function spawnExtension() {
         const returnList = [];
         Object.keys(Blocks).forEach((opcode) => {
             const blockData = Blocks[opcode];
-            if (blockData) {
+            if (blockData && blockData !== "---") {
                 returnList.push(spawnBlock(opcode, blockData));
+            } else {
+                returnList.push('---')
             }
         });
         return returnList;
@@ -286,7 +298,7 @@ export async function spawnExtension() {
         const final = [];
         Object.keys(Blocks).forEach((id, index) => {
             const blk = Blocks[id];
-            if (!blk) return;
+            if (!blk || blk === "---" || blk.type === BlockType.LABEL) return;
             
             if (blk.type === BlockType.EVENT) {
                 // 事件积木的生成不同，参考 https://docs.turbowarp.org/development/extensions/hats
@@ -318,6 +330,7 @@ export async function spawnExtension() {
         const commentsData = returnValue('comments') || {};
         
         Object.keys(blocksData).forEach((name) => {
+            if (blocksData[name] === "---") return; // skip dividers
             const id = (commentsData['id'] || 'extension') + '_' + name;
             ids.push(`const ${id} = "${id}"`);
         });

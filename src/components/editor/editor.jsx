@@ -676,7 +676,49 @@ const Editor = props => {
                             <h3>{t('Flyout')}:</h3>
                         </div>
                         <div>
-                            {Object.entries(getAllValue().blocks || {}).map(([name, blk]) => (
+                            {Object.entries(getAllValue().blocks || {}).map(([name, blk]) => {
+                                if (blk === "---") {
+                                    return (
+                                        <div
+                                            key={name}
+                                            className={`${styles.blockDivider} ${draggingBlockName === name ? styles.blockDragging : ''} ${dragOverBlockName === name && draggingBlockName !== name ? styles.blockDragOver : ''}`}
+                                            draggable
+                                            onDragStart={e => handleBlockDragStart(e, name)}
+                                            onDragOver={e => handleBlockDragOver(e, name)}
+                                            onDrop={e => handleBlockDrop(e, name)}
+                                            onDragEnd={handleBlockDragEnd}
+                                        >
+                                            <span className={styles.blockDividerLabel}>{t('Divider')}</span>
+                                            <button
+                                                className={styles.blockDividerRemove}
+                                                onClick={() => handleDeleteBlock(name)}
+                                                title={t('Remove')}
+                                            ><VscClose /></button>
+                                        </div>
+                                    );
+                                }
+                                if (blk && blk.type === BlockType.LABEL) {
+                                    return (
+                                        <div
+                                            key={name}
+                                            className={`${styles.labelPreview} ${draggingBlockName === name ? styles.blockDragging : ''} ${dragOverBlockName === name && draggingBlockName !== name ? styles.blockDragOver : ''}`}
+                                            draggable
+                                            onDragStart={e => handleBlockDragStart(e, name)}
+                                            onDragOver={e => handleBlockDragOver(e, name)}
+                                            onDrop={e => handleBlockDrop(e, name)}
+                                            onDragEnd={handleBlockDragEnd}
+                                        >
+                                            <div className={styles.labelContent}>
+                                                <span className={styles.labelText}>{blk.text || name}</span>
+                                            </div>
+                                            <div className={styles.labelActions}>
+                                                <button onClick={() => handleDeleteBlock(name)} title={t('Remove')}><VscClose /></button>
+                                                <button onClick={() => { setEditingIndex(name); setCreatBlock(true); }} title={t('Edit Block')}><VscSettingsGear /></button>
+                                            </div>
+                                        </div>
+                                    );
+                                }
+                                return (
                                 <div
                                     key={name}
                                     className={`${styles.blockPreview} ${draggingBlockName === name ? styles.blockDragging : ''} ${dragOverBlockName === name && draggingBlockName !== name ? styles.blockDragOver : ''}`}
@@ -714,7 +756,8 @@ const Editor = props => {
                                         <div className={styles.OnceBlockPreview} dangerouslySetInnerHTML={{ __html: renderBlockToHTML(prepareBlockForDisplay(blk)) }} />
                                     </div>
                                 </div>
-                            ))}
+                                );
+                            })}
                         </div>
                     </>
                 ) : isOpenPublicJSeditor ? (

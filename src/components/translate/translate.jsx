@@ -89,7 +89,17 @@ const Translate = props => {
 
         // 从积木中提取文本
         Object.entries(returnValue('blocks')).forEach(([name, blk]) => {
-            if (!blk || !blk.parts) return;
+            if (!blk || blk === "---") return;
+            // 文字标签
+            if (blk.type === "label") {
+                blockMap[name] = [];
+                if (blk.text && canJoin(blk.text)) {
+                    textSet.add(blk.text);
+                    blockMap[name].push(blk.text);
+                }
+                return;
+            }
+            if (!blk.parts) return;
             blockMap[name] = [];
             blk.parts.forEach(blkPart => {
                 if (typeof blkPart === 'object') {
@@ -503,13 +513,20 @@ const Translate = props => {
                                 typeof text === 'string' && text.toLowerCase().includes(searchFilter.toLowerCase())
                             );
                             if (searchFilter && !hasMatchingText) return null;
+                            if (blockData === "---") return null;
 
                             return (
                                 <div key={blockId} className={styles.blockItem}>
                                     <div className={styles.blockId}>
                                         <code>{blockId}</code>
                                     </div>
-                                    {renderBlockPreview(blockId, blockData)}
+                                    {blockData && blockData.type === "label" ? (
+                                        <div className={styles.labelPreview}>
+                                            <span className={styles.labelText}>{getTranslatedText(blockData.text || '')}</span>
+                                        </div>
+                                    ) : (
+                                        renderBlockPreview(blockId, blockData)
+                                    )}
                                     <div className={styles.blockTexts}>
                                         {blockTexts.map((txt, idx) => (
                                             <div key={idx} className={styles.blockTextItem}>

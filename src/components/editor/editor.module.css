@@ -142,6 +142,84 @@
     width: 100%;
 }
 
+.blockDivider {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin: 12px 0;
+}
+
+.blockDivider::before,
+.blockDivider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border-color);
+}
+
+.blockDividerLabel {
+    font-size: 11px;
+    color: var(--text-dim);
+    flex-shrink: 0;
+}
+
+.blockDividerRemove {
+    font-size: 12px;
+    padding: 2px 6px;
+    flex-shrink: 0;
+    opacity: 0.5;
+}
+
+.blockDividerRemove:hover {
+    opacity: 1;
+}
+
+.blockDivider[draggable] {
+    cursor: grab;
+}
+
+.blockDivider[draggable]:active {
+    cursor: grabbing;
+}
+
+.labelPreview {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 16px;
+    margin-bottom: 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    background: var(--background-overlay);
+}
+
+.labelContent {
+    flex: 1;
+}
+
+.labelText {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-color-bright);
+}
+
+.labelActions {
+    display: flex;
+    gap: 6px;
+    flex-shrink: 0;
+}
+
+.labelActions button {
+    font-size: 12px;
+    padding: 4px 8px;
+    opacity: 0.5;
+}
+
+.labelActions button:hover {
+    opacity: 1;
+}
+
 .Tabs {
     display: flex;
     align-items: center;

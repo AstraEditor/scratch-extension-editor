@@ -231,6 +231,8 @@ const BlockType = {
   DEFINE_HAT: "defineHat",  // 定义帽子块
   C_BLOCK: "cBlock",        // C型积木
   C_BLOCK_END: "cBlockEnd", // C型积木的结束块（无底部凸起）
+  DIVIDER: "---",           // 分割线
+  LABEL: "label",           // 文字标签
 };
 
 const InputType = {
@@ -332,6 +334,11 @@ function getConfigForBlockType(blockType) {
     case BlockType.C_BLOCK:
       config.hasNextConnection = true;
       config.branches = 1;
+      break;
+
+    case BlockType.DIVIDER:
+    case BlockType.LABEL:
+      config.hasNextConnection = false;
       break;
 
     case BlockType.STACK:
