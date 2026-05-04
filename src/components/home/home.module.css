@@ -107,3 +107,29 @@
     width: 25px;
     height: auto;
 }
+
+.fscRow {
+    display: flex;
+    gap: 0;
+    width: 100%;
+}
+
+.portInput {
+    width: 64px;
+    height: auto;
+    text-align: center;
+    border: 1px solid var(--border-color-light);
+    border-radius: 0 8px 8px 0;
+    background: var(--background-color);
+    color: var(--text-color);
+    font-size: 13px;
+    padding: 4px;
+    box-sizing: border-box;
+    -moz-appearance: textfield;
+}
+
+.portInput::-webkit-inner-spin-button,
+.portInput::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}

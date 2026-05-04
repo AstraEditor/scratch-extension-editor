@@ -3,7 +3,7 @@ import { setLanguage, SUPPORTED_LANGUAGES, useTranslation } from "../../i18n";
 import { useTheme } from "../../lib/theme.js";
 import { loadProject } from "../editor/blockUtils";
 import { translate, getClass } from "../../extension/decompile";
-import fscWS from "../../extension/fsc-serve";
+import fscWS, { getFSCPort, setFSCPort } from "../../extension/fsc-serve";
 
 import logo from './logo.svg';
 
@@ -11,12 +11,14 @@ import { FaDownload } from "react-icons/fa6";
 import { IoMdAdd } from "react-icons/io";
 import { SiCompilerexplorer } from "react-icons/si";
 import { VscColorMode } from "react-icons/vsc";
+import { useState } from "react";
 import { toast } from "../toast/toast.jsx";
 
 
 const Home = props => {
     const { t, language } = useTranslation();
     const { theme, toggleTheme } = useTheme();
+    const [fscPort, setFscPortState] = useState(getFSCPort());
 
     return (
         <div>
@@ -40,8 +42,21 @@ const Home = props => {
                         <SiCompilerexplorer className={styles.buttonIcon} />
                         {t('Decompile Extension (.js)')}
                     </button>
-                    <button className={styles.actionButton} onClick={() => { fscWS() }} >
-                        FS-Context
+                    <button className={styles.actionButton}>
+                        <button className={styles.actionButton} onClick={() => { setFSCPort(fscPort); fscWS(fscPort) }} >
+                            FS-Context
+                        </button>
+                        <input
+                            className={styles.portInput}
+                            type="number"
+                            value={fscPort}
+                            onChange={e => {
+                                const v = parseInt(e.target.value, 10);
+                                if (!isNaN(v)) setFscPortState(v);
+                            }}
+                            placeholder="8000"
+                            title="FSC Port"
+                        />
                     </button>
 
                     <input id="file-input-c" type="file" accept=".ab,.json" style={{ display: 'none' }} onChange={(e) => loadProject(e, () => { props.loaded() })} />

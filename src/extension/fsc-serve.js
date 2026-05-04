@@ -1,9 +1,25 @@
 import { toast } from "../components/toast/toast";
 import { t } from "../i18n";
 
-const FSC_URL = "localhost:8000"; // FSC默认端口
+const DEFAULT_PORT = 8000;
+const STORAGE_KEY = 'fsc_port';
 
-export default function fscWS() {
+const getPort = () => {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    const port = parseInt(saved, 10);
+    return Number.isFinite(port) && port > 0 && port < 65536 ? port : DEFAULT_PORT;
+};
+
+export const getFSCPort = getPort;
+
+export const setFSCPort = (port) => {
+    localStorage.setItem(STORAGE_KEY, port);
+};
+
+export default function fscWS(port) {
+    const usePort = port || getPort();
+    const FSC_URL = `localhost:${usePort}`;
+
     if (typeof WebSocket === "undefined") {
         toast.error(t('WebSocket is not supported in this environment.'));
         return;
@@ -13,7 +29,7 @@ export default function fscWS() {
     ws.onmessage = (event) => {
         const data = JSON.parse(event.data) || {};
         if (data.type === "ok") {
-            loadFSCExtension();
+            loadFSCExtension(FSC_URL);
         }
     }
     ws.onerror = e => {
@@ -21,7 +37,7 @@ export default function fscWS() {
     }
 }
 
-const loadFSCExtension = () => {
+const loadFSCExtension = (FSC_URL) => {
     fetch(`http://${FSC_URL}/meta`)
         .then(res => res.json())
         .then(meta => {
