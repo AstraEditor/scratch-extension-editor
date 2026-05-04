@@ -42,10 +42,8 @@ const Home = props => {
                         <SiCompilerexplorer className={styles.buttonIcon} />
                         {t('Decompile Extension (.js)')}
                     </button>
-                    <button className={styles.actionButton}>
-                        <button className={styles.actionButton} onClick={() => { setFSCPort(fscPort); fscWS(fscPort) }} >
-                            FS-Context
-                        </button>
+                    <button className={styles.actionButton} onClick={() => { setFSCPort(fscPort); fscWS(fscPort) }} >
+                        FS-Context
                         <input
                             className={styles.portInput}
                             type="number"
@@ -58,6 +56,7 @@ const Home = props => {
                             title="FSC Port"
                         />
                     </button>
+
 
                     <input id="file-input-c" type="file" accept=".ab,.json" style={{ display: 'none' }} onChange={(e) => loadProject(e, () => { props.loaded() })} />
                     <input id="file-input-d" type="file" accept=".js" style={{ display: 'none' }} onChange={async (e) => {

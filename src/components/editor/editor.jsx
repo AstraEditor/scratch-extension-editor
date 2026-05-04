@@ -39,14 +39,8 @@ import {
     MONACO_SETTINGS_KEY
 } from './monacoConfig.js';
 import {
-    FUNCTION_BODY_DIAGNOSTIC_CODES,
-    ASYNC_FUNCTION_BODY_DIAGNOSTIC_CODES,
-    applyEditorDiagnostics,
-    buildSharedMonacoLibs,
-    defineEditorTheme,
-    disposeExtraLibs,
-    syncExtraLibs,
-    updateIdentifierDecorations
+    configureScratchMonaco,
+    syncScratchEditorContext
 } from './monacoHelpers.js';
 import { prepareBlockForDisplay, saveProject, loadProject } from './blockUtils.js';
 import hotReloadService from '../../extension/HotReloadService.js';
@@ -90,10 +84,8 @@ const Editor = props => {
     const [highlightedInput, setHighlightedInput] = useState(null);
     const previewRef = useRef(null);
 
-    // Input ID 列表用于语法高亮
-    const inputIdsRef = useRef([]);
+    // Monaco identifier highlights
     const decorationsRef = useRef([]);
-    const extraLibRegistryRef = useRef([]);
 
     // 展开状态
     const [isHideIndex, setHideIndex] = useState(null);
@@ -106,11 +98,9 @@ const Editor = props => {
     // 应用 Monaco 语言服务配置
     useEffect(() => {
         if (!monacoApiRef.current) return;
-        const ignoredCodes = [
-            ...FUNCTION_BODY_DIAGNOSTIC_CODES,
-            ...(isEditingBlock?.blockConfig?.isAsync ? ASYNC_FUNCTION_BODY_DIAGNOSTIC_CODES : [])
-        ];
-        applyEditorDiagnostics(monacoApiRef.current, monacoConfig, { ignoredCodes });
+        configureScratchMonaco(monacoApiRef.current, monacoConfig, {
+            block: isEditingBlock
+        });
     }, [monacoConfig, isEditingBlock?.blockConfig?.isAsync]);
 
     const syncEditorStateFromStorage = () => {
@@ -191,106 +181,74 @@ const Editor = props => {
     const getBlockTypeLabel = (inputType) => t(BLOCK_TYPE_ID[inputType] || inputType);
 
     const handleMonacoBeforeMount = (monaco) => {
-        defineEditorTheme(monaco);
-        applyEditorDiagnostics(monaco, monacoConfig, {
-            ignoredCodes: FUNCTION_BODY_DIAGNOSTIC_CODES
+        configureScratchMonaco(monaco, monacoConfig, {
+            block: isEditingBlock
+        });
+    };
+
+    const refreshMonacoContext = () => {
+        if (!monacoApiRef.current || !editorRef.current || !isEditingBlock) return;
+
+        const blocks = returnValue('blocks') || {};
+        const extensionId = returnValue('comments')?.id || 'extension';
+
+        syncScratchEditorContext({
+            monaco: monacoApiRef.current,
+            editor: editorRef.current,
+            decorationsRef,
+            block: isEditingBlock,
+            blocks,
+            extensionId,
+            translateType: getBlockTypeLabel,
+            includeBlockInputs: true,
+            publicJS: returnValue('publicJS') || '',
+            hoverLabel: 'Scratch Input'
         });
     };
 
     // 更新装饰器（内容变化时）
     const updateDecorations = () => {
-        if (monacoApiRef.current && editorRef.current && inputIdsRef.current.length > 0) {
-            updateIdentifierDecorations({
-                monaco: monacoApiRef.current,
-                editor: editorRef.current,
-                decorationsRef,
-                identifiers: inputIdsRef.current,
-                hoverLabel: 'Scratch Input'
-            });
-        }
+        refreshMonacoContext();
     };
 
     const handleMonacoMount = (editor, monaco) => {
         monacoApiRef.current = monaco;
         editorRef.current = editor;
-        const ignoredCodes = [
-            ...FUNCTION_BODY_DIAGNOSTIC_CODES,
-            ...(isEditingBlock?.blockConfig?.isAsync ? ASYNC_FUNCTION_BODY_DIAGNOSTIC_CODES : [])
-        ];
-        applyEditorDiagnostics(monaco, monacoConfig, { ignoredCodes });
-        // 应用主题（确保自定义主题生效）
-        monaco.editor.setTheme(monacoConfig.theme || 'vscode-dark-plus');
+        configureScratchMonaco(monaco, monacoConfig, {
+            block: isEditingBlock
+        });
+        refreshMonacoContext();
         setIsMonacoMounted(true);  // 标记 Monaco 已挂载
     };
 
     const handleReadonlyMonacoBeforeMount = (monaco, block) => {
-        defineEditorTheme(monaco);
-        applyEditorDiagnostics(monaco, monacoConfig, {
-            ignoredCodes: [
-                ...FUNCTION_BODY_DIAGNOSTIC_CODES,
-                ...(block?.blockConfig?.isAsync ? ASYNC_FUNCTION_BODY_DIAGNOSTIC_CODES : [])
-            ],
-            baseDiagnosticsOptions: {
-                noSemanticValidation: true,
-                noSuggestionDiagnostics: true
-            }
+        configureScratchMonaco(monaco, monacoConfig, {
+            block,
+            readOnly: true
         });
     };
 
     useEffect(() => {
         if (!isMonacoMounted || !monacoApiRef.current || !isEditingBlock) return;
 
-        const blocks = returnValue('blocks') || {};
-        const extensionId = returnValue('comments')?.id || 'extension';
-        const inputIds = [];
-        let inputIdx = 0;
-
-        (isEditingBlock.parts || []).forEach(part => {
-            if (typeof part === 'object' && part !== null) {
-                inputIds.push(part.id || `input_${inputIdx}`);
-                inputIdx += 1;
-            }
+        configureScratchMonaco(monacoApiRef.current, monacoConfig, {
+            block: isEditingBlock
         });
-
-        const opcodeIds = Object.keys(blocks).map(name => `${extensionId}_${name}`);
-        inputIdsRef.current = [...inputIds, ...opcodeIds];
-
-        syncExtraLibs(
-            monacoApiRef.current,
-            extraLibRegistryRef,
-            buildSharedMonacoLibs({
-                block: isEditingBlock,
-                blocks,
-                extensionId,
-                translateType: getBlockTypeLabel,
-                includeBlockInputs: true,
-                publicJS: returnValue('publicJS') || ''
-            })
-        );
-
-        const ignoredCodes = [
-            ...FUNCTION_BODY_DIAGNOSTIC_CODES,
-            ...(isEditingBlock.blockConfig?.isAsync ? ASYNC_FUNCTION_BODY_DIAGNOSTIC_CODES : [])
-        ];
-        applyEditorDiagnostics(monacoApiRef.current, monacoConfig, { ignoredCodes });
-        updateDecorations();
+        refreshMonacoContext();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isMonacoMounted, isEditingBlock, monacoConfig]);
-
-    useEffect(() => () => {
-        disposeExtraLibs(extraLibRegistryRef);
-    }, []);
+    }, [isMonacoMounted, isEditingBlock, monacoConfig, blockCode]);
 
     // 当 blockCode 变化时更新高亮（处理初始加载的情况）
     useEffect(() => {
-        setTimeout(() => {
-            if (isMonacoMounted && editorRef.current && inputIdsRef.current.length > 0) {
-                // 使用 requestAnimationFrame 确保 Monaco 已完成渲染
+        const timer = window.setTimeout(() => {
+            if (isMonacoMounted && editorRef.current) {
                 requestAnimationFrame(() => {
-                    updateDecorations();
+                    refreshMonacoContext();
                 });
             }
-        }, [100])
+        }, 100);
+
+        return () => window.clearTimeout(timer);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [blockCode, isMonacoMounted]);
 
@@ -381,8 +339,6 @@ const Editor = props => {
     const handleCodeChange = (value) => {
         const nextValue = value ?? '';
         setBlockCode(nextValue);
-        // 更新装饰器高亮
-        updateDecorations();
         // 自动保存（防抖可以后续添加）
         if (editingBlockName) {
             const blocks = returnValue("blocks");
@@ -394,6 +350,8 @@ const Editor = props => {
                 setValueTo("blocks", blocks);
             }
         }
+        // 更新装饰器高亮
+        updateDecorations();
     };
 
     // 返回时保存代码
@@ -720,43 +678,43 @@ const Editor = props => {
                                     );
                                 }
                                 return (
-                                <div
-                                    key={name}
-                                    className={`${styles.blockPreview} ${draggingBlockName === name ? styles.blockDragging : ''} ${dragOverBlockName === name && draggingBlockName !== name ? styles.blockDragOver : ''}`}
-                                    style={{ marginBottom: '24px' }}
-                                    draggable
-                                    onDragStart={e => handleBlockDragStart(e, name)}
-                                    onDragOver={e => handleBlockDragOver(e, name)}
-                                    onDrop={e => handleBlockDrop(e, name)}
-                                    onDragEnd={handleBlockDragEnd}
-                                >
-                                    <div style={{ fontSize: '22px', color: '#666' }}>opcode: "{name}"</div>
-                                    <div className={styles.Block}>
-                                        <div>
-                                            <div className={styles.dragHandle} title={t('Drag to sort')}>
-                                                <VscGrabber />
+                                    <div
+                                        key={name}
+                                        className={`${styles.blockPreview} ${draggingBlockName === name ? styles.blockDragging : ''} ${dragOverBlockName === name && draggingBlockName !== name ? styles.blockDragOver : ''}`}
+                                        style={{ marginBottom: '24px' }}
+                                        draggable
+                                        onDragStart={e => handleBlockDragStart(e, name)}
+                                        onDragOver={e => handleBlockDragOver(e, name)}
+                                        onDrop={e => handleBlockDrop(e, name)}
+                                        onDragEnd={handleBlockDragEnd}
+                                    >
+                                        <div style={{ fontSize: '22px', color: '#666' }}>opcode: "{name}"</div>
+                                        <div className={styles.Block}>
+                                            <div>
+                                                <div className={styles.dragHandle} title={t('Drag to sort')}>
+                                                    <VscGrabber />
+                                                </div>
+                                                <div className={styles.Settings} onClick={() => handleDeleteBlock(name)} title={t("Remove")}>
+                                                    <VscClose />
+                                                </div>
+                                                <div className={styles.Settings} onClick={() => handleStartEditBlock(name, blk)} title={t("Write program")}>
+                                                    <VscEdit />
+                                                </div>
+                                                <div className={styles.Settings} onClick={() => {
+                                                    setEditingIndex(name);
+                                                    setCreatBlock(true);
+                                                }} title={t("Edit Block")}>
+                                                    <VscSettingsGear />
+                                                </div>
                                             </div>
-                                            <div className={styles.Settings} onClick={() => handleDeleteBlock(name)} title={t("Remove")}>
-                                                <VscClose />
+                                            <div className={styles.blockConfig}>
+                                                {(blk.blockConfig.isAsync || false) && <IoIosTimer title={t('Async Block')} />}
+                                                {blk.blockConfig.isLoop || false && <MdLoop title={t('Loop Block')} />}
+                                                {!blk.blockConfig.hasNextConnection || false && <AiOutlineStop title={t('Stop Block')} />}
                                             </div>
-                                            <div className={styles.Settings} onClick={() => handleStartEditBlock(name, blk)} title={t("Write program")}>
-                                                <VscEdit />
-                                            </div>
-                                            <div className={styles.Settings} onClick={() => {
-                                                setEditingIndex(name);
-                                                setCreatBlock(true);
-                                            }} title={t("Edit Block")}>
-                                                <VscSettingsGear />
-                                            </div>
+                                            <div className={styles.OnceBlockPreview} dangerouslySetInnerHTML={{ __html: renderBlockToHTML(prepareBlockForDisplay(blk)) }} />
                                         </div>
-                                        <div className={styles.blockConfig}>
-                                            {(blk.blockConfig.isAsync || false) && <IoIosTimer title={t('Async Block')} />}
-                                            {blk.blockConfig.isLoop || false && <MdLoop title={t('Loop Block')} />}
-                                            {!blk.blockConfig.hasNextConnection || false && <AiOutlineStop title={t('Stop Block')} />}
-                                        </div>
-                                        <div className={styles.OnceBlockPreview} dangerouslySetInnerHTML={{ __html: renderBlockToHTML(prepareBlockForDisplay(blk)) }} />
                                     </div>
-                                </div>
                                 );
                             })}
                         </div>
@@ -778,6 +736,7 @@ const Editor = props => {
                         <div className={styles.selectTab}>
                             <button className={styles.selectTabButton} onClick={() => { setBlockTab(1) }}>{t('Block')}</button>
                             <button className={styles.selectTabButton} onClick={() => { setBlockTab(2) }}>{t('Public')}</button>
+                            <button className={styles.selectTabButton} onClick={() => { setBlockTab(3) }}>{t('Public JS')}</button>
                         </div>
                         {blockTab === 1 && <><div ref={previewRef} className={styles.OnceBlockPreview} dangerouslySetInnerHTML={{ __html: renderBlockToHTML(prepareBlockForDisplay(isEditingBlock)) }} />
                             <span className={styles.FonudTip}>
@@ -822,6 +781,18 @@ const Editor = props => {
                                     )}
                                 />
                             ))}
+                        </>}
+                        {blockTab === 3 && <>
+                            <MonacoEditor
+                                height="100%"
+                                defaultLanguage="javascript"
+                                theme={monacoConfig.theme || 'vscode-dark-plus'}
+                                path="file:///public-editor/public-js.js"
+                                loading={<div style={{ color: '#888', padding: '20px' }}>{t('Loading editor...')}</div>}
+                                options={{ ...monacoConfig.options, readOnly: true, minimap: { enabled: false }, fixedOverflowWidgets: true }}
+                                value={returnValue('publicJS')}
+                                beforeMount={handleMonacoBeforeMount}
+                            />
                         </>}
 
                         <div className={styles.DoneButtonDiv}><button className={styles.DoneButton} onClick={handleBack}>{t('Done')}</button></div>

@@ -10,16 +10,14 @@ import { BlockType, renderBlockToHTML } from '../../lib/blockSvgRenderer.js';
 import { prepareBlockForDisplay } from './blockUtils.js';
 import { VscChevronUp, VscRunBelow } from "react-icons/vsc";
 import {
-    FUNCTION_BODY_DIAGNOSTIC_CODES,
-    ASYNC_FUNCTION_BODY_DIAGNOSTIC_CODES,
-    applyEditorDiagnostics,
-    buildSharedMonacoLibs,
-    defineEditorTheme,
-    disposeExtraLibs,
-    syncExtraLibs,
-    updateIdentifierDecorations
+    configureScratchMonaco,
+    syncScratchEditorContext
 } from './monacoHelpers.js';
 
+const PUBLIC_JS_DIAGNOSTIC_OPTIONS = {
+    noSemanticValidation: true,
+    noSuggestionDiagnostics: true
+};
 
 export const Block = props => {
     const handleToggle = () => {
@@ -84,9 +82,7 @@ const Editor = props => {
     const monacoApiRef = useRef(null);
     const editorRef = useRef(null);  // Monaco editor 实例
     const [isMonacoMounted, setIsMonacoMounted] = useState(false);  // 追踪 Monaco 是否挂载
-    const inputIdsRef = useRef([]);
     const decorationsRef = useRef([]);
-    const extraLibRegistryRef = useRef([]);
 
     const [expandBlockIndex, setExpandBlockIndex] = useState(-1);
 
@@ -116,26 +112,6 @@ const Editor = props => {
     const handleToggleExpand = (index) => {
         setExpandBlockIndex(prev => prev === index ? -1 : index);
     };
-
-    useEffect(() => {
-        setTimeout(() => {
-            updateDecorations();
-        }, 100);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [])
-
-    // 导入IDs
-    useEffect(() => {
-        const ids = [];
-
-        Object.entries(returnValue('blocks')).forEach(([name, blk]) => {
-            const id = returnValue('comments')['id'] + '_' + name;
-            delete ids[id];
-            ids.push(id);
-        });
-
-        inputIdsRef.current = ids;
-    }, []);
 
     // 拖拽调整宽度
     useEffect(() => {
@@ -167,50 +143,48 @@ const Editor = props => {
         e.preventDefault();
     };
 
-    const updateDecorations = () => {
-        if (monacoApiRef.current && editorRef.current && inputIdsRef.current.length > 0) {
-            updateIdentifierDecorations({
-                monaco: monacoApiRef.current,
-                editor: editorRef.current,
-                decorationsRef,
-                identifiers: inputIdsRef.current,
-                hoverLabel: 'Scratch Opcode'
-            });
-        }
+    const refreshMonacoContext = (publicJS = BlockCode) => {
+        if (!monacoApiRef.current || !editorRef.current) return;
+
+        const blocks = returnValue('blocks') || {};
+        const extensionId = returnValue('comments')?.id || 'extension';
+
+        syncScratchEditorContext({
+            monaco: monacoApiRef.current,
+            editor: editorRef.current,
+            decorationsRef,
+            blocks,
+            extensionId,
+            publicJS,
+            hoverLabel: 'Scratch Opcode'
+        });
+    };
+
+    const updateDecorations = (publicJS = BlockCode) => {
+        refreshMonacoContext(publicJS);
     };
 
     // Monaco 内容变化时更新状态和存储
     const handleCodeChange = (value) => {
         const nextValue = value ?? '';
         setBlockCode(nextValue);
-        updateDecorations();
         setValueTo("publicJS", nextValue);
+        updateDecorations(nextValue);
     };
 
     const handleMonacoMount = (editor, monaco) => {
         monacoApiRef.current = monaco;
         editorRef.current = editor;
-        applyEditorDiagnostics(monaco, monacoConfig, {
-            ignoredCodes: FUNCTION_BODY_DIAGNOSTIC_CODES,
-            baseDiagnosticsOptions: {
-                noSemanticValidation: true,
-                noSuggestionDiagnostics: true
-            }
+        configureScratchMonaco(monaco, monacoConfig, {
+            baseDiagnosticsOptions: PUBLIC_JS_DIAGNOSTIC_OPTIONS
         });
-        // 应用主题
-        const theme = monacoConfig.theme || 'vscode-dark-plus';
-        monaco.editor.setTheme(theme);
+        refreshMonacoContext();
         setIsMonacoMounted(true);  // 标记 Monaco 已挂载
     };
 
     const handleMonacoBeforeMount = (monaco) => {
-        defineEditorTheme(monaco);
-        applyEditorDiagnostics(monaco, monacoConfig, {
-            ignoredCodes: FUNCTION_BODY_DIAGNOSTIC_CODES,
-            baseDiagnosticsOptions: {
-                noSemanticValidation: true,
-                noSuggestionDiagnostics: true
-            }
+        configureScratchMonaco(monaco, monacoConfig, {
+            baseDiagnosticsOptions: PUBLIC_JS_DIAGNOSTIC_OPTIONS
         });
     };
 
@@ -218,41 +192,17 @@ const Editor = props => {
         if (!isMonacoMounted || !monacoApiRef.current) return;
 
         const timer = window.setTimeout(() => {
-            const blocks = returnValue('blocks') || {};
-            const extensionId = returnValue('comments')?.id || 'extension';
-            inputIdsRef.current = Object.keys(blocks).map(name => `${extensionId}_${name}`);
-
-            syncExtraLibs(
-                monacoApiRef.current,
-                extraLibRegistryRef,
-                buildSharedMonacoLibs({
-                    blocks,
-                    extensionId,
-                    publicJS: BlockCode
-                })
-            );
-            updateDecorations();
+            refreshMonacoContext(BlockCode);
         }, 120);
 
         return () => window.clearTimeout(timer);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [BlockCode, isMonacoMounted]);
 
-    useEffect(() => () => {
-        disposeExtraLibs(extraLibRegistryRef);
-    }, []);
-
     const handleReadonlyMonacoBeforeMount = (monaco, block) => {
-        defineEditorTheme(monaco);
-        applyEditorDiagnostics(monaco, monacoConfig, {
-            ignoredCodes: [
-                ...FUNCTION_BODY_DIAGNOSTIC_CODES,
-                ...(block?.blockConfig?.isAsync ? ASYNC_FUNCTION_BODY_DIAGNOSTIC_CODES : [])
-            ],
-            baseDiagnosticsOptions: {
-                noSemanticValidation: true,
-                noSuggestionDiagnostics: true
-            }
+        configureScratchMonaco(monaco, monacoConfig, {
+            block,
+            readOnly: true
         });
     };
 

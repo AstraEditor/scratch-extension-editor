@@ -17,8 +17,8 @@ const BUILTIN_LICENSES = ['MPL-2.0', 'MIT', 'GPL-3.0', 'Apache-2.0', 'CC-BY-SA-4
 const Input = props => (
     <input placeholder={props.placeholder} className={styles.input}
         type={props.type || "text"}
-        onChange={(e) => props.setName(e.target.value)}
-        value={props.nowValue}
+        onChange={(e) => props.setname(e.target.value)}
+        value={props.nowvalue}
         {...props}
     />
 )
@@ -47,7 +47,7 @@ export default function NewProject(props) {
         ? 'Custom'
         : initialCommentData.license;
 
-    const [nowName, setName] = useState(initialCommentData.name);
+    const [nowName, setname] = useState(initialCommentData.name);
     const [nowID, setID] = useState(initialCommentData.id);
     const [nowDesc, setDesc] = useState(initialCommentData.description);
     const [nowAuthor, setAuthor] = useState(initialCommentData.author);
@@ -79,8 +79,8 @@ export default function NewProject(props) {
         return [baseColor, color2, color3];
     };
 
-    const setNameAndID = (Name) => {
-        setName(Name);
+    const setnameAndID = (Name) => {
+        setname(Name);
         if (!useCustomID) setID(Name ? spawnExtID(Name) : "");
     }
 
@@ -192,8 +192,8 @@ export default function NewProject(props) {
             <div className={formClassName}>
                 {props.showFormHeading !== false && <h1>{props.formTitle || t('Create extension')}</h1>}
                 <Input
-                    setName={value => setNameAndID(value)}
-                    nowValue={nowName}
+                    setname={value => setnameAndID(value)}
+                    nowvalue={nowName}
                     placeholder={t('Name')}
                 />
                 <div className={styles.ID}>
@@ -227,18 +227,18 @@ export default function NewProject(props) {
 
 
                 <Input
-                    setName={value => setDesc(value)}
-                    nowValue={nowDesc}
+                    setname={value => setDesc(value)}
+                    nowvalue={nowDesc}
                     placeholder={t('Description')}
                 />
                 <Input
-                    setName={value => setAuthor(value)}
-                    nowValue={nowAuthor}
+                    setname={value => setAuthor(value)}
+                    nowvalue={nowAuthor}
                     placeholder={t('Author')}
                 />
                 <Input
-                    setName={value => setDocsURI(value)}
-                    nowValue={nowDocsURI}
+                    setname={value => setDocsURI(value)}
+                    nowvalue={nowDocsURI}
                     placeholder={t('Docs URL')}
                 />
                 <select
@@ -266,7 +266,7 @@ export default function NewProject(props) {
                 </div>
                 <div>
                     <Input
-                        setName={value => {
+                        setname={value => {
                             const newColors = calculateColors(value);
                             // 更新未自定义的颜色
                             setColor([
@@ -275,17 +275,17 @@ export default function NewProject(props) {
                                 customColor[2] ? nowColor[2] : newColors[2]
                             ]);
                         }}
-                        nowValue={nowColor[0]}
+                        nowvalue={nowColor[0]}
                         type="color"
                         placeholder="Color"
                         className={styles.colorInput}
                     />
                     <Input
-                        setName={value => {
+                        setname={value => {
                             setColor([nowColor[0], value, nowColor[2]]);
                             setCustomColor([customColor[0], true, customColor[2]]);
                         }}
-                        nowValue={nowColor[1]}
+                        nowvalue={nowColor[1]}
                         type="color"
                         placeholder="Color"
                         className={styles.colorInput}
@@ -293,11 +293,11 @@ export default function NewProject(props) {
 
                     />
                     <Input
-                        setName={value => {
+                        setname={value => {
                             setColor([nowColor[0], nowColor[1], value]);
                             setCustomColor([customColor[0], customColor[1], true]);
                         }}
-                        nowValue={nowColor[2]}
+                        nowvalue={nowColor[2]}
                         type="color"
                         placeholder="Color"
                         className={styles.colorInput}

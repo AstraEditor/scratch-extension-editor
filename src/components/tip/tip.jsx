@@ -3,13 +3,13 @@ import styles from './tip.module.css'
 
 const Tip = props => {
     return (
-        <div class={styles.Tip}>
-            <div class={styles.title}>
+        <div className={styles.Tip}>
+            <div className={styles.title}>
                 <VscWarning />
                 <span>{props.title}</span>
             </div>
             {props.children &&
-                <div class={styles.title}>
+                <div className={styles.title}>
                     {props.children}
                 </div>
             }
