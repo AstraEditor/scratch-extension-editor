@@ -11,6 +11,13 @@ import {
     setAllValue
 } from './extension/storage'
 import { initTheme } from './lib/theme.js';
+import { detectBrowserLanguage } from './i18n/index.js';
+
+const monacoLanguage = (() => {
+    const lang = detectBrowserLanguage();
+    if (lang === 'zh') return 'zh-cn';
+    return 'en';
+})();
 
 
 // 配置 Monaco 编辑器加载器（使用本地静态资源，避免 CDN 导致加载失败）
@@ -33,7 +40,7 @@ if (loader && typeof loader.config === 'function') {
         },
         'vs/nls': {
             availableLanguages: {
-                '*': 'zh-cn'
+                '*': monacoLanguage
             }
         }
     });
